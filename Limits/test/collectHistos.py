@@ -2,7 +2,8 @@
 import ROOT
 import os, sys
 import optparse 
-
+import copy
+from Stat.Limits.settings import processes, histos
 
 
 usage = 'usage: %prog -p histosPath -o outputFile'
@@ -17,15 +18,10 @@ sys.argv.append('-b')
 path_ = opt.path
 ofilename = opt.output
 
-# List of histograms
-
-histos = {"BDT0":"h_Mt_BDT0","BDT1" :"h_Mt_BDT1", "BDT2": "h_Mt_BDT2", "CRBDT0":"h_Mt_CRBDT0", "CRBDT1":"h_Mt_CRBDT1", "CRBDT2":"h_Mt_CRBDT2"}
-
 # Creating output file
 
 ofile = ROOT.TFile(ofilename,"RECREATE")
 ofile.Close()
-
 
 
 # Getting list of files in histos
@@ -33,12 +29,11 @@ print os.listdir(path_)
 sampFiles = [f for f in os.listdir(path_) if (os.path.isfile(os.path.join(path_, f)) and f.endswith(".root") and f!=ofilename )]
 
 
-
-
-
-
-
-
+#*******************************************************#
+#                                                       #
+#     FILLING IN THE INPUT ROOT FILE FOR COMBINE        #
+#                                                       #
+#*******************************************************#
 
 for f in sampFiles: 
 
@@ -66,3 +61,46 @@ for f in sampFiles:
 
     ofile.Write()
     ofile.Close()
+
+
+
+#*******************************************************#
+#                                                       #
+#           CREATING TOTAL BACKGORUND HISTOS            #
+#                                                       #
+#*******************************************************#
+
+
+histData = dict(zip(histos.keys(), [None]*len(histos.keys())))
+
+for p in processes:
+
+    try:
+        ifile = ROOT.TFile.Open(path_ + p +".root")
+    except IOError:
+        print "Cannot open ", p +".root"
+    else:
+        print "Opening file ",  p +".root"
+        ifile.cd()
+
+        
+    for k_, h_ in histos.iteritems():    
+        tmphist = ifile.Get( h_)
+        if histData[k_] is None: 
+            histData[k_] = copy.deepcopy(tmphist)
+        else: histData[k_].Add(tmphist)
+    
+
+
+ofile = ROOT.TFile(ofilename,"UPDATE")    
+
+for k_ in histos.keys():    
+    if not os.path.isdir( k_):
+        newsubdir = ofile.mkdir(k_)
+    ofile.cd(k_)
+    histData[k_].SetName("Bkg")
+    histData[k_].Write("Bkg", ROOT.TObject.kWriteDelete)
+
+
+ofile.Write()
+ofile.Close()

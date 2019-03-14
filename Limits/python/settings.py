@@ -1,4 +1,12 @@
+#*********************************
+#                                *
+#       List of channels         *
+#                                *
+#*********************************
 
+
+
+histos = {"BDT0":"h_Mt_BDT0","BDT1" :"h_Mt_BDT1", "BDT2": "h_Mt_BDT2", "CRBDT0":"h_Mt_CRBDT0", "CRBDT1":"h_Mt_CRBDT1", "CRBDT2":"h_Mt_CRBDT2"}
 
 #*********************************
 #                                *
