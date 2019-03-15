@@ -28,6 +28,7 @@ def getRate(ch, process, ifile):
 
 def getHist(ch, process, ifile):
        hName = ch + "/"+ process
+       print "Histo Name ", hName
        h = ifile.Get(hName)
        return h
 
@@ -40,10 +41,12 @@ def getHist(ch, process, ifile):
 #                                                       #
 #*******************************************************#
 
-def getCard(sig, ch, ifilename, outdir, mode = "histo"):
+def getCard(sig, ch, ifilename, outdir, mode = "histo", unblind = False):
 
        workdir_ = ifilename.split("/")[:-1]
        WORKDIR = "/".join(workdir_) + "/"
+       carddir = outdir+  "/"  + sig + "/"
+
 
        try:
               ifile = ROOT.TFile.Open(ifilename)
@@ -70,17 +73,13 @@ def getCard(sig, ch, ifilename, outdir, mode = "histo"):
     
        if(mode == "template"):
 
-
-              histData = None
-              for p in processes:
-                     tmphist = getHist(ch, p, ifile)
-                     if histData is None: histData = tmphist
-                     else: histData.Add(tmphist)
-                     
-              print "Number of background events: ", histData.Integral()
-              mT = RooRealVar(  "m_T",    "m_{T}",          0., 7500., "GeV")
-
+              histData = getHist(ch, "Bkg", ifile)
+              histSig = getHist(ch, sig, ifile)
+              mT = RooRealVar(  "m_T",    "m_{T}",          1500., 3900., "GeV")
               bkgData = RooDataHist("bkgdata", "Data (MC Bkg)",  RooArgList(mT), histData, 1.)
+              obsData = RooDataHist("data_obs", "(pseudo) Data",  RooArgList(mT), histData, 1.)
+              sigData = RooDataHist("sigdata", "Data (MC sig)",  RooArgList(mT), histSig, 1.)
+
               nBkgEvts = bkgData.sumEntries()
     
               # build the pdf(s), in this case, with 4 parameters
@@ -89,7 +88,8 @@ def getCard(sig, ch, ifilename, outdir, mode = "histo"):
               p3 = RooRealVar("CMS2016_"+ch+"_p3", "p3", 7.225, -10., 10.)
               p4 = RooRealVar("CMS2016_"+ch+"_p4", "p4", 0.7731, -10., 10.)
               modelBkg = RooGenericPdf("Bkg", "Bkg. fit (3 par.)", "pow(1 - @0/8000, @1) / pow(@0/8000, @2+@3*log(@0/8000))", RooArgList(mT, p2, p3, p4))
-              normzBkg = RooRealVar(modelBkg.GetName()+"_norm", "Number of background events", nBkgEvts, 0., 1.e10)
+              normzBkg = RooRealVar(modelBkg.GetName()+"_norm", "Number of background events", nBkgEvts, 0., 1.e3)
+              print "NormBkg ", normzBkg
               modelExt = RooExtendPdf(modelBkg.GetName()+"_ext", modelBkg.GetTitle(), modelBkg, normzBkg)
               # fit them to data to provide a good starting point to the fit in the combine
               #              fitRes4 = modelExt4.fitTo(bkgData, RooFit.Extended(True), RooFit.Save(1), RooFit.SumW2Error(not isData), RooFit.Strategy(2), RooFit.Minimizer("Minuit2"), RooFit.PrintLevel(1 if VERBOSE else -1))
@@ -104,15 +104,18 @@ def getCard(sig, ch, ifilename, outdir, mode = "histo"):
               w = RooWorkspace("SVJ", "workspace")
               # Dataset
               # ATT: include isData
-              getattr(w, "import")(bkgData, RooFit.Rename("data_obs"))
+              getattr(w, "import")(bkgData, RooFit.Rename("Bkg"))
+              getattr(w, "import")(obsData, RooFit.Rename("data_obs"))
+              getattr(w, "import")(sigData, RooFit.Rename(sig))
               #else: getattr(w, "import")(setToys, RooFit.Rename("data_obs"))
               getattr(w, "import")(modelBkg, RooFit.Rename(modelBkg.GetName()))
               #getattr(w, "import")(modelAlt, RooFit.Rename(modelAlt.GetName()))
               getattr(w, "import")(normzBkg, RooFit.Rename(normzBkg.GetName()))
-              w.writeToFile("%s%s.root" % (WORKDIR, ch), True)
-              print "Workspace", "%s%s.root" % (WORKDIR, ch), "saved successfully"
+              w.writeToFile("%s/ws_%s_%s_%s.root" % (carddir, sig, ch, mode), True)
+
+              print "Workspace", "%s/ws_%s_%s_%s.root" % (carddir, sig, ch, mode) , "saved successfully"
                  
-              
+              workfile = "./ws_%s_%s_%s.root" % ( sig, ch, mode)
               # ======   END MODEL GENERATION   ======       
 
 
@@ -142,7 +145,8 @@ def getCard(sig, ch, ifilename, outdir, mode = "histo"):
               binString += (("%-43s") % (ch) ) * (len(processes)+1)
 
 
-       rates["data_obs"] = getRate(ch, "data_obs", ifile)
+       if unblind: rates["data_obs"] = getRate(ch, "data_obs", ifile)
+       else:  rates["data_obs"] = getRate(ch, "Bkg", ifile)
        rates[sig] = getRate(ch, sig, ifile)
 
 
@@ -153,12 +157,15 @@ def getCard(sig, ch, ifilename, outdir, mode = "histo"):
        card += "-----------------------------------------------------------------------------------\n"
 
        if(mode == "template"):
-              card += "shapes   %s  %s    %s    %s    %s\n" % (sig, ch, ifilename, "$CHANNEL/$PROCESS", "$CHANNEL/$PROCESS_SYSTEMATIC")
+              #              card += "shapes   %s  %s    %s    %s    %s\n" % (sig, ch, ifilename, "$CHANNEL/$PROCESS", "$CHANNEL/$PROCESS_SYSTEMATIC")
               #              card += "shapes            %-15s  %-5s    %s%s.root    %s\n" % (sig, ch, WORKDIR, ch, "SVJ:$PROCESS")
-              card += "shapes   %s  %s    %s%s.root    %s\n" % (modelBkg.GetName(), ch, WORKDIR, ch, "SVJ:$PROCESS")
+              card += "shapes   %s  %s    %s    %s\n" % (modelBkg.GetName(), ch, workfile, "SVJ:$PROCESS")
+              card += "shapes   %s  %s    %s    %s\n" % (sig, ch, workfile, "SVJ:$PROCESS")
+              card += "shapes   %s  %s    %s    %s\n" % ("data_obs", ch, workfile, "SVJ:$PROCESS")
 
-       else:  card += "shapes   *      *   %s    %s    %s\n" % (ifilename, "$CHANNEL/$PROCESS", "$CHANNEL/$PROCESS_SYSTEMATIC")
-       card += "shapes   data_obs      *   %s    %s\n" % (ifilename, "$CHANNEL/$PROCESS")
+       else:  
+              card += "shapes   *      *   %s    %s    %s\n" % (ifilename, "$CHANNEL/$PROCESS", "$CHANNEL/$PROCESS_SYSTEMATIC")
+              card += "shapes   data_obs      *   %s    %s\n" % (ifilename, "$CHANNEL/$PROCESS")
        card += "-----------------------------------------------------------------------------------\n"
        card += "bin               %s\n" % ch
        card += "observation       %0.d\n" % (rates["data_obs"])
@@ -191,7 +198,7 @@ def getCard(sig, ch, ifilename, outdir, mode = "histo"):
        if not os.path.isdir(outdir): os.system('mkdir ' +outdir)
        if not os.path.isdir(outdir + "/" + sig): os.system('mkdir ' +outdir + "/" + sig)
 
-       carddir = outdir+  "/"  + sig + "/"
+
        outname =  "%s%s_%s_%s.txt" % (carddir, sig, ch, mode)
        cardfile = open(outname, 'w')
        cardfile.write(card)
