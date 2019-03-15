@@ -43,11 +43,6 @@ def getHist(ch, process, ifile):
 
 def getCard(sig, ch, ifilename, outdir, mode = "histo", unblind = False):
 
-       workdir_ = ifilename.split("/")[:-1]
-       WORKDIR = "/".join(workdir_) + "/"
-       carddir = outdir+  "/"  + sig + "/"
-
-
        try:
               ifile = ROOT.TFile.Open(ifilename)
        except IOError:
@@ -57,9 +52,16 @@ def getCard(sig, ch, ifilename, outdir, mode = "histo", unblind = False):
               ifile.cd()
 
 
+       r = ROOT.gDirectory.GetListOfKeys()[0]
+       year = r.ReadObj().GetName()[-4:]
+       print "YEAR: ", year
 
-
-
+       ch += "_"
+       ch += year
+       
+       workdir_ = ifilename.split("/")[:-1]
+       WORKDIR = "/".join(workdir_) + "/"
+       carddir = outdir+  "/"  + sig + "/"
 
 
 
@@ -145,8 +147,9 @@ def getCard(sig, ch, ifilename, outdir, mode = "histo", unblind = False):
               binString += (("%-43s") % (ch) ) * (len(processes)+1)
 
 
-       if unblind: rates["data_obs"] = getRate(ch, "data_obs", ifile)
-       else:  rates["data_obs"] = getRate(ch, "Bkg", ifile)
+       if ((not unblind) and (mode == "template")): rates["data_obs"] = getRate(ch, "Bkg", ifile)
+       else: rates["data_obs"] = getRate(ch, "data_obs", ifile)
+        
        rates[sig] = getRate(ch, sig, ifile)
 
 

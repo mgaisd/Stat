@@ -27,7 +27,10 @@ ofile.Close()
 # Getting list of files in histos
 print os.listdir(path_)
 sampFiles = [f for f in os.listdir(path_) if (os.path.isfile(os.path.join(path_, f)) and f.endswith(".root") and f!=ofilename )]
-
+year = ""
+if("2016" in path_): year = "2016"
+elif("2017" in path_): year = "2017"
+elif("2018" in path_): year = "2018"
 
 #*******************************************************#
 #                                                       #
@@ -50,9 +53,9 @@ for f in sampFiles:
     ofile = ROOT.TFile(ofilename,"UPDATE")
     for k_, h_ in histos.iteritems():    
         h = ifile.Get(h_)
-        if not os.path.isdir( k_):
-            newsubdir = ofile.mkdir(k_)
-        ofile.cd(k_)
+        if not os.path.isdir( k_+ "_" + year):
+            newsubdir = ofile.mkdir(k_ + "_" +year)
+        ofile.cd(k_+ "_" +year)
         if(samp.startswith("Data")): samp = "data_obs"
         h.SetName(samp)
         h.Write(samp, ROOT.TObject.kWriteDelete)
@@ -95,9 +98,9 @@ for p in processes:
 ofile = ROOT.TFile(ofilename,"UPDATE")    
 
 for k_ in histos.keys():    
-    if not os.path.isdir( k_):
-        newsubdir = ofile.mkdir(k_)
-    ofile.cd(k_)
+    if not os.path.isdir( k_ + "_" + year):
+        newsubdir = ofile.mkdir(k_+"_" + year)
+    ofile.cd(k_+ "_" + year)
     histData[k_].SetName("Bkg")
     histData[k_].Write("Bkg", ROOT.TObject.kWriteDelete)
 
