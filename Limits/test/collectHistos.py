@@ -8,7 +8,7 @@ from Stat.Limits.settings import processes, histos
 
 usage = 'usage: %prog -p histosPath -o outputFile'
 parser = optparse.OptionParser(usage)
-parser.add_option('-p', '--path', dest='path', type='string', default= "/t3home/decosa/SVJ/CMSSW_8_1_0/src/ttDM/stat/test/histos2016/",help='Where can I find input histos?')
+parser.add_option('-p', '--path', dest='path', type='string', default= "/t3home/decosa/SVJ/CMSSW_8_1_0/src/Stat/Limits/test/histos2016v2/",help='Where can I find input histos?')
 parser.add_option("-o","--outputFile",dest="output",type="string",default="histos.root",help="Name of the output file collecting histos in Combine user frieldy schema. Default is histos.root")
 
 (opt, args) = parser.parse_args()

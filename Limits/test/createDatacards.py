@@ -17,6 +17,7 @@ parser = optparse.OptionParser(usage)
 parser.add_option('-i', '--input', dest='ifile', type='string', default= path + "histos.root",help='Where can I find input histos? Default is histos.root')
 parser.add_option("-o","--outdir",dest="outdir",type="string",default="outdir",help="Name of the output directory where to store datacards. Default is outdir")
 parser.add_option("-m","--mode",dest="mode",type="string",default="hist",help="Kind of shape analysis: parametric fit or fit to histos?. Default is hist")
+parser.add_option("-c","--channel",dest="ch",type="string",default="all",help="Indicate channels of interest. Default is all")
 parser.add_option("-u","--unblind",dest="unblind",action='store_true', default=False)
 
 (opt, args) = parser.parse_args()
@@ -27,6 +28,11 @@ ifilename = opt.ifile
 outdir = opt.outdir
 mode = opt.mode
 unblind = opt.unblind
+
+
+if opt.ch != "all": 
+    ch_clean = opt.ch.replace(" ", "")
+    channels = ch_clean.split(",")
 
 signals = []
 
@@ -43,7 +49,7 @@ for p in sigpoints:
 
 
 
-signals = ["SVJ_mZprime3500_mDark20_rinv03_alphapeak"]
+signals = ["SVJ_mZprime3000_mDark20_rinv03_alphapeak"]
 
 
 for s in signals:
