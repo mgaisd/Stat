@@ -66,6 +66,8 @@ def getCard(sig, ch, ifilename, outdir, mode = "histo", unblind = False):
        carddir = outdir+  "/"  + sig + "/"
 
 
+       hist = getHist(ch, sig, ifile)
+
 
        #*******************************************************#
        #                                                       #
@@ -85,37 +87,18 @@ def getCard(sig, ch, ifilename, outdir, mode = "histo", unblind = False):
                      histData = getHist(ch, "data_obs", ifile)
                      print "*********Number of data ", histData.Integral()
               histSig = getHist(ch, sig, ifile)
-#              mT = RooRealVar(  "m_T",    "m_{T}",          1500., 3900., "GeV")
               bkgData = RooDataHist("bkgdata", "Data (MC Bkg)",  RooArgList(mT), histBkgData, 1.)
               obsData = RooDataHist("data_obs", "(pseudo) Data",  RooArgList(mT), histData, 1.)
               sigData = RooDataHist("sigdata", "Data (MC sig)",  RooArgList(mT), histSig, 1.)
               print "Bkg Integral: ", histData.Integral() 
-              #nBkgEvts = bkgData.sumEntries()
               nBkgEvts = histBkgData.Integral() 
               print "Bkg Events: ", nBkgEvts
-
-    
-              # build the pdf(s), in this case, with 4 parameters
-             # p1 = RooRealVar("CMS2016_"+ch+"_p1", "p1", 0.001742, -1000., 1000.)
-             # p2 = RooRealVar("CMS2016_"+ch+"_p2", "p2", 14.21, -1000., 1000.)
-             # p3 = RooRealVar("CMS2016_"+ch+"_p3", "p3", 7.225, -10., 10.)
-             # p4 = RooRealVar("CMS2016_"+ch+"_p4", "p4", 0.7731, -10., 10.)
-             #              modelBkg = RooGenericPdf("Bkg", "Bkg. fit (3 par.)", "pow(1 - @0/8000, @1) / pow(@0/8000, @2+@3*log(@0/8000))", RooArgList(mT, p2, p3, p4))
-              
 
               print "Channel: ", ch
               modelBkg = fitParam[ch].modelBkg
               normzBkg = RooRealVar(modelBkg.GetName()+"_norm", "Number of background events", nBkgEvts, 0., 1.e3)
               print "NormBkg ", nBkgEvts
               modelExt = RooExtendPdf(modelBkg.GetName()+"_ext", modelBkg.GetTitle(), modelBkg, normzBkg)
-              # fit them to data to provide a good starting point to the fit in the combine
-              #              fitRes4 = modelExt4.fitTo(bkgData, RooFit.Extended(True), RooFit.Save(1), RooFit.SumW2Error(not isData), RooFit.Strategy(2), RooFit.Minimizer("Minuit2"), RooFit.PrintLevel(1 if VERBOSE else -1))
-              #              fitRes4.Print()
-              # set the normalization to CONSTANT. There will be dedicated flat uncertainties in the datacard to make the background free
-              #normzBkg1.setConstant(True)
-              #normzBkg2.setConstant(True)
-              #normzBkg3.setConstant(True)
-              #normzBkg4.setConstant(True)
 
               # create workspace
               w = RooWorkspace("SVJ", "workspace")
@@ -124,6 +107,22 @@ def getCard(sig, ch, ifilename, outdir, mode = "histo", unblind = False):
               getattr(w, "import")(bkgData, RooFit.Rename("Bkg"))
               getattr(w, "import")(obsData, RooFit.Rename("data_obs"))
               getattr(w, "import")(sigData, RooFit.Rename(sig))
+
+
+              for i in xrange(hist.GetNbinsX()):
+                     mcstatSysName = "mcstat_%s_%s_bin%d"  % (ch, sig, i+1)
+                     print mcstatSysName
+                     print sig + "_" + mcstatSysName + "Up"
+                     mcstatSigUp = getHist(ch, sig + "_" + mcstatSysName + "Up", ifile)
+
+                     print "Integral  ", mcstatSigUp.Integral()
+                     mcstatSigDown = getHist(ch, sig + "_" + mcstatSysName + "Down", ifile)
+                     mcstatSigHistUp = RooDataHist(sig + "_" + mcstatSysName + "Up", "Data (MC sig)",  RooArgList(mT), mcstatSigUp, 1.)
+                     mcstatSigHistDown = RooDataHist(sig + "_" + mcstatSysName + "Down", "Data (MC sig)",  RooArgList(mT), mcstatSigDown, 1.)
+                     getattr(w, "import")(mcstatSigHistUp, RooFit.Rename(sig + "_" + mcstatSysName + "Up") )
+                     getattr(w, "import")(mcstatSigHistDown, RooFit.Rename(sig + "_" + mcstatSysName + "Down") )
+
+                     
               #else: getattr(w, "import")(setToys, RooFit.Rename("data_obs"))
               getattr(w, "import")(modelBkg, RooFit.Rename(modelBkg.GetName()))
               #getattr(w, "import")(modelAlt, RooFit.Rename(modelAlt.GetName()))
@@ -185,11 +184,11 @@ def getCard(sig, ch, ifilename, outdir, mode = "histo", unblind = False):
               #              card += "shapes   %s  %s    %s    %s    %s\n" % (sig, ch, ifilename, "$CHANNEL/$PROCESS", "$CHANNEL/$PROCESS_SYSTEMATIC")
               #              card += "shapes            %-15s  %-5s    %s%s.root    %s\n" % (sig, ch, WORKDIR, ch, "SVJ:$PROCESS")
               card += "shapes   %s  %s    %s    %s\n" % (modelBkg.GetName(), ch, workfile, "SVJ:$PROCESS")
-              card += "shapes   %s  %s    %s    %s\n" % (sig, ch, workfile, "SVJ:$PROCESS")
+              card += "shapes   %s  %s    %s    %s    %s\n" % (sig, ch, workfile, "SVJ:$PROCESS", "SVJ:$PROCESS_$SYSTEMATIC")
               card += "shapes   %s  %s    %s    %s\n" % ("data_obs", ch, workfile, "SVJ:$PROCESS")
 
        else:  
-              card += "shapes   *      *   %s    %s    %s\n" % (ifilename, "$CHANNEL/$PROCESS", "$CHANNEL/$PROCESS_SYSTEMATIC")
+              card += "shapes   *      *   %s    %s    %s\n" % (ifilename, "$CHANNEL/$PROCESS", "$CHANNEL/$PROCESS_$SYSTEMATIC")
               card += "shapes   data_obs      *   %s    %s\n" % (ifilename, "$CHANNEL/$PROCESS")
        card += "-----------------------------------------------------------------------------------\n"
        card += "bin               %s\n" % ch
@@ -201,6 +200,8 @@ def getCard(sig, ch, ifilename, outdir, mode = "histo", unblind = False):
        card += "process                                 %-43s%-43s\n" % ("0", procNumbLine)
        card += "rate                                    %-43.6f%-43s\n" % (rates[sig], rateLine) #signalYield[m].getVal(), nevents
        card += "-----------------------------------------------------------------------------------\n"
+
+
 
        for sysName,sysValue  in syst.iteritems():
 
@@ -221,7 +222,7 @@ def getCard(sig, ch, ifilename, outdir, mode = "histo", unblind = False):
                                    card += "%-20s" % (bkgSys)
               elif(sysValue[0]=="shape"):
                      if("mcstat" not in sysName):
-                            card += "shape      %-20s" % (sysName)
+                            card += "%-20s     shape" % (sysName)
                             if ("sig" in sysValue[1]): card += "%-20s" % ( "1") 
                             else: card += "%-20s" % ( "-") 
                             for p in processes:
@@ -232,29 +233,37 @@ def getCard(sig, ch, ifilename, outdir, mode = "histo", unblind = False):
                      else:
                             # CAMBIARE NOME DELLA SYST                     
                             for samp in sysValue[1]:
+                                   sampName = ""
+                                   line = ""
                                    if (samp == "sig" or samp == "Sig"): 
-                                          card += "shape      %-20s" % (sysName)
-                                          card += "%-20s" % ( "1") 
-                                          card += "%-20s" % ("-") * (len(processes)) 
-                                   else:
-                                          card += "shape      %-20s" % (sysName)
-                                          card += "%-20s" % ( "-") 
-                                          line = ["%-20s" % ( "-") for x in xrange (len(processes))]
-
-                                          if samp not in processes and mode == "template":
-                                                 samp = "Bkg"
+            
+                                          line = "%-20s" % ( "1") 
+                                          line += "%-20s" % ("-") * (len(processes)) 
+                                          sampName = sig
+                                   elif(mode != "template"):
+                                          
+                                          line = "%-20s" % ( "-") 
+                                          lineProc = ["%-20s" % ( "-") for x in xrange (len(processes))]
                                           if samp in processes: 
                                                  index = processes.index(samp)  
-                                                 line[index] = "1"
+                                                 lineProc[index] = "1"
                                                  
-                                          line = "         ".join(line)
+                                          lineProc = "         ".join(lineProc)
+                                          line += lineProc
+                                          sampName =  samp
+
+                                   else: continue
+
+
+                                   for i in xrange(hist.GetNbinsX()):
+
+                                          sysName = "mcstat_%s_%s_bin%d      "  % (ch, sampName, i+1)
+                                          card += "%-20s   shape   " % (sysName)
                                           card += line
-                                   card += "\n"        
+                                          card += "\n"        
+
               card += "\n"
 
-
-
-#       card += "%-20s%-20s%-20d\n " % (ch, "autoMCStats", 0)
 
        if not os.path.isdir(outdir): os.system('mkdir ' +outdir)
        if not os.path.isdir(outdir + "/" + sig): os.system('mkdir ' +outdir + "/" + sig)

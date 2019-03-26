@@ -18,7 +18,8 @@ histos = {"BDT0":"h_Mt_BDT0","BDT1" :"h_Mt_BDT1", "BDT2": "h_Mt_BDT2", "CRBDT0":
 
 syst = collections.OrderedDict()
 syst["lumi"] = ("lnN", "all", 1.10)
-#syst["mcstat"] = ("shape", ("TT", "sig"))
+syst["mcstat"] = ("shape", ("QCD", "TT", "WJets", "ZJets", "sig"))
+#syst["mcstat"] = ("shape", ["sig"])
 
 #*********************************
 #                                *
