@@ -7,8 +7,8 @@ from Stat.Limits.datacards import *
 print sigpoints
 
 
-#channels = ["BDT0", "BDT1", "BDT2", "CRBDT0", "CRBDT1", "CRBDT2"]
-channels = ["BDT2"]
+channels = ["BDT0", "BDT1", "BDT2", "CRBDT0", "CRBDT1", "CRBDT2"]
+#channels = ["BDT2"]
 
 path = "/t3home/decosa/SVJ/CMSSW_8_1_0/src/Stat/Limits/test/"
 
@@ -49,7 +49,7 @@ for p in sigpoints:
 
 
 
-signals = ["SVJ_mZprime3000_mDark20_rinv03_alphapeak"]
+#signals = ["SVJ_mZprime3000_mDark20_rinv03_alphapeak"]
 
 
 for s in signals:
