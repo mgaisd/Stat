@@ -4,11 +4,8 @@ import optparse
 from Stat.Limits.settings import *
 from Stat.Limits.datacards import *
 
-print sigpoints
 
-
-channels = ["BDT0", "BDT1", "BDT2", "CRBDT0", "CRBDT1", "CRBDT2"]
-#channels = ["BDT2"]
+channels = [ "BDT1", "BDT2", "CRBDT1", "CRBDT2"]
 
 path = "/t3home/decosa/SVJ/CMSSW_8_1_0/src/Stat/Limits/test/"
 
