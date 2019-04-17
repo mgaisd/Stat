@@ -43,6 +43,7 @@ def getHist(ch, process, ifile):
 
 def getCard(sig, ch, ifilename, outdir, mode = "histo", unblind = False):
 
+
        print "Fit Params", fitParam
 
        try:
@@ -54,18 +55,23 @@ def getCard(sig, ch, ifilename, outdir, mode = "histo", unblind = False):
               ifile.cd()
 
 
-       r = ROOT.gDirectory.GetListOfKeys()[0]
-       year = r.ReadObj().GetName()[-4:]
-       print "YEAR: ", year
+       #r = ROOT.gDirectory.GetListOfKeys()[0]
 
-       ch += "_"
-       ch += year
+       #r_years = [r.ReadObj().GetName()[-4:] for r in ROOT.gDirectory.GetListOfKeys() ]
+
+       #years =  list(set(r_years))
+       #       print "These are the years: ", r_years
+       #       year = r.ReadObj().GetName()[-4:]
+       #print "YEAR: ", year
+
+       #ch += "_"
+       #ch += year
        
        workdir_ = ifilename.split("/")[:-1]
        WORKDIR = "/".join(workdir_) + "/"
        carddir = outdir+  "/"  + sig + "/"
 
-
+       hist_filename = os.getcwd()+"/"+ifilename
        hist = getHist(ch, sig, ifile)
 
 
@@ -188,8 +194,8 @@ def getCard(sig, ch, ifilename, outdir, mode = "histo", unblind = False):
               card += "shapes   %s  %s    %s    %s\n" % ("data_obs", ch, workfile, "SVJ:$PROCESS")
 
        else:  
-              card += "shapes   *      *   %s    %s    %s\n" % (ifilename, "$CHANNEL/$PROCESS", "$CHANNEL/$PROCESS_$SYSTEMATIC")
-              card += "shapes   data_obs      *   %s    %s\n" % (ifilename, "$CHANNEL/$PROCESS")
+              card += "shapes   *      *   %s    %s    %s\n" % (hist_filename, "$CHANNEL/$PROCESS", "$CHANNEL/$PROCESS_$SYSTEMATIC")
+              card += "shapes   data_obs      *   %s    %s\n" % (hist_filename, "$CHANNEL/$PROCESS")
        card += "-----------------------------------------------------------------------------------\n"
        card += "bin               %s\n" % ch
        print "===> Observed data: ", rates["data_obs"]

@@ -8,14 +8,14 @@ from Stat.Limits.settings import processes, histos
 
 usage = 'usage: %prog -p histosPath -o outputFile'
 parser = optparse.OptionParser(usage)
-parser.add_option('-p', '--path', dest='path', type='string', default= "/t3home/decosa/SVJ/CMSSW_8_1_0/src/Stat/Limits/test/histos2016v6/",help='Where can I find input histos?')
-parser.add_option("-o","--outputFile",dest="output",type="string",default="histos.root",help="Name of the output file collecting histos in Combine user frieldy schema. Default is histos.root")
+parser.add_option('-i', '--input', dest='path', type='string', default= "histos2017v6/",help='Where can I find input histos?')
+parser.add_option("-o","--outputFile",dest="output",type="string",default="histos_2017.root",help="Name of the output file collecting histos in Combine user frieldy schema. Default is histos.root")
 
 (opt, args) = parser.parse_args()
 sys.argv.append('-b')
 
 
-path_ = opt.path
+path_ = "./" + opt.path
 ofilename = opt.output
 
 # Creating output file
@@ -74,18 +74,18 @@ for f in sampFiles:
         print "SAMP after channel removal ",samp
         if(samp.startswith("data")): samp = "Data"
         #        h_ = h_[:4]
-        for n in xrange(nBinsX):
-            hNameUp = "%s_mcstat_%s_bin%d_Up" % ( h_, samp, n+1)
-            hNameDown = "%s_mcstat_%s_bin%d_Down" % ( h_, samp, n+1)
-            #hNameUp = "%s_%s" % (h_, NameUp)
-            #hNameDown = "%s_%s" % (h_, NameDown)
-            print "Histogram: ", hNameUp              
-            h_mcStatUp = ifile.Get(hNameUp)
-            h_mcStatDown = ifile.Get(hNameDown)
-            h_mcStatUp.SetName("%s_mcstat_%s_%s_%s_bin%dUp" % (samp, k_, year, samp, n+1))
-            h_mcStatUp.Write("%s_mcstat_%s_%s_%s_bin%dUp" % (samp, k_, year, samp, n+1), ROOT.TObject.kWriteDelete)
-            h_mcStatDown.SetName("%s_mcstat_%s_%s_%s_bin%dDown" % (samp, k_, year,  samp, n+1))
-            h_mcStatDown.Write("%s_mcstat_%s_%s_%s_bin%dDown" % (samp, k_, year, samp, n+1), ROOT.TObject.kWriteDelete)
+      
+        if(samp.startswith("SVJ")):
+            for n in xrange(nBinsX):
+                hNameUp = "%s_mcstat_%s_bin%d_Up" % ( h_, samp, n+1)
+                hNameDown = "%s_mcstat_%s_bin%d_Down" % ( h_, samp, n+1)
+                print "Histogram: ", hNameUp              
+                h_mcStatUp = ifile.Get(hNameUp)
+                h_mcStatDown = ifile.Get(hNameDown)
+                h_mcStatUp.SetName("%s_mcstat_%s_%s_%s_bin%dUp" % (samp, k_, year, samp, n+1))
+                h_mcStatUp.Write("%s_mcstat_%s_%s_%s_bin%dUp" % (samp, k_, year, samp, n+1), ROOT.TObject.kWriteDelete)
+                h_mcStatDown.SetName("%s_mcstat_%s_%s_%s_bin%dDown" % (samp, k_, year,  samp, n+1))
+                h_mcStatDown.Write("%s_mcstat_%s_%s_%s_bin%dDown" % (samp, k_, year, samp, n+1), ROOT.TObject.kWriteDelete)
 
     ofile.Write()
     ofile.Close()
