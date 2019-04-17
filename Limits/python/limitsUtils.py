@@ -8,7 +8,7 @@ from Stat.Limits.settings import *
 
 
 
-points = [vec1, vec2, vec3, vec4, vec5, vec6, vec7, vec8, vec9, vec10, vec11, vec12, vec13, vec14, vec15, vec16, vec17, vec18, vec19, vec20, vec21,vec22, vec23, vec24, vec25]
+#points = [vec1, vec2, vec3, vec4, vec5, vec6, vec7, vec8, vec9, vec10, vec11, vec12, vec13, vec14, vec15, vec16, vec17, vec18, vec19, vec20, vec21,vec22, vec23, vec24, vec25]
 
 
 
@@ -16,7 +16,7 @@ def getLimits(optdir, post):
       
    i = 0;
 
-   for item in points:
+   for item in sigpoints:
          
       mZprime=item[0]
       mDark=item[1]
@@ -28,7 +28,7 @@ def getLimits(optdir, post):
       os.system(("grep \"r < \" %s| awk '/Observed Limit/{f=1}f'") % (filename))
       os.system(("grep \"r < \" %s| awk '{print $5}' >> a%s") % (filename, i))
       
-      print ("grep \"r < \" %s| awk '{print $5}' >> a%i") % (filename, i)  
+      #print ("grep \"r < \" %s| awk '{print $5}' >> a%i") % (filename, i)  
     
       count=0
       with open (('a%i' % i), 'rb') as f:
@@ -46,19 +46,23 @@ def getLimits(optdir, post):
    os.system("echo 'y_up_points1" + post + "      '>> left")
    os.system("echo 'y_up_points2" + post + "      '>> left")
    
-   for i in xrange(len(points)):
+   for i in xrange(len(sigpoints)):
          os.system("echo ' '>>commas")
          os.system("echo ' '>>right")
          
    os.system("rm data/limit"+post + ".txt")
    print "rm data/limit"+post + ".txt"
    #os.system("paste left a0 commas a1 commas a2 commas a3 commas a4 commas a5 commas a6 commas a7 commas a8 commas a9 commas a10 commas a11 commas a12 commas a13 commas a14 commas a15 commas a16 commas a17 commas a18 commas a19 commas a20 commas a21 commas a22 commas a23 commas a24 commas a25 commas a26 commas a27 commas a28 commas a29 commas a30 commas a31 commas a32 commas a33 commas a34 commas a35 commas a36 commas a37 commas a38 commas a39 commas a40 right  > data/limit" + post + ".txt")
-   os.system("paste left a0 commas a1 commas a2 commas a3 commas a4 commas a5 commas a6 commas a7 commas a8 commas a9 commas a10 commas a11 commas a12 commas a13 commas a14 commas a15 commas a16 commas a17 commas a18 commas a19 commas a20 commas a21 commas a22 commas a23 commas a24 right  > data/limit" + post + ".txt")
+
+   os.system("paste left a0 commas a1 commas a2 commas a3 commas a4 commas a5 commas a6 commas a7 commas a8 commas a9 commas a10 commas a11 commas a12 commas a13 commas a14 commas a15 commas a16 commas a17 commas a18 commas a19 commas a20 commas a21 commas a22 commas a23 commas a24 commas a25 commas a26 commas a27 commas a28 commas a29 commas a30 commas a31 commas a32 commas a33 commas a34  right  > data/limit" + post + ".txt")
+
+   #os.system("paste left commas a6 commas a7 commas a8 commas a9 commas a10 commas a11 commas a12 commas a13 commas a14 commas a15 commas a16 commas a17 commas a18 commas a19 commas a20 commas a21 commas a22 commas a23 commas a24 commas a25 commas a26 commas a27 commas a28 commas a29 commas a30 commas a31 commas a32 commas a33 commas a34 commas a35 commas a36 commas a37 commas a38 commas a39 commas a40 right  > data/limit" + post + ".txt")
+   #os.system("paste left a0 commas a1 commas a2 commas a3 commas a4 commas a5 commas a6 commas a7 commas a8 commas a9 commas a10 commas a11 commas a12 commas a13 commas a14 commas a15 commas a16 commas a17 commas a18 commas a19 commas a20 commas a21 commas a22 commas a23 commas a24 right  > data/limit" + post + ".txt")
    #os.system("paste left a0 commas a1 commas a2 right  > data/limit" + post + ".txt")
    #os.system("paste left a0 right  > data/limit" + post + ".txt")
    #print "paste left a0 commas a1 commas a2 commas a3 commas a4 commas a5 commas a6 commas a7 commas a8 commas a9 commas a10 commas a11 commas a12 commas a13 commas a14 commas a15 commas a16 commas a17 commas a18 commas a19 commas a20 commas a21 commas a22 commas a23 commas a24 commas a25 commas a26 commas a27 commas a28 commas a29 commas a30 commas a31 commas a32 commas a33 commas a34 commas a35 commas a36 commas a37 commas a38 commas a39 commas a40 right > data/limit" + post + ".txt"
-   print "paste left a0 commas a1 commas a2 commas a3 commas a4 commas a5 commas a6 commas a7 commas a8 commas a9 commas a10 commas a11 commas a12 commas a13 commas a14 commas a15 commas a16 commas a17 commas a18 commas a19 commas a20 commas a21 commas a22 commas a23 commas a24 commas a24 right > data/limit" + post + ".txt"
-   print "paste left a0 commas a1 commas a2 right > data/limit" + post + ".txt"
+   #print "paste left a0 commas a1 commas a2 commas a3 commas a4 commas a5 commas a6 commas a7 commas a8 commas a9 commas a10 commas a11 commas a12 commas a13 commas a14 commas a15 commas a16 commas a17 commas a18 commas a19 commas a20 commas a21 commas a22 commas a23 commas a24 commas a24 right > data/limit" + post + ".txt"
+   #xprint "paste left a0 commas a1 commas a2 right > data/limit" + post + ".txt"
    
    #   print "paste left a0 right > data/limit" + post + ".txt"
    os.system("more data/limit"+post + ".txt")

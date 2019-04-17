@@ -11,14 +11,14 @@ usage = 'usage: %prog [--cat N]'
 parser = optparse.OptionParser(usage)
 parser.add_option("-c","--channel",dest="ch",type="string",default="all",help="Indicate channels of interest. Default is all")
 parser.add_option("-y","--years",dest="years",type="string",default="2016",help="Indicate years of interest. Default is 2016")
-parser.add_option('-M', '--method', dest='method', type='string', default = 'hist', help='Run a single method (hist, template, all)')
+parser.add_option('-m', '--method', dest='method', type='string', default = 'hist', help='Run a single method (hist, template, all)')
 parser.add_option('-d', '--dir', dest='dir', type='string', default = 'outdir', help='datacards direcotry')
 
 (opt, args) = parser.parse_args()
 
 #points = [vec1, vec2, vec3, vec4, vec5, vec6, vec7, vec8, vec9, vec10, vec11, vec12, vec13, vec14, vec15, vec16, vec17, vec18, vec19, vec20, vec21,vec22, vec23, vec24, vec25, vec26, vec27, vec28, vec29, vec30, vec31, vec32, vec33, vec34, vec35, vec36, vec37, vec38, vec39, vec40, vec41]
 
-points = [vec1, vec2, vec3, vec4, vec5, vec6, vec7, vec8, vec9, vec10, vec11, vec12, vec13, vec14, vec15, vec16, vec17, vec18, vec19, vec20, vec21,vec22, vec23, vec24, vec25]
+#points = [vec1, vec2, vec3, vec4, vec5, vec6, vec7, vec8, vec9, vec10, vec11, vec12, vec13, vec14, vec15, vec16, vec17, vec18, vec19, vec20, vec21,vec22, vec23, vec24, vec25]
 #points = [vec1, vec2, vec3]
 #points = [vec26]
 
@@ -29,7 +29,7 @@ if opt.years != "all":
     y_clean = opt.years.replace(" ", "")
     years = y_clean.split(",")
 
-categories = ["BDT0", "BDT1", "BDT2", "CRBDT0", "CRBDT1", "CRBDT2"]
+categories = [ "BDT1", "BDT2", "CRBDT1", "CRBDT2"]
 methods = ["hist", "template"]
 if opt.ch != "all": 
     ch_clean = opt.ch.replace(" ", "")

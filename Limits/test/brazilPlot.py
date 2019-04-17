@@ -9,16 +9,22 @@ import optparse
 #ROOT.TH1.AddDirectory(False)
 from array import array
 from samples.toPlot import samples
+from Stat.Limits.settings import *
 
-print samples
-#$signal = "SVJ_mZprime%s_mDark20_rinv03_alphapeak" % (str(mass))
 
-masses_ = range(500, 4000, 100)
+
+masses_ = []
+for point in sigpoints:
+    mZprime=point[0]    
+    masses_.append(int(mZprime))
+
+
+
 print "Mass points: ", masses_
 class limit(object):
     pass
 
-def readFile(filename, cat= "hist"):
+def readFile(filename, cat):
 
     v = []
     o = []
@@ -28,19 +34,22 @@ def readFile(filename, cat= "hist"):
     d2 = []
     
     ifile = open(filename)
+
+    print "Reading ", filename
     for l in ifile.readlines():
-      
+
+
         if l.strip()== "": continue
         else:
 
             l_split = l.split()
-            if l.startswith("y_vals_" + cat): v = [float(i) for i in l_split[1:] ]
-            elif l.startswith("y_observed_" + cat): o = [float(i) for i in l_split[1:] ]
-            elif l.startswith("y_up_points1_" + cat): u1 = [float(i) for i in l_split[1:] ]
-            elif l.startswith("y_up_points2_" + cat): u2 = [float(i) for i in l_split[1:] ]
-            elif l.startswith("y_down_points1_" + cat): d1 = [float(i) for i in l_split[1:] ]
-            elif l.startswith("y_down_points2_" + cat): d2 = [float(i) for i in l_split[1:] ]
-            print l      
+            if l.startswith("y_vals_" + cat):  v = [float(i) for i in l_split[1:] if float(i)!= 0.0 ]
+            elif l.startswith("y_observed_" + cat): o = [float(i) for i in l_split[1:] if float(i)!= 0.0]
+            elif l.startswith("y_up_points1_" + cat): u1 = [float(i) for i in l_split[1:] if float(i)!= 0.0]
+            elif l.startswith("y_up_points2_" + cat): u2 = [float(i) for i in l_split[1:] if float(i)!= 0.0]
+            elif l.startswith("y_down_points1_" + cat): d1 = [float(i) for i in l_split[1:] if float(i)!= 0.0]
+            elif l.startswith("y_down_points2_" + cat): d2 = [float(i) for i in l_split[1:] if float(i)!= 0.0]
+            #print l      
 
     limits = limit()
     limits.v = v
@@ -54,16 +63,18 @@ def readFile(filename, cat= "hist"):
 
 #def plotLimits(cat, year, method):
 
-usage = 'usage: %prog --BarrelorEndCap BarrelOrEndCap --phase Phase'
+usage = 'usage: %prog --method method'
 parser = optparse.OptionParser(usage)
 parser.add_option("-r","--ratio",dest="ratio",action='store_true', default=False)
+parser.add_option('-m', '--method', dest='method', type='string', default = 'hist', help='Run a single method (all, hist, template)')
 (opt, args) = parser.parse_args()
 
 
 theo = not opt.ratio
 
-l = readFile("data/limit_hist.txt")
-        
+l = readFile("data/limit_%s.txt" % (opt.method), opt.method)
+
+print "Reading file: ", ("data/limit_%s.txt" % (opt.method))
 ebar_u1 = [l.u1[i] - l.v[i] for i in xrange(len(l.v))]
 ebar_u2 = [l.u2[i] - l.v[i] for i in xrange(len(l.v))]
 ebar_d1 = [l.v[i] - l.d1[i] for i in xrange(len(l.v))]
@@ -79,15 +90,20 @@ ebar_d2 = [l.v[i] - l.d2[i] for i in xrange(len(l.v))]
 #print "U1 ", ebar_u1
 
 
+print "l.v: ", l.v
 med_values = array('f', l.v)
 
 masses = array('f', masses_)
 
-y_theo = {str(mass):samples["SVJ_mZprime%d_mDark20_rinv03_alphapeak" % (mass)].sigma for mass in masses }
+y_theo = {str(mass):samples["SVJ_mZprime%d_mDark20_rinv03_alphapeak" % (mass)].sigma for mass in masses_ }
 
-print y_theo
 #y_theo = [s.sigma for s in samples.itervalues() ]
 y_th_xsec = collections.OrderedDict(sorted(y_theo.items()))
+
+print "theory", y_th_xsec
+print "number of points: ", len(y_th_xsec.keys())
+print "number of points for mass: ", len(masses_)
+print "number of points for values: ", len(med_values)
 
 #print "theory xsec: ", y_th_xsec
 #print y_th_xsec.values()
@@ -131,7 +147,10 @@ x_bars_2 = array('f', [0]*len(l.v))
 # need to pick up 
 #y_theo = [ s.sigma for s in samples]
 
-
+print "MASSES: ", masses
+print 'MEDIAN VALUES: ', med_values
+print 'NUMBER OF ENTRIES: ', len(l.v)
+print 'NUMBER OF ENTRIES: ', len(masses_)
 median = ROOT.TGraph( len(l.v), masses , med_values)
 if theo: median = ROOT.TGraph( len(l.v), masses , y_xsec_vals)
 median.SetLineWidth(2);
@@ -273,4 +292,4 @@ l_preliminary.DrawLatex(0.13, 0.81,"");
 
 
 c1.Update()
-c1.SaveAs("plots/test_limitPlot.pdf")
+c1.SaveAs("plots/test_limitPlot_%s.pdf" % opt.method)
