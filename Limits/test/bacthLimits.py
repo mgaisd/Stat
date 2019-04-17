@@ -25,7 +25,7 @@ if(not os.path.isdir(workDir)): os.makedirs(workDir)
 
 
 
-cmdCombine = "python runCombineSinglePoint.py --mZprime 2000 --mDark 20 --rinv 03 --alpha peak -c all -y all -m hist -d outdir"
+cmdCombine = "python runCombineSinglePoint.py --mZprime mZprime --mDark mDark --rinv rinv --alpha alpha -c channels -y years -m method -d outdir"
 
 for point in sigpoints:
 

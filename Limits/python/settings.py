@@ -7,8 +7,11 @@ import collections
 #*********************************
 
 
-
+### List of histos to include in the root files
 histos = {"BDT0":"h_Mt_BDT0","BDT1" :"h_Mt_BDT1", "BDT2": "h_Mt_BDT2", "CRBDT0":"h_Mt_CRBDT0", "CRBDT1":"h_Mt_CRBDT1", "CRBDT2":"h_Mt_CRBDT2"}
+
+### List of regions for which creating the datacards
+channels = [ "BDT1", "BDT2", "CRBDT1", "CRBDT2"]
 
 #*********************************
 #                                *
@@ -18,8 +21,8 @@ histos = {"BDT0":"h_Mt_BDT0","BDT1" :"h_Mt_BDT1", "BDT2": "h_Mt_BDT2", "CRBDT0":
 
 syst = collections.OrderedDict()
 syst["lumi"] = ("lnN", "all", 1.10)
-syst["mcstat"] = ("shape", ("QCD", "TT", "WJets", "ZJets", "sig"))
-#syst["mcstat"] = ("shape", ["sig"])
+#syst["mcstat"] = ("shape", ("QCD", "TT", "WJets", "ZJets", "sig"))
+syst["mcstat"] = ("shape", ["sig"])
 
 #*********************************
 #                                *
@@ -79,5 +82,7 @@ vec40 = ("4400", "20", "03", "peak")
 vec41 = ("3000", "20", "0", "peak")
 
 
-sigpoints = [vec1, vec2, vec3, vec4, vec5, vec6, vec7, vec8, vec9, vec10, vec11, vec12, vec13, vec14, vec15, vec16, vec17, vec18, vec19, vec20, vec21, vec22, vec23, vec24, vec25, vec26, vec27, vec28, vec29, vec30, vec31, vec32, vec33, vec34, vec35, vec36, vec37, vec38, vec39, vec40, vec41]
+#sigpoints = [vec1, vec2, vec3, vec4, vec5, vec6, vec7, vec8, vec9, vec10, vec11, vec12, vec13, vec14, vec15, vec16, vec17, vec18, vec19, vec20, vec21, vec22, vec23, vec24, vec25, vec26, vec27, vec28, vec29, vec30, vec31, vec32, vec33, vec34, vec35, vec36, vec37, vec38, vec39, vec40, vec41]
+
+sigpoints = [vec6, vec7, vec8, vec9, vec10, vec11, vec12, vec13, vec14, vec15, vec16, vec17, vec18, vec19, vec20, vec21, vec22, vec23, vec24, vec25, vec26, vec27, vec28, vec29, vec30, vec31, vec32, vec33, vec34, vec35, vec36, vec37, vec38, vec39, vec40, vec41]
 
