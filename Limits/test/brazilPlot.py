@@ -67,6 +67,7 @@ usage = 'usage: %prog --method method'
 parser = optparse.OptionParser(usage)
 parser.add_option("-r","--ratio",dest="ratio",action='store_true', default=False)
 parser.add_option('-m', '--method', dest='method', type='string', default = 'hist', help='Run a single method (all, hist, template)')
+parser.add_option('-y', '--year', dest='year', type='string', default = 'all', help='Run a single method (all, 2016, 2017, Run2)')
 (opt, args) = parser.parse_args()
 
 
@@ -90,7 +91,6 @@ ebar_d2 = [l.v[i] - l.d2[i] for i in xrange(len(l.v))]
 #print "U1 ", ebar_u1
 
 
-print "l.v: ", l.v
 med_values = array('f', l.v)
 
 masses = array('f', masses_)
@@ -100,20 +100,11 @@ y_theo = {str(mass):samples["SVJ_mZprime%d_mDark20_rinv03_alphapeak" % (mass)].s
 #y_theo = [s.sigma for s in samples.itervalues() ]
 y_th_xsec = collections.OrderedDict(sorted(y_theo.items()))
 
-print "theory", y_th_xsec
-print "number of points: ", len(y_th_xsec.keys())
-print "number of points for mass: ", len(masses_)
-print "number of points for values: ", len(med_values)
-
 #print "theory xsec: ", y_th_xsec
 #print y_th_xsec.values()
 #print l.v
 
 y_xsec_vals = array('f', [l.v[i]*y_th_xsec.values()[i] for i in xrange(len(l.v) ) ])
-
-#print "MEDIANS: ", l.v
-#print "MEDIANS XSEC ", y_xsec_vals
-
 
 y_th_xsec_vals = array('f', [th for th in y_th_xsec.itervalues()])
 
@@ -147,10 +138,6 @@ x_bars_2 = array('f', [0]*len(l.v))
 # need to pick up 
 #y_theo = [ s.sigma for s in samples]
 
-print "MASSES: ", masses
-print 'MEDIAN VALUES: ', med_values
-print 'NUMBER OF ENTRIES: ', len(l.v)
-print 'NUMBER OF ENTRIES: ', len(masses_)
 median = ROOT.TGraph( len(l.v), masses , med_values)
 if theo: median = ROOT.TGraph( len(l.v), masses , y_xsec_vals)
 median.SetLineWidth(2);
@@ -182,11 +169,14 @@ band_2sigma.GetXaxis().SetTitle("#it{m}_{Z'} [GeV]");
 band_2sigma.GetXaxis().SetTitleOffset(0.80);
 band_2sigma.GetXaxis().SetLabelSize(0.037);
 band_2sigma.GetXaxis().SetTitleSize(0.049);
+
 band_2sigma.GetYaxis().SetTitle("#sigma #times BR [pb]");
 band_2sigma.GetYaxis().SetTitleOffset(0.75);
 band_2sigma.GetYaxis().SetTitleSize(0.054);
 band_2sigma.GetYaxis().SetLabelSize(0.041);
 band_2sigma.GetYaxis().SetTitleFont(42);
+
+
 
 legend = ROOT.TLegend(0.485,0.5,0.93,0.90)
 legend.SetTextSize(0.039);
@@ -211,6 +201,8 @@ ROOT.SetOwnership(c1, False)
 c1.cd()
 c1.SetGrid() 
 c1.SetLogy(1)
+band_2sigma.GetXaxis().SetRangeUser(masses_[0], masses_[-1])
+c1.Update()
 band_2sigma.Draw("A3")
 band_1sigma.Draw("3")
 band_1sigma.SetMaximum(200)
@@ -243,7 +235,10 @@ cmsTextFont   = 61;
 cmsTextSize      = 0.75;
 
 #lumiText = ROOT.TString("41.5 fb^{-1} (13 TeV)")
-lumiText = "41.5 fb^{-1} (13 TeV)"
+lumiText = "77.45 fb^{-1} (13 TeV)"
+if (opt.year == "2016"):lumiText = "35.92 fb^{-1} (13 TeV)"
+elif (opt.year == "2017"):lumiText = "41.53 fb^{-1} (13 TeV)"
+elif (opt.year == "Run2"):lumiText = "137.19 fb^{-1} (13 TeV)"
 latex_lumi = ROOT.TLatex();
 latex_lumi.SetNDC();
 latex_lumi.SetTextAngle(0);
