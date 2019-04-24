@@ -29,7 +29,7 @@ if opt.years != "all":
     y_clean = opt.years.replace(" ", "")
     years = y_clean.split(",")
 
-categories = [ "BDT1", "BDT2", "CRBDT1", "CRBDT2"]
+categories = channels
 methods = ["hist", "template"]
 if opt.ch != "all": 
     ch_clean = opt.ch.replace(" ", "")

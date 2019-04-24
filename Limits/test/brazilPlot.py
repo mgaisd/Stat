@@ -13,14 +13,6 @@ from Stat.Limits.settings import *
 
 
 
-masses_ = []
-for point in sigpoints:
-    mZprime=point[0]    
-    masses_.append(int(mZprime))
-
-
-
-print "Mass points: ", masses_
 class limit(object):
     pass
 
@@ -67,13 +59,32 @@ usage = 'usage: %prog --method method'
 parser = optparse.OptionParser(usage)
 parser.add_option("-r","--ratio",dest="ratio",action='store_true', default=False)
 parser.add_option('-m', '--method', dest='method', type='string', default = 'hist', help='Run a single method (all, hist, template)')
-parser.add_option('-y', '--year', dest='year', type='string', default = 'all', help='Run a single method (all, 2016, 2017, Run2)')
+parser.add_option('-y', '--year', dest='year', type='string', default = 'all', help='Run a single method (Run2, 2016, 2017, 2016_2017)')
+parser.add_option('-v', '--variable', dest='variable', type='string', default = 'mZprime', help='Plot limit against variable v (mZPrime, mDark, rinv, alpha)')
 (opt, args) = parser.parse_args()
 
 
 theo = not opt.ratio
 
 l = readFile("data/limit_%s.txt" % (opt.method), opt.method)
+
+
+
+xvalues_ = []
+for point in sigpoints:
+
+
+    var = point[0]    
+    if opt.variable == "mDark": var = point[1]
+    elif opt.variable == "rinv": var = point[2]
+    elif opt.variable == "alpha": var = point[3]
+    
+    xvalues_.append(int(var))
+
+
+
+print "Mass points: ", xvalues_
+
 
 print "Reading file: ", ("data/limit_%s.txt" % (opt.method))
 ebar_u1 = [l.u1[i] - l.v[i] for i in xrange(len(l.v))]
@@ -93,9 +104,9 @@ ebar_d2 = [l.v[i] - l.d2[i] for i in xrange(len(l.v))]
 
 med_values = array('f', l.v)
 
-masses = array('f', masses_)
+xvalues = array('f', xvalues_)
 
-y_theo = {str(mass):samples["SVJ_mZprime%d_mDark20_rinv03_alphapeak" % (mass)].sigma for mass in masses_ }
+y_theo = {str(mass):samples["SVJ_mZprime%d_mDark20_rinv03_alphapeak" % (mass)].sigma for mass in xvalues_ }
 
 #y_theo = [s.sigma for s in samples.itervalues() ]
 y_th_xsec = collections.OrderedDict(sorted(y_theo.items()))
@@ -138,29 +149,29 @@ x_bars_2 = array('f', [0]*len(l.v))
 # need to pick up 
 #y_theo = [ s.sigma for s in samples]
 
-median = ROOT.TGraph( len(l.v), masses , med_values)
-if theo: median = ROOT.TGraph( len(l.v), masses , y_xsec_vals)
+median = ROOT.TGraph( len(l.v), xvalues , med_values)
+if theo: median = ROOT.TGraph( len(l.v), xvalues , y_xsec_vals)
 median.SetLineWidth(2);
 median.SetLineStyle(2);
 median.SetLineColor(ROOT.kBlue);
 median.SetFillColor(0);
 median.GetXaxis().SetRangeUser(110, 150);
 
-theory = ROOT.TGraph( len(l.v), masses , y_th_xsec_vals);
+theory = ROOT.TGraph( len(l.v), xvalues , y_th_xsec_vals);
 theory.SetLineWidth(2);
 theory.SetLineStyle(1);
 theory.SetLineColor(ROOT.kRed);
 theory.SetFillColor(ROOT.kWhite);
 
-band_1sigma = ROOT.TGraphAsymmErrors(len(l.v), masses, med_values, x_bars_1, x_bars_2, y_bars_d1, y_bars_u1)
-if theo: band_1sigma = ROOT.TGraphAsymmErrors(len(l.v), masses, y_xsec_vals, x_bars_1, x_bars_2, y_bars_d1, y_bars_u1)
+band_1sigma = ROOT.TGraphAsymmErrors(len(l.v), xvalues, med_values, x_bars_1, x_bars_2, y_bars_d1, y_bars_u1)
+if theo: band_1sigma = ROOT.TGraphAsymmErrors(len(l.v), xvalues, y_xsec_vals, x_bars_1, x_bars_2, y_bars_d1, y_bars_u1)
 #band_1sigma = ROOT.TGraphAsymmErrors(len(l.v), masses_value, med_values, 0, 0, 0, 0)
 band_1sigma.SetFillColor(ROOT.kGreen + 1)
 band_1sigma.SetLineColor(ROOT.kGreen + 1)
 band_1sigma.SetMarkerColor(ROOT.kGreen + 1)
 
-band_2sigma = ROOT.TGraphAsymmErrors(len(l.v), masses, med_values, x_bars_1, x_bars_2, y_bars_d2, y_bars_u2)
-if theo: band_2sigma = ROOT.TGraphAsymmErrors(len(l.v), masses,  y_xsec_vals, x_bars_1, x_bars_2, y_bars_d2, y_bars_u2)
+band_2sigma = ROOT.TGraphAsymmErrors(len(l.v), xvalues, med_values, x_bars_1, x_bars_2, y_bars_d2, y_bars_u2)
+if theo: band_2sigma = ROOT.TGraphAsymmErrors(len(l.v), xvalues,  y_xsec_vals, x_bars_1, x_bars_2, y_bars_d2, y_bars_u2)
 band_2sigma.SetTitle("")
 band_2sigma.SetFillColor(ROOT.kOrange)
 band_2sigma.SetLineColor(ROOT.kOrange)
@@ -201,7 +212,7 @@ ROOT.SetOwnership(c1, False)
 c1.cd()
 c1.SetGrid() 
 c1.SetLogy(1)
-band_2sigma.GetXaxis().SetRangeUser(masses_[0], masses_[-1])
+band_2sigma.GetXaxis().SetRangeUser(xvalues_[0], xvalues_[-1])
 c1.Update()
 band_2sigma.Draw("A3")
 band_1sigma.Draw("3")
@@ -287,4 +298,4 @@ l_preliminary.DrawLatex(0.13, 0.81,"");
 
 
 c1.Update()
-c1.SaveAs("plots/test_limitPlot_%s.pdf" % opt.method)
+c1.SaveAs("plots/test_limitPlot_%s_%s.pdf" % (opt.year, opt.method))

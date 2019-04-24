@@ -10,8 +10,12 @@ import collections
 ### List of histos to include in the root files
 histos = {"BDT0":"h_Mt_BDT0","BDT1" :"h_Mt_BDT1", "BDT2": "h_Mt_BDT2", "CRBDT0":"h_Mt_CRBDT0", "CRBDT1":"h_Mt_CRBDT1", "CRBDT2":"h_Mt_CRBDT2"}
 
+#histos = {"BDT0":"h_Mt"}
+
 ### List of regions for which creating the datacards
 channels = [ "BDT1", "BDT2", "CRBDT1", "CRBDT2"]
+
+#channels = [ "BDT0"]
 
 #*********************************
 #                                *
@@ -21,8 +25,10 @@ channels = [ "BDT1", "BDT2", "CRBDT1", "CRBDT2"]
 
 syst = collections.OrderedDict()
 syst["lumi"] = ("lnN", "all", 1.10)
+syst["trigger"] = ("lnN", "all", 1.02)
 #syst["mcstat"] = ("shape", ("QCD", "TT", "WJets", "ZJets", "sig"))
 syst["mcstat"] = ("shape", ["sig"])
+#syst["trig"] = ("shape", ["sig"])
 
 #*********************************
 #                                *

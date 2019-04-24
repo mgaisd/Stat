@@ -28,7 +28,7 @@ ofile.Close()
 print os.listdir(path_)
 sampFiles = [f for f in os.listdir(path_) if (os.path.isfile(os.path.join(path_, f)) and f.endswith(".root") and f!=ofilename )]
 year = ""
-if("2016" in path_): year = "2016"
+if("2016" in path_ or "20161718" in path_): year = "2016"
 elif("2017" in path_): year = "2017"
 elif("2018" in path_): year = "2018"
 
@@ -61,25 +61,26 @@ for f in sampFiles:
             newsubdir = ofile.mkdir(k_ + "_" +year)
         ofile.cd(k_+ "_" +year)
         if(samp.startswith("Data")): samp = "data_obs"
-        print "We are looking for histo %s for samp %s in %s" % (h_, samp, f)
+        #print "We are looking for histo %s for samp %s in %s" % (h_, samp, f)
         h.SetName(samp)
         h.Write(samp, ROOT.TObject.kWriteDelete)
         nBinsX = h.GetNbinsX()
-        print "SAMP ",samp
+        #print "SAMP ",samp
 
 
 
         if k_ in samp: samp = samp.replace("_" + k_, "")         
         elif "cat" in samp: samp = samp.replace("cat_", "")         
-        print "SAMP after channel removal ",samp
+        #print "SAMP after channel removal ",samp
         if(samp.startswith("data")): samp = "Data"
         #        h_ = h_[:4]
       
-        if(samp.startswith("SVJ")):
+        if(samp.startswith("SVJ") and not (samp.endswith("trigUp") or samp.endswith("trigDown")) ):
+            
             for n in xrange(nBinsX):
                 hNameUp = "%s_mcstat_%s_bin%d_Up" % ( h_, samp, n+1)
                 hNameDown = "%s_mcstat_%s_bin%d_Down" % ( h_, samp, n+1)
-                print "Histogram: ", hNameUp              
+                #print "Histogram: ", hNameUp              
                 h_mcStatUp = ifile.Get(hNameUp)
                 h_mcStatDown = ifile.Get(hNameDown)
                 h_mcStatUp.SetName("%s_mcstat_%s_%s_%s_bin%dUp" % (samp, k_, year, samp, n+1))
@@ -123,8 +124,10 @@ for p in processes:
 ofile = ROOT.TFile(ofilename,"UPDATE")    
 
 for k_ in histos.keys():    
-    if not os.path.isdir( k_ + "_" + year):
-        newsubdir = ofile.mkdir(k_+"_" + year)
+
+    print "Creating Bkg histogram "
+    #if not os.path.isdir( k_ + "_" + year):
+    #    newsubdir = ofile.mkdir(k_+"_" + year)
     ofile.cd(k_+ "_" + year)
     histData[k_].SetName("Bkg")
     histData[k_].Write("Bkg", ROOT.TObject.kWriteDelete)

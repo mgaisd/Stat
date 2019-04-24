@@ -117,18 +117,30 @@ def getCard(sig, ch, ifilename, outdir, mode = "histo", unblind = False):
 
               for i in xrange(hist.GetNbinsX()):
                      mcstatSysName = "mcstat_%s_%s_bin%d"  % (ch, sig, i+1)
-                     print mcstatSysName
-                     print sig + "_" + mcstatSysName + "Up"
+                     #print mcstatSysName
+                     #print sig + "_" + mcstatSysName + "Up"
                      mcstatSigUp = getHist(ch, sig + "_" + mcstatSysName + "Up", ifile)
 
-                     print "Integral  ", mcstatSigUp.Integral()
+                     #print "Integral  ", mcstatSigUp.Integral()
                      mcstatSigDown = getHist(ch, sig + "_" + mcstatSysName + "Down", ifile)
                      mcstatSigHistUp = RooDataHist(sig + "_" + mcstatSysName + "Up", "Data (MC sig)",  RooArgList(mT), mcstatSigUp, 1.)
                      mcstatSigHistDown = RooDataHist(sig + "_" + mcstatSysName + "Down", "Data (MC sig)",  RooArgList(mT), mcstatSigDown, 1.)
                      getattr(w, "import")(mcstatSigHistUp, RooFit.Rename(sig + "_" + mcstatSysName + "Up") )
                      getattr(w, "import")(mcstatSigHistDown, RooFit.Rename(sig + "_" + mcstatSysName + "Down") )
 
-                     
+              
+              for sysName,sysValue  in syst.iteritems():
+                     if(sysValue[0]=="shape" and "mcstat" not in sysName):              
+                            sysUp =  getHist(ch, sig + "_" + sysName + "Up", ifile)
+                            sysDown =  getHist(ch, sig + "_" + sysName + "Down", ifile)
+                            print "==> Trigg sys name: ", sig + "_" + sysName + "Down"
+                            sysSigHistUp = RooDataHist(sig + "_" + sysName + "Up", "Trigger SF uncertainty",  RooArgList(mT), sysUp, 1.)
+                            sysSigHistDown = RooDataHist(sig + "_" + sysName + "Down", "Trigger SF uncertainty",  RooArgList(mT), sysDown, 1.)
+                            getattr(w, "import")(sysSigHistUp, RooFit.Rename(sig + "_" + sysName + "Up") )
+                            getattr(w, "import")(sysSigHistDown, RooFit.Rename(sig + "_" + sysName + "Down") )
+                            
+
+
               #else: getattr(w, "import")(setToys, RooFit.Rename("data_obs"))
               getattr(w, "import")(modelBkg, RooFit.Rename(modelBkg.GetName()))
               #getattr(w, "import")(modelAlt, RooFit.Rename(modelAlt.GetName()))
@@ -228,7 +240,7 @@ def getCard(sig, ch, ifilename, outdir, mode = "histo", unblind = False):
                                    card += "%-20s" % (bkgSys)
               elif(sysValue[0]=="shape"):
                      if("mcstat" not in sysName):
-                            card += "%-20s     shape" % (sysName)
+                            card += "%-20s     shape     " % (sysName)
                             if ("sig" in sysValue[1]): card += "%-20s" % ( "1") 
                             else: card += "%-20s" % ( "-") 
                             for p in processes:
@@ -283,7 +295,7 @@ def getCard(sig, ch, ifilename, outdir, mode = "histo", unblind = False):
 
     
 
-       print card
+       #print card
        return card
 
 
