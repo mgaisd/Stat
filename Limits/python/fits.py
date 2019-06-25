@@ -16,7 +16,13 @@ fitBDT0_2016 = fitFunc()
 fitBDT0_2016.p1 = RooRealVar("CMS2016_BDT0_p1", "p1", -18.0947, -1000., 1000.)
 fitBDT0_2016.p2 = RooRealVar("CMS2016_BDT0_p2", "p2", 22.8504, -10., 10.)
 fitBDT0_2016.p3 = RooRealVar("CMS2016_BDT0_p3", "p3", 3.72973, -10., 10.)
-fitBDT0_2016.modelBkg = RooGenericPdf("Bkg", "Bkg. fit (3 par.)", "pow(1 - @0/13000, @1) / pow(@0/13000, @2+@3*log(@0/13000))", RooArgList(mT, fitBDT0_2016.p1, fitBDT0_2016.p2, fitBDT0_2016.p3))
+fitBDT0_2016.p4 = RooRealVar("CMS2016_BDT0_p3", "p4", 0, -1000., 1000.)
+
+fitBDT0_2016.modelBkg = RooGenericPdf("BkgOrg", "Bkg. fit (3 par.)", "pow(1 - @0/13000, @1) / pow(@0/13000, @2+@3*log(@0/13000))", RooArgList(mT, fitBDT0_2016.p1, fitBDT0_2016.p2, fitBDT0_2016.p3))
+fitBDT0_2016.modelBkg2 = RooGenericPdf("Bkg2", "Bkg. fit (2 par.)", "pow(1 - @0/13000, @1) / pow(@0/13000, @2)", RooArgList(mT, fitBDT0_2016.p1, fitBDT0_2016.p2))
+fitBDT0_2016.modelBkg3 = RooGenericPdf("Bkg3", "Bkg. fit (3 par.)", "pow(1 - @0/13000, @1) / pow(@0/13000, @2+@3*log(@0/13000))", RooArgList(mT, fitBDT0_2016.p1, fitBDT0_2016.p2, fitBDT0_2016.p3))
+fitBDT0_2016.modelBkg4 = RooGenericPdf("Bkg", "Bkg. fit (4 par.)", "pow(1 - @0/13000, @1) / pow(@0/13000, @2+@3*log(@0/13000)+@4*pow(log(@0/13000),2))", RooArgList(mT, fitBDT0_2016.p1, fitBDT0_2016.p2, fitBDT0_2016.p3, fitBDT0_2016.p4))
+
 
 fitParam["BDT0_2016"] = fitBDT0_2016
 

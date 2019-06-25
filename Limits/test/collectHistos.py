@@ -8,14 +8,14 @@ from Stat.Limits.settings import processes, histos
 
 usage = 'usage: %prog -p histosPath -o outputFile'
 parser = optparse.OptionParser(usage)
-parser.add_option('-i', '--input', dest='path', type='string', default= "histos2017v6/",help='Where can I find input histos?')
+parser.add_option('-i', '--input', dest='path', type='string', default= "./histos2017v6/",help='Where can I find input histos?')
 parser.add_option("-o","--outputFile",dest="output",type="string",default="histos_2017.root",help="Name of the output file collecting histos in Combine user frieldy schema. Default is histos.root")
 
 (opt, args) = parser.parse_args()
 sys.argv.append('-b')
 
 
-path_ = "./" + opt.path
+path_ =  opt.path
 ofilename = opt.output
 
 # Creating output file
@@ -75,7 +75,7 @@ for f in sampFiles:
         if(samp.startswith("data")): samp = "Data"
         #        h_ = h_[:4]
       
-        if(samp.startswith("SVJ") and not (samp.endswith("trigUp") or samp.endswith("trigDown")) ):
+        if(samp.startswith("SVJ") and not (samp.endswith("Up") or samp.endswith("Down")) ):
             
             for n in xrange(nBinsX):
                 hNameUp = "%s_mcstat_%s_bin%d_Up" % ( h_, samp, n+1)

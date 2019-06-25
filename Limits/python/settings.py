@@ -26,9 +26,12 @@ channels = [ "BDT1", "BDT2", "CRBDT1", "CRBDT2"]
 syst = collections.OrderedDict()
 syst["lumi"] = ("lnN", "all", 1.10)
 syst["trigger"] = ("lnN", "all", 1.02)
+syst["BkgRate"] = ("lnU", "Bkg", 4.)
 #syst["mcstat"] = ("shape", ("QCD", "TT", "WJets", "ZJets", "sig"))
 syst["mcstat"] = ("shape", ["sig"])
-#syst["trig"] = ("shape", ["sig"])
+syst["trig"] = ("shape", ["sig"])
+#syst["JER"] = ("shape", ["sig"])
+#syst["JEC"] = ("shape", ["sig"])
 
 #*********************************
 #                                *
@@ -90,5 +93,9 @@ vec41 = ("3000", "20", "0", "peak")
 
 #sigpoints = [vec1, vec2, vec3, vec4, vec5, vec6, vec7, vec8, vec9, vec10, vec11, vec12, vec13, vec14, vec15, vec16, vec17, vec18, vec19, vec20, vec21, vec22, vec23, vec24, vec25, vec26, vec27, vec28, vec29, vec30, vec31, vec32, vec33, vec34, vec35, vec36, vec37, vec38, vec39, vec40, vec41]
 
-sigpoints = [vec6, vec7, vec8, vec9, vec10, vec11, vec12, vec13, vec14, vec15, vec16, vec17, vec18, vec19, vec20, vec21, vec22, vec23, vec24, vec25, vec26, vec27, vec28, vec29, vec30, vec31, vec32, vec33, vec34, vec35, vec36, vec37, vec38, vec39, vec40]
+#sigpoints = [vec6, vec7, vec8, vec9, vec10, vec11, vec12, vec13, vec14, vec15, vec16, vec17, vec18, vec19, vec20, vec21, vec22, vec23, vec24, vec25, vec26, vec27, vec28, vec29, vec30, vec31, vec32, vec33, vec34, vec35, vec36, vec37, vec38, vec39, vec40]
 
+sigpoints = [vec14]
+
+
+#sigpoints = [s for s in sigpoints if sigpoints.index(s) % 2 == 0 ]

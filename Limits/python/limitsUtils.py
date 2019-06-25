@@ -56,6 +56,8 @@ def getLimits(optdir, post):
 
    os.system("paste left a0 commas a1 commas a2 commas a3 commas a4 commas a5 commas a6 commas a7 commas a8 commas a9 commas a10 commas a11 commas a12 commas a13 commas a14 commas a15 commas a16 commas a17 commas a18 commas a19 commas a20 commas a21 commas a22 commas a23 commas a24 commas a25 commas a26 commas a27 commas a28 commas a29 commas a30 commas a31 commas a32 commas a33 commas a34  right  > data/limit" + post + ".txt")
 
+   #os.system("paste left a0 commas a1 commas a2 commas a3 commas a4 commas a5 commas a6 commas a7 commas a8 commas a9 commas a10 commas a11 commas a12 commas a13 commas a14 commas a15 commas a16 commas a17 commas right  > data/limit" + post + ".txt")
+
    #os.system("paste left commas a6 commas a7 commas a8 commas a9 commas a10 commas a11 commas a12 commas a13 commas a14 commas a15 commas a16 commas a17 commas a18 commas a19 commas a20 commas a21 commas a22 commas a23 commas a24 commas a25 commas a26 commas a27 commas a28 commas a29 commas a30 commas a31 commas a32 commas a33 commas a34 commas a35 commas a36 commas a37 commas a38 commas a39 commas a40 right  > data/limit" + post + ".txt")
    #os.system("paste left a0 commas a1 commas a2 commas a3 commas a4 commas a5 commas a6 commas a7 commas a8 commas a9 commas a10 commas a11 commas a12 commas a13 commas a14 commas a15 commas a16 commas a17 commas a18 commas a19 commas a20 commas a21 commas a22 commas a23 commas a24 right  > data/limit" + post + ".txt")
    #os.system("paste left a0 commas a1 commas a2 right  > data/limit" + post + ".txt")
@@ -67,5 +69,6 @@ def getLimits(optdir, post):
    #   print "paste left a0 right > data/limit" + post + ".txt"
    os.system("more data/limit"+post + ".txt")
 
-   os.system("rm -rf left right commas a0 a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 a11 a12 a13 a14 a15 a16 a17 a18 a19 a20 a21 a22 a23 a24 a25 a26 a27 a28 a29 a30 a31 a32 a33 a34 a35 a36 a37 a38 a39 a40")
+#   os.system("rm -rf left right commas a0 a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 a11 a12 a13 a14 a15 a16 a17 a18 a19 a20 a21 a22 a23 a24 a25 a26 a27 a28 a29 a30 a31 a32 a33 a34 a35 a36 a37 a38 a39 a40")
+os.system("rm -rf left right commas a0 a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 a11 a12 a13 a14 a15 a16 a17 a18 a19 a20 a21 a22 a23 a24 a25 a26 a27 a28 a29 a30 a31 a32 a33 a34 a35 a36 a37 a38 a39 a40")
       

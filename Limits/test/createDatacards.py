@@ -4,7 +4,7 @@ import optparse
 from Stat.Limits.settings import *
 from Stat.Limits.datacards import *
 
-
+print "====> CHANNELS: ", channels
 
 path = "/t3home/decosa/SVJ/CMSSW_8_1_0/src/Stat/Limits/test/"
 
@@ -32,6 +32,7 @@ if opt.ch != "all":
 
 signals = []
 
+print "====> CHANNELS: ", channels
 
 for p in sigpoints:
 
@@ -49,7 +50,8 @@ for p in sigpoints:
 #signals = ["SVJ_mZprime3000_mDark20_rinv03_alphapeak"]
 
 
-print "Fit Params", fitParam
+
+    
 
 try:
     ifile = ROOT.TFile.Open(ifilename)
@@ -68,12 +70,13 @@ else:
 
 ch_year = []
 
+print "====> CHANNELS: ", channels
 for y in years:
     channels_years = [ch + '_' + y for ch in channels ]
     ch_year= ch_year + channels_years
     
 
-print "====> CHANNELS: ", ch_year
+print "====> CHANNELS + YEAR: ", ch_year
 
 for s in signals:
 
