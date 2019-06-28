@@ -26,5 +26,4 @@ To run all limits on the batch queques:
  
 > python getLimitData.py -y 2016 -d limitsRun2_v2/ -m template
 
-
->
+> python brazilPlot.py -y year -m template 

@@ -1,8 +1,11 @@
+
 import ROOT
 from ROOT import RooRealVar, RooDataHist, RooArgList, RooGenericPdf, RooExtendPdf, RooWorkspace, RooFit
 import os, sys
 from array import array
 import copy, math, pickle
+
+import numpy as np
 
 from Stat.Limits.settings import *
 
@@ -41,6 +44,7 @@ def getHist(ch, process, ifile):
        hName = ch + "/"+ process
        print "Histo Name ", hName
        h = ifile.Get(hName)
+       h.SetDirectory(0)
        return h
 
 
@@ -56,24 +60,40 @@ def getRSS(ch, variable, model, dataset, fitRes,  norm = -1):
        frame = variable.frame()
 
        dataset.plotOn(frame, RooFit.Invisible())
-       if len(fitRes) > 0: model.plotOn(frame, RooFit.VisualizeError(fitRes[0], 1, False), RooFit.Normalization(norm if norm>0 else dataset.sumEntries(), ROOT.RooAbsReal.NumEvent), RooFit.LineColor(ROOT.kBlue), RooFit.FillColor(ROOT.kOrange), RooFit.FillStyle(1001), RooFit.DrawOption("FL"))
-       model.plotOn(frame, RooFit.Normalization(norm if norm>0 else dataset.sumEntries(), ROOT.RooAbsReal.NumEvent), RooFit.LineColor(ROOT.kBlue), RooFit.FillColor(ROOT.kOrange), RooFit.FillStyle(1001), RooFit.DrawOption("L"), RooFit.Name(model.GetName()))
+       if len(fitRes) > 0: model.plotOn(frame, RooFit.VisualizeError(fitRes[0], 1, False), RooFit.Normalization(norm if norm>0 else dataset.sumEntries(), ROOT.RooAbsReal.NumEvent), RooFit.LineColor(ROOT.kBlue), RooFit.FillColor(ROOT.kOrange), RooFit.FillStyle(1001), RooFit.DrawOption("FL"), RooFit.Range("Full"))
+       model.plotOn(frame, RooFit.Normalization(norm if norm>0 else dataset.sumEntries(), ROOT.RooAbsReal.NumEvent), RooFit.LineColor(ROOT.kBlue), RooFit.FillColor(ROOT.kOrange), RooFit.FillStyle(1001), RooFit.DrawOption("L"), RooFit.Name(model.GetName()),  RooFit.Range("Full"))
        model.paramOn(frame, RooFit.Label(model.GetTitle()), RooFit.Layout(0.45, 0.95, 0.94), RooFit.Format("NEAU"))
+       
+
        graphData = dataset.plotOn(frame, RooFit.DataError(ROOT.RooAbsData.Poisson if isData else ROOT.RooAbsData.SumW2), RooFit.DrawOption("PE0"), RooFit.Name(dataset.GetName()))
 
+       #(ROOT.TVirtualFitter.GetFitter()).GetConfidenceIntervals(model)       
 
+       #f1 = ROOT.TF1(model)
+       #f1.SetName("f")
+       #f2 = ROOT.TF1(model)
+       #f2.SetName("g")
+       #nPar = f2.GetNpar()
+       #errorpar = np.zeros(nPar)
+
+       #f2.SetParErrors()
+       #f3 = ROOT.TF1("error", "f/g")
+       
        pulls = frame.pullHist(dataset.GetName(), model.GetName(), True)
        residuals = frame.residHist(dataset.GetName(), model.GetName(), False, True) # this is y_i - f(x_i)
+    
+
        roochi2 = frame.chiSquare()#dataset.GetName(), model.GetName()) #model.GetName(), dataset.GetName()
        frame.SetMaximum(frame.GetMaximum()*1.2)
        frame.SetMinimum(0.01)
     
        print "==========================> minimum: ", frame.GetMinimum()
 
-       c = ROOT.TCanvas("c_"+ch, ch, 800, 800)
+       c = ROOT.TCanvas("c_"+ch+model.GetName(), ch, 800, 800)
 
        c.cd()
        pad1 = ROOT.TPad("pad1", "pad1", 0., 0.35, 1., 1.0)
+       ROOT.SetOwnership(pad1, False)
        pad1.SetBottomMargin(0.);
        pad1.SetGridx();
        pad1.SetGridy();
@@ -88,6 +108,7 @@ def getRSS(ch, variable, model, dataset, fitRes,  norm = -1):
        c.Update()
        c.cd()
        pad2 = ROOT.TPad("pad2", "pad2", 0, 0.05, 1, 0.3)
+       ROOT.SetOwnership(pad2, False)
        pad2.SetTopMargin(0);
        pad2.SetBottomMargin(0.1);
        pad2.SetGridx();
@@ -95,43 +116,146 @@ def getRSS(ch, variable, model, dataset, fitRes,  norm = -1):
        pad2.Draw();
        pad2.cd()
        pad2.Clear()
-       frame.Draw()
+       #frame.Draw()
        c.Update()
        c.Modified()
        
        frame_res = variable.frame()
-       #setPadStyle(frame_res, 1.25)
-       frame_res.addPlotable(pulls, "P")
-       #setBotStyle(frame_res, RATIO, False)
-       frame_res.GetYaxis().SetRangeUser(-5, 5)
+
+       frame_res.addPlotable(residuals, "P")
+       frame_res.GetYaxis().SetRangeUser(-5., 5.)
        frame_res.GetYaxis().SetTitle("(N^{data}-f(i))/#sigma")
-       frame_res.Draw()
-       #fixData(pulls, False, True, False)
-       
+
+       frame_res.Draw("e0SAME")
+       hist = graphData.getHist()
+       xmin_ = graphData.GetXaxis().GetXmin()
+       xmax_ = graphData.GetXaxis().GetXmax()
+       c.Update()
+       c.Range(xmin_, -5., xmax_, 5.)
+       line = ROOT.TLine(xmin_, 0., xmax_, 0.)
+       line.SetLineColor(ROOT.kRed)
+       line.SetLineWidth(2)
+       line.Draw("same")
+       c.SaveAs( "Residuals/Residuals_"+ch+"_"+name+".pdf")
+
+
+       c2 = ROOT.TCanvas("c2_"+ch+model.GetName(), ch, 800, 800)
+       c2.cd()
+       pad1_2 = ROOT.TPad("pad1_2", "pad1_2", 0., 0.35, 1., 1.0)
+       ROOT.SetOwnership(pad1_2, False)
+       pad1_2.SetBottomMargin(0.);
+       pad1_2.SetGridx();
+       pad1_2.SetGridy();
+       pad1_2.SetLogy()
+       pad1_2.Draw()
+       pad1_2.cd()
+       frame.Draw()
+      
+
+       c2.cd()
+       #pad1_2.SetLogy()       
+       c2.Update()
+       c2.cd()
+       pad2_2 = ROOT.TPad("pad2_2", "pad2_2", 0, 0.05, 1, 0.3)
+       ROOT.SetOwnership(pad2_2, False)
+       pad2_2.SetTopMargin(0);
+       pad2_2.SetBottomMargin(0.1);
+       pad2_2.SetGridx();
+       pad2_2.SetGridy();
+       pad2_2.Draw();
+       pad2_2.cd()
+       pad2_2.Clear()
+       #frame.Draw()
+       c2.Update()
+       c2.Modified()
+
+
+
        # calculate RSS
        res, rss, chi1, chi2 = 0, 0., 0., 0., 
-       hist = graphData.getHist()
+
        xmin, xmax = array('d', [0.]), array('d', [0.])
        dataset.getRange(variable, xmin, xmax)
        print "N bins: ", hist.GetN()
-       for i in range(0, hist.GetN()):
-              print i
-              if hist.GetX()[i] - hist.GetErrorXlow(i) > xmax[0] and hist.GetX()[i] + hist.GetErrorXhigh(i) > xmax[0]: continue# and abs(pulls.GetY()[i]) < 5:
-              if hist.GetY()[i] <= 0.: continue
-              res += residuals.GetY()[i]
-              print residuals.GetY()[i]
-              rss += residuals.GetY()[i]**2
+       nBins = graphData.GetNbinsX()
+       ratioHist = ROOT.TH1F("RatioPlot", "Ratio Plot", hist.GetN(), xmin_, xmax_)
+       ROOT.SetOwnership(ratioHist, False)
 
-              print pulls.GetY()[i]       
-              chi1 += abs(pulls.GetY()[i])
-              chi2 += pulls.GetY()[i]**2
-       
+       print "We get at point 5"
+ #      ratioHist.SetBins(nBins, graphData.GetXaxis().GetXbins().GetArray())
+
+       hist.Dump()
+       ratioHist.Dump()
+       ratioHist.Print('all')
+       for i in xrange(0, hist.GetN()):
+              print "CHECKING HISTO ", i
+
+              print "bin content ", hist.GetY()[i]
+	
+	      hx, hy = hist.GetX()[i], hist.GetY()[i]
+	      hey = hist.GetErrorY(i)
+              hexlo, hexhi = hist.GetErrorXlow(i), hist.GetErrorXhigh(i)
+              ry = residuals.GetY()[i]
+              pull = pulls.GetY()[i] 
+
+
+	      print hist.GetX()[i], hist.GetY()[i], hist.GetErrorXlow(i), hist.GetErrorXhigh(i)
+              print residuals.GetY()[i]
+              print pulls.GetY()[i]
+
+	      if (hx - hexlo) > xmax[0] and hx + hexhi > xmax[0]:
+		continue
+
+              if hy <= 0.:
+                continue
+              
+              res += ry
+              print "residuals ", ry
+              rss += ry**2 
+
+	      print pull
+	      chi1 += abs(pull)
+              chi2 += pull*2
+
+              print " Residual: ", ry, "Bin Content: ", hy, " new bin: ", (ry-hy)/(-1*hy)
+
+              ratioHist.SetBinContent(i+1, (ry - hy)/(-1*hy))
+	      print "ERROR: ", hey, hy**2
+              ratioHist.SetBinError(i+1, (hey/ hy**2))
+	      ratioHist.Print('all')
+ 	      
+             # if hist.GetX()[i] - hist.GetErrorXlow(i) > xmax[0] and hist.GetX()[i] + hist.GetErrorXhigh(i) > xmax[0]: continue# and abs(pulls.GetY()[i]) < 5:
+             # if hist.GetY()[i] <= 0.: continue
+             # res += residuals.GetY()[i]
+             # print "residuals ", residuals.GetY()[i]
+             # rss += residuals.GetY()[i]**2
+
+             # print pulls.GetY()[i]       
+             # chi1 += abs(pulls.GetY()[i])
+             # chi2 += pulls.GetY()[i]**2
+             # print " Residual: ", residuals.GetY()[i], " Bin Content: ", hist.GetY()[i], " new bin: ", (residuals.GetY()[i] - hist.GetY()[i])/(-1 * hist.GetY()[i])
+             # ratioHist.SetBinContent(i, (residuals.GetY()[i] - hist.GetY()[i])/(-1*hist.GetY()[i]))
+             # print "ERROR: ", hist.GetHistogram().GetBinError(i)
+             # ratioHist.SetBinError(i, (hist.GetHistogram().GetBinError(i)/ pow(hist.GetY()[i],2)))
 
        rss = math.sqrt(rss)
        out = {"chi2" : chi2, "chi1" : chi1, "rss" : rss, "res" : res, "nbins" : hist.GetN(), "npar" : npar}
        #c.SaveAs(carddir + "/plots/Residuals_"+ch+"_"+name+".pdf")
-       c.SaveAs( "Residuals/Residuals_"+ch+"_"+name+".pdf")
 
+     
+
+       
+       ratioHist.GetYaxis().SetRangeUser(0.,2.)
+       ratioHist.GetYaxis().SetTitle("f(i)/N^{data}")
+       #ratioHist.SetMarkerSize(2)
+       ratioHist.SetMarkerStyle(20)
+       ratioHist.Draw("PE")
+       line2 = ROOT.TLine(xmin_, 1., xmax_, 1.)
+       line2.SetLineColor(ROOT.kRed)
+       line2.SetLineWidth(2)
+       line2.Draw("same")
+
+       c2.SaveAs( "Residuals/Residuals_"+ch+"_"+name+"_ratio.pdf")
        return out
 
 
@@ -239,14 +363,11 @@ def getCard(sig, ch, ifilename, outdir, mode = "histo", unblind = False, verbose
 
 
 
-
-
               RSS = {}
               fitrange = "Full"
               if (ch == "BDT1_2016"): fitrange = "Low,High"
               
               
-#              fitRes1 = modelBkg1.fitTo(bkgData, RooFit.Extended(True), RooFit.Save(1), RooFit.SumW2Error(True), RooFit.Strategy(2), RooFit.Minimizer("Minuit2"), RooFit.PrintLevel(1), RooFit.Range("Low,High"))
               fitRes1 = modelBkg1.fitTo(bkgData, RooFit.Extended(True), RooFit.Save(1), RooFit.SumW2Error(True), RooFit.Strategy(2), RooFit.Minimizer("Minuit2"), RooFit.PrintLevel(1), RooFit.Range(fitrange))
               fitRes2 = modelBkg2.fitTo(bkgData, RooFit.Extended(True), RooFit.Save(1), RooFit.SumW2Error(True), RooFit.Strategy(2), RooFit.Minimizer("Minuit2"), RooFit.PrintLevel(1), RooFit.Range(fitrange))
               fitRes3 = modelBkg3.fitTo(bkgData, RooFit.Extended(True), RooFit.Save(1), RooFit.SumW2Error(True), RooFit.Strategy(2), RooFit.Minimizer("Minuit2"), RooFit.PrintLevel(1), RooFit.Range(fitrange))
@@ -260,11 +381,11 @@ def getCard(sig, ch, ifilename, outdir, mode = "histo", unblind = False, verbose
               c1.cd()
               bkgData.plotOn(xframe)
 
-              modelBkg1.plotOn(xframe,ROOT.RooFit.LineColor(ROOT.kGreen))
-              modelBkg1.plotOn(xframe, ROOT.RooFit.LineColor(ROOT.kPink), RooFit.Range("Full"))
-              modelBkg2.plotOn(xframe, ROOT.RooFit.LineColor(ROOT.kBlue), RooFit.Range("Full"))
-              modelBkg3.plotOn(xframe, ROOT.RooFit.LineColor(ROOT.kRed), RooFit.Range("Full"))
-              modelBkg4.plotOn(xframe, ROOT.RooFit.LineColor(ROOT.kGreen), RooFit.Range("Full"))
+#              modelBkg1.plotOn(xframe,ROOT.RooFit.LineColor(ROOT.kGreen))
+              modelBkg1.plotOn(xframe, ROOT.RooFit.LineColor(ROOT.kPink + 6), RooFit.Range("Full"))
+              modelBkg2.plotOn(xframe, ROOT.RooFit.LineColor(ROOT.kBlue -4), RooFit.Range("Full"))
+              modelBkg3.plotOn(xframe, ROOT.RooFit.LineColor(ROOT.kRed -4), RooFit.Range("Full"))
+              modelBkg4.plotOn(xframe, ROOT.RooFit.LineColor(ROOT.kGreen +1), RooFit.Range("Full"))
               
               xframe.SetMinimum(0.0002)
               xframe.Draw()
@@ -312,9 +433,9 @@ def getCard(sig, ch, ifilename, outdir, mode = "histo", unblind = False, verbose
               fitRes4_alt = modelAlt4.fitTo(bkgData, RooFit.Extended(True), RooFit.Save(1), RooFit.SumW2Error(True), RooFit.Strategy(2), RooFit.Minimizer("Minuit2"), RooFit.PrintLevel(1))
 
 
-              RSS_alt[1] = getRSS(ch, mT, modelAlt1, bkgData,  [fitRes1],  nBkgEvts)
-              RSS_alt[2] = getRSS(ch, mT, modelAlt2, bkgData,  [fitRes2],  nBkgEvts)
-              RSS_alt[3] = getRSS(ch, mT, modelAlt3, bkgData,  [fitRes3],  nBkgEvts)
+              # RSS_alt[2] = getRSS(ch, mT, modelAlt1, bkgData,  [fitRes1],  nBkgEvts)
+              # RSS_alt[2] = getRSS(ch, mT, modelAlt2, bkgData,  [fitRes2],  nBkgEvts)
+              #RSS_alt[3] = getRSS(ch, mT, modelAlt3, bkgData,  [fitRes3],  nBkgEvts)
               RSS_alt[4] = getRSS(ch, mT, modelAlt4, bkgData,  [fitRes4],  nBkgEvts)
 
 
