@@ -84,7 +84,8 @@ for point in sigpoints:
 
 
 print "Mass points: ", xvalues_
-
+print "Min: ", min(xvalues_)
+print "Max: ", max(xvalues_)
 
 print "Reading file: ", ("data/limit_%s.txt" % (opt.method))
 ebar_u1 = [l.u1[i] - l.v[i] for i in xrange(len(l.v))]
@@ -105,6 +106,10 @@ ebar_d2 = [l.v[i] - l.d2[i] for i in xrange(len(l.v))]
 med_values = array('f', l.v)
 
 xvalues = array('f', xvalues_)
+
+print "XVALUES: ", xvalues
+
+print "MEDVALUES: ", med_values
 
 y_theo = {str(mass):samples["SVJ_mZprime%d_mDark20_rinv03_alphapeak" % (mass)].sigma for mass in xvalues_ }
 
@@ -212,7 +217,7 @@ ROOT.SetOwnership(c1, False)
 c1.cd()
 c1.SetGrid() 
 c1.SetLogy(1)
-band_2sigma.GetXaxis().SetRangeUser(xvalues_[0], xvalues_[-1])
+band_2sigma.GetXaxis().SetRangeUser(600, 4400)
 c1.Update()
 band_2sigma.Draw("A3")
 band_1sigma.Draw("3")

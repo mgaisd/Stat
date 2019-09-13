@@ -24,7 +24,7 @@ parser.add_option('-d', '--dir', dest='dir', type='string', default = 'outdir', 
 
 os.system("mkdir -p data")
 
-years = ["2016", "2017"]
+years = ["2016", "2017", "2018"]
 if opt.years != "all": 
     y_clean = opt.years.replace(" ", "")
     years = y_clean.split(",")

@@ -31,12 +31,13 @@ parser.add_option('',"--runSingleCat",dest="runSingleCat",action='store_true', d
 path_ = "/t3home/decosa/SVJ/CMSSW_8_1_0/src/Stat/Limits/test/"
 path_ += opt.dir
 
-years = ["2016", "2017"]
+categories = channels
+years = ["2016", "2017", "2018"]
 if opt.years != "all":
     y_clean = opt.years.replace(" ", "")
     years = y_clean.split(",")
 
-categories = [ "BDT1", "BDT2", "CRBDT1", "CRBDT2"]
+
 
 if opt.ch != "all":
     ch_clean = opt.ch.replace(" ", "")

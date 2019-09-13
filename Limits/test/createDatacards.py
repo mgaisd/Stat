@@ -34,6 +34,8 @@ signals = []
 
 print "====> CHANNELS: ", channels
 
+
+print "Signals: ",sigpoints
 for p in sigpoints:
 
     mZprime=p[0]

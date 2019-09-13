@@ -10,6 +10,8 @@ usage = 'usage: %prog -p histosPath -o outputFile'
 parser = optparse.OptionParser(usage)
 parser.add_option('-i', '--input', dest='path', type='string', default= "./histos2017v6/",help='Where can I find input histos?')
 parser.add_option("-o","--outputFile",dest="output",type="string",default="histos_2017.root",help="Name of the output file collecting histos in Combine user frieldy schema. Default is histos.root")
+parser.add_option("-s","--stat",dest="mcstat",action='store_true', default=False)
+
 
 (opt, args) = parser.parse_args()
 sys.argv.append('-b')
@@ -17,6 +19,7 @@ sys.argv.append('-b')
 
 path_ =  opt.path
 ofilename = opt.output
+mcstat = opt.mcstat
 
 # Creating output file
 
@@ -56,6 +59,7 @@ for f in sampFiles:
 
     for k_, h_ in histos.iteritems():    
 
+        print "We are looking for object ", h_
         h = ifile.Get(h_)
         if not os.path.isdir( k_+ "_" + year):
             newsubdir = ofile.mkdir(k_ + "_" +year)
@@ -75,7 +79,7 @@ for f in sampFiles:
         if(samp.startswith("data")): samp = "Data"
         #        h_ = h_[:4]
       
-        if(samp.startswith("SVJ") and not (samp.endswith("Up") or samp.endswith("Down")) ):
+        if(samp.startswith("SVJ") and not (samp.endswith("Up") or samp.endswith("Down")) and mcstat == True ):
             
             for n in xrange(nBinsX):
                 hNameUp = "%s_mcstat_%s_bin%d_Up" % ( h_, samp, n+1)
@@ -131,6 +135,9 @@ for k_ in histos.keys():
     ofile.cd(k_+ "_" + year)
     histData[k_].SetName("Bkg")
     histData[k_].Write("Bkg", ROOT.TObject.kWriteDelete)
+
+    histData[k_].SetName("data_obs")
+    histData[k_].Write("data_obs", ROOT.TObject.kWriteDelete)
 
 
 ofile.Write()

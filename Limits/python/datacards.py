@@ -97,7 +97,7 @@ def getRSS(ch, variable, model, dataset, fitRes,  norm = -1):
        pad1.SetBottomMargin(0.);
        pad1.SetGridx();
        pad1.SetGridy();
-       pad1.SetLogy()
+       #pad1.SetLogy()
        pad1.Draw()
        pad1.cd()
        frame.Draw()
@@ -126,7 +126,7 @@ def getRSS(ch, variable, model, dataset, fitRes,  norm = -1):
        frame_res.GetYaxis().SetRangeUser(-5., 5.)
        frame_res.GetYaxis().SetTitle("(N^{data}-f(i))/#sigma")
 
-       frame_res.Draw("e0SAME")
+       frame_res.Draw("PE0same,X0")
        hist = graphData.getHist()
        xmin_ = graphData.GetXaxis().GetXmin()
        xmax_ = graphData.GetXaxis().GetXmax()
@@ -184,9 +184,9 @@ def getRSS(ch, variable, model, dataset, fitRes,  norm = -1):
        print "We get at point 5"
  #      ratioHist.SetBins(nBins, graphData.GetXaxis().GetXbins().GetArray())
 
+
+       #print fitRes[0].GetConfidenceIntervals()
        hist.Dump()
-       ratioHist.Dump()
-       ratioHist.Print('all')
        for i in xrange(0, hist.GetN()):
               print "CHECKING HISTO ", i
 
@@ -222,7 +222,6 @@ def getRSS(ch, variable, model, dataset, fitRes,  norm = -1):
               ratioHist.SetBinContent(i+1, (ry - hy)/(-1*hy))
 	      print "ERROR: ", hey, hy**2
               ratioHist.SetBinError(i+1, (hey/ hy**2))
-	      ratioHist.Print('all')
  	      
              # if hist.GetX()[i] - hist.GetErrorXlow(i) > xmax[0] and hist.GetX()[i] + hist.GetErrorXhigh(i) > xmax[0]: continue# and abs(pulls.GetY()[i]) < 5:
              # if hist.GetY()[i] <= 0.: continue
@@ -256,6 +255,7 @@ def getRSS(ch, variable, model, dataset, fitRes,  norm = -1):
        line2.Draw("same")
 
        c2.SaveAs( "Residuals/Residuals_"+ch+"_"+name+"_ratio.pdf")
+       c2.SaveAs( "Residuals/Residuals_"+ch+"_"+name+"_ratio.root")
        return out
 
 
@@ -745,7 +745,8 @@ def getCard(sig, ch, ifilename, outdir, mode = "histo", unblind = False, verbose
               card += "\n"
        
 
-       for par in parNames: card += "%-20s%-20s\n" % (par, "flatParam")
+       if(mode == "template"):
+              for par in parNames: card += "%-20s%-20s\n" % (par, "flatParam")
 
       # card += "\n"
 

@@ -25,12 +25,12 @@ path_ += opt.dir
 
 
 
-years = ["2016", "2017"]
+years = ["2016", "2017", "2018"]
 if opt.years != "all": 
     y_clean = opt.years.replace(" ", "")
     years = y_clean.split(",")
 
-categories = [ "BDT1", "BDT2", "CRBDT1", "CRBDT2"]
+categories = [ "lowSVJ1", "lowSVJ2", "highSVJ1", "highSVJ2"]
 methods = ["hist", "template"]
 if opt.ch != "all": 
     ch_clean = opt.ch.replace(" ", "")
@@ -53,7 +53,7 @@ categories = cats
 print "Combinining the following categories: ", categories
 
 
-sigpoints = [vec24]
+
 for point in sigpoints:
 
     mZprime=point[0]
