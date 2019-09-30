@@ -14,6 +14,7 @@ parser.add_option('-i', '--input', dest='ifile', type='string', default= path + 
 parser.add_option("-d","--outdir",dest="outdir",type="string",default="outdir",help="Name of the output directory where to store datacards. Default is outdir")
 parser.add_option("-m","--mode",dest="mode",type="string",default="hist",help="Kind of shape analysis: parametric fit or fit to histos?. Default is hist")
 parser.add_option("-c","--channel",dest="ch",type="string",default="all",help="Indicate channels of interest. Default is all")
+parser.add_option("-t", "--test", action="store_true", default=False, dest="bias")
 parser.add_option("-u","--unblind",dest="unblind",action='store_true', default=False)
 
 (opt, args) = parser.parse_args()
@@ -25,6 +26,7 @@ outdir = opt.outdir
 mode = opt.mode
 unblind = opt.unblind
 
+bias = opt.bias
 
 if opt.ch != "all": 
     ch_clean = opt.ch.replace(" ", "")
@@ -34,8 +36,6 @@ signals = []
 
 print "====> CHANNELS: ", channels
 
-
-print "Signals: ",sigpoints
 for p in sigpoints:
 
     mZprime=p[0]
@@ -45,6 +45,7 @@ for p in sigpoints:
 
     print "Creating datacards for mZprime = ", mZprime, " GeV, mDark = ", mDark, " GeV, rinv = ", rinv, " , alpha = ", alpha
     signal  = "SVJ_mZprime%s_mDark%s_rinv%s_alpha%s" % (mZprime, mDark, rinv, alpha) 
+    #if(bias):     signal  = "SVJ_mZprime%s_mDark%s_rinv%s_alpha%s_bias" % (mZprime, mDark, rinv, alpha) 
     signals.append(signal)
 
 
@@ -80,7 +81,13 @@ for y in years:
 
 print "====> CHANNELS + YEAR: ", ch_year
 
+cmd = "rm ws.root"
+os.system(cmd)
+
+
+doModelling = True
 for s in signals:
 
+    if (signals.index(s)!=0): doModelling = False
     for ch in ch_year:
-        getCard(s, ch, ifilename, outdir, mode, unblind)
+        getCard(s, ch, ifilename, outdir, doModelling, mode, bias)

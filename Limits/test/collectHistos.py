@@ -40,6 +40,7 @@ elif("2018" in path_): year = "2018"
 #     FILLING IN THE INPUT ROOT FILE FOR COMBINE        #
 #                                                       #
 #*******************************************************#
+histos_data = []
 
 for f in sampFiles: 
 
@@ -68,6 +69,7 @@ for f in sampFiles:
         #print "We are looking for histo %s for samp %s in %s" % (h_, samp, f)
         h.SetName(samp)
         h.Write(samp, ROOT.TObject.kWriteDelete)
+        if(samp.startswith("Data")): histos_data.append(h)
         nBinsX = h.GetNbinsX()
         #print "SAMP ",samp
 
@@ -84,13 +86,14 @@ for f in sampFiles:
             for n in xrange(nBinsX):
                 hNameUp = "%s_mcstat_%s_bin%d_Up" % ( h_, samp, n+1)
                 hNameDown = "%s_mcstat_%s_bin%d_Down" % ( h_, samp, n+1)
-                #print "Histogram: ", hNameUp              
+                print "Histogram: ", hNameUp              
                 h_mcStatUp = ifile.Get(hNameUp)
                 h_mcStatDown = ifile.Get(hNameDown)
                 h_mcStatUp.SetName("%s_mcstat_%s_%s_%s_bin%dUp" % (samp, k_, year, samp, n+1))
                 h_mcStatUp.Write("%s_mcstat_%s_%s_%s_bin%dUp" % (samp, k_, year, samp, n+1), ROOT.TObject.kWriteDelete)
                 h_mcStatDown.SetName("%s_mcstat_%s_%s_%s_bin%dDown" % (samp, k_, year,  samp, n+1))
                 h_mcStatDown.Write("%s_mcstat_%s_%s_%s_bin%dDown" % (samp, k_, year, samp, n+1), ROOT.TObject.kWriteDelete)
+                
 
     ofile.Write()
     ofile.Close()
@@ -135,10 +138,22 @@ for k_ in histos.keys():
     ofile.cd(k_+ "_" + year)
     histData[k_].SetName("Bkg")
     histData[k_].Write("Bkg", ROOT.TObject.kWriteDelete)
+    print "Bkg integral ", histData[k_].Integral()
 
-    histData[k_].SetName("data_obs")
-    histData[k_].Write("data_obs", ROOT.TObject.kWriteDelete)
+    bkgpdf =  histData[k_].Clone("BkgPdf")
+    bkgpdf.Scale(1./ bkgpdf.Integral())
+    print "Bkg pdf ", bkgpdf.Integral()
+    
+    histdata = bkgpdf.Clone("data_obs")
+    histdata.Reset()
+    print "data pdf ", histdata.Integral()
+    histdata.FillRandom(bkgpdf, int(histData[k_].Integral()))
+    print "data  ", histdata.Integral()
+    #histData[k_].SetName("data_obs")
+    histdata.Write("data_obs", ROOT.TObject.kWriteDelete)
 
 
+
+print "MCSTAT ", mcstat
 ofile.Write()
 ofile.Close()

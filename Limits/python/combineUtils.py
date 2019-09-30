@@ -16,7 +16,7 @@ def runCombine(cmdStr, logFile):
     return
 
 
-def runSinglePoint(path_, mZprime, mDark, rinv, alpha, categories, method, runSingleCat):
+def runSinglePoint(path_, mZprime, mDark, rinv, alpha, categories, method, runSingleCat, singleYear=""):
     
     
     print "evaluate limit for mZprime = ", mZprime, " GeV, mDark = ", mDark, " GeV, rinv = ", rinv, " , alpha = ", alpha
@@ -26,8 +26,9 @@ def runSinglePoint(path_, mZprime, mDark, rinv, alpha, categories, method, runSi
     if(os.path.exists(path)):
         os.chdir(path)
         
-        if len(categories)>1: 
+        if len(categories)>1:
             cmd = "combineCards.py SVJ_mZprime%s_mDark%s_rinv%s_alpha%s_*_%s.txt > SVJ_mZprime%s_mDark%s_rinv%s_alpha%s_%s.txt" % (mZprime, mDark, rinv, alpha, method, mZprime, mDark, rinv, alpha, method)
+            if singleYear!="": cmd = "combineCards.py SVJ_mZprime%s_mDark%s_rinv%s_alpha%s_*%s_%s.txt > SVJ_mZprime%s_mDark%s_rinv%s_alpha%s_%s.txt" % (mZprime, mDark, rinv, alpha, singleYear, method, mZprime, mDark, rinv, alpha, method)
             print cmd
             os.system(cmd)
             runCombine("combine -M Asymptotic  -n SVJ_mZprime" + mZprime + "_mDark" + mDark + "_rinv" + rinv + "_alpha" + alpha + " -\

@@ -56,5 +56,6 @@ for y in years:
 
 categories = cats
 
-
-runSinglePoint(path_, opt.mZprime, opt.mDark, opt.rinv, opt.alpha, categories, opt.method, opt.runSingleCat)
+singleYear=""
+if (len(years)==1 and opt.years!="all"):singleYear=years[0]
+runSinglePoint(path_, opt.mZprime, opt.mDark, opt.rinv, opt.alpha, categories, opt.method, opt.runSingleCat, singleYear)

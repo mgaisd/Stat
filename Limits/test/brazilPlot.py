@@ -1,3 +1,4 @@
+
 import ROOT
 import collections
 import optparse
@@ -10,6 +11,8 @@ import optparse
 from array import array
 from samples.toPlot import samples
 from Stat.Limits.settings import *
+
+
 
 
 
@@ -61,9 +64,10 @@ parser.add_option("-r","--ratio",dest="ratio",action='store_true', default=False
 parser.add_option('-m', '--method', dest='method', type='string', default = 'hist', help='Run a single method (all, hist, template)')
 parser.add_option('-y', '--year', dest='year', type='string', default = 'all', help='Run a single method (Run2, 2016, 2017, 2016_2017)')
 parser.add_option('-v', '--variable', dest='variable', type='string', default = 'mZprime', help='Plot limit against variable v (mZPrime, mDark, rinv, alpha)')
+parser.add_option("-u","--unblind",dest="unblind",action='store_true', default=False)
 (opt, args) = parser.parse_args()
 
-
+unblind = opt.unblind
 theo = not opt.ratio
 
 l = readFile("data/limit_%s.txt" % (opt.method), opt.method)
@@ -105,6 +109,8 @@ ebar_d2 = [l.v[i] - l.d2[i] for i in xrange(len(l.v))]
 
 med_values = array('f', l.v)
 
+obs_values = array('f', l.o)
+
 xvalues = array('f', xvalues_)
 
 print "XVALUES: ", xvalues
@@ -121,6 +127,8 @@ y_th_xsec = collections.OrderedDict(sorted(y_theo.items()))
 #print l.v
 
 y_xsec_vals = array('f', [l.v[i]*y_th_xsec.values()[i] for i in xrange(len(l.v) ) ])
+
+y_xsec_obs_vals = array('f', [l.o[i]*y_th_xsec.values()[i] for i in xrange(len(l.o) ) ])
 
 y_th_xsec_vals = array('f', [th for th in y_th_xsec.itervalues()])
 
@@ -162,6 +170,14 @@ median.SetLineColor(ROOT.kBlue);
 median.SetFillColor(0);
 median.GetXaxis().SetRangeUser(110, 150);
 
+obs = ROOT.TGraph( len(l.v), xvalues , obs_values)
+if theo: obs = ROOT.TGraph( len(l.o), xvalues , y_xsec_obs_vals)
+obs.SetLineWidth(2);
+obs.SetLineStyle(1);
+obs.SetLineColor(ROOT.kBlue);
+obs.SetFillColor(0);
+obs.GetXaxis().SetRangeUser(110, 150);
+
 theory = ROOT.TGraph( len(l.v), xvalues , y_th_xsec_vals);
 theory.SetLineWidth(2);
 theory.SetLineStyle(1);
@@ -202,6 +218,7 @@ legend.SetHeader("95% CL upper limits");
 # uncomment for ob as well
 # legend.AddEntry(m_y_lineObs_graph,"Observed","ex0p");
 # legend.AddEntry(m_y_lineSI_graph,"CL_{S} sign. injected");
+if(unblind): legend.AddEntry(obs,"Median observed");
 legend.AddEntry(median,"Median expected");
 legend.AddEntry(band_1sigma,"68% expected");
 legend.AddEntry(band_2sigma,"95% expected");
@@ -223,6 +240,7 @@ band_2sigma.Draw("A3")
 band_1sigma.Draw("3")
 band_1sigma.SetMaximum(200)
 median.Draw("L")
+if(unblind):obs.Draw("L")
 theory.Draw("L same");
 legend.Draw("Same");
 
@@ -254,6 +272,7 @@ cmsTextSize      = 0.75;
 lumiText = "77.45 fb^{-1} (13 TeV)"
 if (opt.year == "2016"):lumiText = "35.92 fb^{-1} (13 TeV)"
 elif (opt.year == "2017"):lumiText = "41.53 fb^{-1} (13 TeV)"
+elif (opt.year == "2018"):lumiText = "59.8 fb^{-1} (13 TeV)"
 elif (opt.year == "Run2"):lumiText = "137.19 fb^{-1} (13 TeV)"
 latex_lumi = ROOT.TLatex();
 latex_lumi.SetNDC();
