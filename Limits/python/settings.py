@@ -35,6 +35,22 @@ syst["mcstat"] = ("shape", ["sig"])
 #syst["JER"] = ("shape", ["sig"])
 #syst["JEC"] = ("shape", ["sig"])
 
+#****************************************
+#                                       *
+#       List of rateParam funtions      *
+#                                       *
+#****************************************
+
+rateParams = {}
+rateParams["lowSVJ1_2018"] = "TMath::Power(TMath::Range(0.01,0.99,@0),1)*TMath::Power(1-TMath::Range(0.01,0.99,@0*%s),1)/(TMath::Power(1-%s,1))"
+rateParams["lowSVJ2_2018"] = "TMath::Power(TMath::Range(0.01,0.99,@0),2)*TMath::Power(1-TMath::Range(0.01,0.99,@0*%s),0)/(TMath::Power(1-%s,0))"
+rateParams["highSVJ1_2018"] = "TMath::Power(TMath::Range(0.01,0.99,@0),1)*TMath::Power(1-TMath::Range(0.01,0.99,@0*%s),1)/(TMath::Power(1-%s,1))"
+rateParams["highSVJ2_2018"] = "TMath::Power(TMath::Range(0.01,0.99,@0),2)*TMath::Power(1-TMath::Range(0.01,0.99,@0*%s),0)/(TMath::Power(1-%s,0))"
+
+
+
+
+
 #*********************************
 #                                *
 #       List of backgrounds      *

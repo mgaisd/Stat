@@ -37,13 +37,20 @@ def readFile(filename, cat):
         if l.strip()== "": continue
         else:
 
-            l_split = l.split()
-            if l.startswith("y_vals_"+cat):  v = [float(i) for i in l_split[1:] if float(i)!= 0.0 ]
-            elif l.startswith("y_observed_"+cat): o = [float(i) for i in l_split[1:] if float(i)!= 0.0]
-            elif l.startswith("y_up_points1_"+cat): u1 = [float(i) for i in l_split[1:] if float(i)!= 0.0]
-            elif l.startswith("y_up_points2_"+cat): u2 = [float(i) for i in l_split[1:] if float(i)!= 0.0]
-            elif l.startswith("y_down_points1_"+cat): d1 = [float(i) for i in l_split[1:] if float(i)!= 0.0]
-            elif l.startswith("y_down_points2_"+cat): d2 = [float(i) for i in l_split[1:] if float(i)!= 0.0]
+            l_split = l.split() 
+            if l.startswith("y_vals_"+cat):  v = [float(i) for i in l_split[1:]  ]
+            elif l.startswith("y_observed_"+cat): o = [float(i) for i in l_split[1:] ]
+            elif l.startswith("y_up_points1_"+cat): u1 = [float(i) for i in l_split[1:] ]
+            elif l.startswith("y_up_points2_"+cat): u2 = [float(i) for i in l_split[1:] ]
+            elif l.startswith("y_down_points1_"+cat): d1 = [float(i) for i in l_split[1:] ]
+            elif l.startswith("y_down_points2_"+cat): d2 = [float(i) for i in l_split[1:] ]
+
+#            if l.startswith("y_vals_"+cat):  v = [float(i) for i in l_split[1:] if float(i)!= 0.0 ]
+#            elif l.startswith("y_observed_"+cat): o = [float(i) for i in l_split[1:] if float(i)!= 0.0]
+#            elif l.startswith("y_up_points1_"+cat): u1 = [float(i) for i in l_split[1:] if float(i)!= 0.0]
+#            elif l.startswith("y_up_points2_"+cat): u2 = [float(i) for i in l_split[1:] if float(i)!= 0.0]
+#            elif l.startswith("y_down_points1_"+cat): d1 = [float(i) for i in l_split[1:] if float(i)!= 0]
+#            elif l.startswith("y_down_points2_"+cat): d2 = [float(i) for i in l_split[1:] if float(i)!= 0.0]
             #print l      
 
     limits = limit()
@@ -73,11 +80,14 @@ parser.add_option("-c","--cat",dest="cat",type="string",default="",help="Indicat
 unblind = opt.unblind
 theo = not opt.ratio
 
-filename = "data/limit_%s.txt" % (opt.method)
-cat = opt.method
+
 if(opt.cat!=""):
     filename = "data/limit_%s_%s.txt" % (opt.cat, opt.method)
     cat ="%s_%s"% (opt.cat, opt.method)
+else:
+    filename = "data/limit_%s.txt" % (opt.method)
+    cat = opt.method    
+
 
 l = readFile(filename, cat)
 
@@ -101,7 +111,7 @@ print "Min: ", min(xvalues_)
 print "Max: ", max(xvalues_)
 print "l.v ", l.v
 
-print "l.u1 ", l.u1
+#print "l.u1 ", l.u1
 
 print "Reading file: ", ("data/limit_%s.txt" % (opt.method))
 ebar_u1 = [l.u1[i] - l.v[i] for i in xrange(len(l.v))]
@@ -155,17 +165,17 @@ if theo:
     y_bars_u1 =  array('f', [ebar_u1[i]*y_th_xsec.values()[i] for i in xrange(len(l.v) ) ])
     y_bars_u2 =  array('f', [ebar_u2[i]*y_th_xsec.values()[i] for i in xrange(len(l.v) ) ])
 
-print "Error bars d1: ", ebar_d1
-print "Error bars xsec d1: ", y_bars_d1
+#print "Error bars d1: ", ebar_d1
+#print "Error bars xsec d1: ", y_bars_d1
 
-print "Error bars d2: ", ebar_d2
-print "Error bars xsec d2: ", y_bars_d2
+#print "Error bars d2: ", ebar_d2
+#print "Error bars xsec d2: ", y_bars_d2
 
-print "Error bars u1: ", ebar_u1
-print "Error bars xsec u1: ", y_bars_u1
+#print "Error bars u1: ", ebar_u1
+#print "Error bars xsec u1: ", y_bars_u1
 
-print "Error bars u2: ", ebar_u2
-print "Error bars xsec u2: ", y_bars_u2
+#print "Error bars u2: ", ebar_u2
+#print "Error bars xsec u2: ", y_bars_u2
 
 
 x_bars_1 = array('f', [0]*len(l.v))
@@ -334,4 +344,4 @@ l_preliminary.DrawLatex(0.13, 0.81,"");
 
 
 c1.Update()
-c1.SaveAs("plots/test_limitPlot_%s_%s.pdf" % (opt.year, opt.method))
+c1.SaveAs("plots/test_limitPlot_%s_%s.pdf" % (opt.year, cat))
