@@ -12,6 +12,7 @@ parser.add_option("-c","--channel",dest="ch",type="string",default="all",help="I
 parser.add_option("-y","--years",dest="years",type="string",default="all",help="Indicate years of interest. Default is 2016")
 parser.add_option("-d","--dir",dest="outdir",type="string",help="Outdir created by the analyseSamples")
 parser.add_option('-m', '--method', dest='method', type='string', default = 'hist', help='Run a single method (hist, template)')
+parser.add_option('',"--runSingleCat",dest="runSingleCat",action='store_true', default=False)
 (opt, args) = parser.parse_args()
 
 filename = "runBatch"
@@ -26,6 +27,7 @@ if(not os.path.isdir(workDir)): os.makedirs(workDir)
 
 
 cmdCombine = "python runCombineSinglePoint.py --mZprime mZprime --mDark mDark --rinv rinv --alpha alpha -c channels -y years -m method -d outdir"
+if (opt.runSingleCat):cmdCombine = cmdCombine + " --runSingleCat"
 
 for point in sigpoints:
 

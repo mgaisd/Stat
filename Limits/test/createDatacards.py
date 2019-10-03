@@ -84,6 +84,22 @@ print "====> CHANNELS + YEAR: ", ch_year
 cmd = "rm ws.root"
 os.system(cmd)
 
+cmd = "rm Efficiencies.txt"
+os.system(cmd)
+
+effs = {}
+for s in signals:
+
+    effs[s] = getEfficiency(s, ch_year, ifilename)
+
+y = json.dumps(effs)
+outname =  "Efficiencies.txt"
+
+efile = open(outname, 'w')
+efile.write(y)
+efile.close()
+
+
 
 doModelling = True
 for s in signals:

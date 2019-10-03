@@ -1,4 +1,6 @@
 import ROOT
+import json
+
 
 from ROOT import RooRealVar, RooDataHist, RooArgList, RooGenericPdf, RooExtendPdf, RooWorkspace, RooFit, RooDataSet, RooArgSet, RooCategory, RooFitResult, RooCurve 
 import os, sys
@@ -46,6 +48,39 @@ def getHist(ch, process, ifile):
        h = ifile.Get(hName)
        h.SetDirectory(0)
        return h
+
+
+
+def getEfficiency(sig, channels, ifilename):
+
+       try:
+              ifile = ROOT.TFile.Open(ifilename)
+       except IOError:
+              print "Cannot open ", ifilename
+       else:
+              print "Opening file ",  ifilename
+              ifile.cd()
+              
+       cdfilename = os.getcwd()+"/"+ifilename
+       
+       rates = {}
+       for ch in channels:
+
+              rates[ch] = getRate(ch, sig, ifile)
+
+       sumjets = sum(rates.itervalues())*2
+       print sumjets
+
+       evts2SVJ = sum(i for ch, i in rates.iteritems() if "SVJ2" in ch)
+       print evts2SVJ
+       evts1SVJ = sum(i for ch, i in rates.iteritems() if "SVJ1" in ch)
+
+       num = evts1SVJ + (2 * evts2SVJ)
+       
+       eff = num/sumjets
+       return eff
+
+
 
 
 def getRSS(sig, ch, variable, model, dataset, fitRes,  norm = -1, label = "nom"):
@@ -414,6 +449,16 @@ def fisherTest(RSS1, RSS2, o1, o2, N):
 def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = False, verbose = False):
 
 
+       ### Cmpute signal efficiencies 
+       
+       effname = "Efficiencies.txt"
+       efile = open(effname, 'r')
+       effline = efile.readline()
+
+       effs = json.loads(effline)
+       
+       eff = effs[sig]
+
        try:
               ifile = ROOT.TFile.Open(ifilename)
        except IOError:
@@ -421,6 +466,7 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
        else:
               print "Opening file ",  ifilename
               ifile.cd()
+
 
        print "BIAS?", bias
        workdir_ = ifilename.split("/")[:-1]
@@ -1049,6 +1095,15 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
        
 
        for par in parNames: card += "%-20s%-20s\n" % (par, "flatParam")
+
+       card += "SF            extArg     1 [0.75,1.25]\n"
+
+       for par, formula in rateParams.iteritems(): 
+              formula = formula.replace("%s", '%.3f' % (eff))
+              #if "SVJ1" in par:par = "SVJ1_rate"
+              #if "SVJ2" in par:par = "SVJ2_rate"
+              card += "%-20s%-20s%-20s%-20s%s   %-20s\n" % (par + "_rate", "rateParam", ch, sig, formula, "SF")
+
 
       # card += "\n"
 

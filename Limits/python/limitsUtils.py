@@ -25,10 +25,11 @@ def readFile(filename, cat):
          l_split = l.split()
          if l.startswith("Expected 50.0%" ):  v = l_split[4]
          elif l.startswith("Observed" ): o = l_split[4]
-         elif l.startswith("Expected  2.5%" ): u1 = l_split[4]
-         elif l.startswith("Expected 97.5%" ): u2 = l_split[4]
+         elif l.startswith("Expected  2.5%" ): d2 = l_split[4]
          elif l.startswith("Expected 16.0%" ): d1 = l_split[4]
-         elif l.startswith("Expected 84.0%" ): d2 = l_split[4]
+         elif l.startswith("Expected 84.0%" ): u1 = l_split[4]
+         elif l.startswith("Expected 97.5%" ): u2 = l_split[4]
+
 
    limits = limit()
    limits.v = v
@@ -42,7 +43,8 @@ def readFile(filename, cat):
 
 def writeFile(limits, post, outname):
    
-   obsline = ("y_observed_%s  ") % ( post) 
+   obsline = ("y_observed%s  ") % ( post) 
+   medline = ("y_vals%s  ") % ( post) 
    d2line = ("y_down_points2%s  ") % ( post) 
    d1line = ("y_down_points1%s  ") % ( post) 
    u2line = ("y_up_points2%s  ") % ( post) 
@@ -56,13 +58,14 @@ def writeFile(limits, post, outname):
    for  k,l in limitsOrd.iteritems(): 
 
        obsline += ("  %s ") % (l.o)
+       medline += ("  %s ") % (l.v)
        d2line += ("  %s ") % (l.d2)
        d1line += ("  %s ") % (l.d1)
        u2line += ("  %s ") % (l.u2)
        u1line += ("  %s ") % (l.u1)
 
    print obsline
-   obsline += ("\n%s\n%s\n%s\n%s") % (d2line, d1line, u2line, u1line)
+   obsline += ("\n%s\n%s\n%s\n%s\n%s") % (medline, d2line, d1line, u2line, u1line)
    limitfile = open(outname, 'w')
    limitfile.write(obsline)
    limitfile.close()
@@ -85,6 +88,6 @@ def getLimits(optdir, post):
       limits[float(mZprime)] = readFile(filename, post)
 
    if not os.path.isdir("data/"): os.system('mkdir data/') 
-   writeFile(limits, post, "data/limits"+post+".txt")
+   writeFile(limits, post, "data/limit"+post+".txt")
 
  
