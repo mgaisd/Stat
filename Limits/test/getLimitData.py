@@ -13,6 +13,7 @@ parser.add_option("-c","--channel",dest="ch",type="string",default="all",help="I
 parser.add_option("-y","--years",dest="years",type="string",default="2016",help="Indicate years of interest. Default is 2016")
 parser.add_option('-m', '--method', dest='method', type='string', default = 'hist', help='Run a single method (hist, template, all)')
 parser.add_option('-d', '--dir', dest='dir', type='string', default = 'outdir', help='datacards direcotry')
+parser.add_option('',"--getSingleCats",dest="getSingleCats",action='store_true', default=False)
 
 (opt, args) = parser.parse_args()
 
@@ -47,6 +48,7 @@ for y in years:
 for method in methods:
     post = "_" + method;
     getLimits(opt.dir,post)
-    for cat in categories:
-        post = "_" + cat + "_" + method;
-        getLimits(opt.dir, post)
+    if (opt.getSingleCats):
+        for cat in categories:
+            post = "_" + cat + "_" + method;
+            getLimits(opt.dir, post)

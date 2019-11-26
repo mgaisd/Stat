@@ -518,7 +518,8 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
               normBkg = RooRealVar("Bkg_"+ch+"_norm", "Number of background events", nBkgEvts, 0., 2.e4)
               ch_red = ch[:-5]
               modelName = "Bkg_"+ch
-             
+              modelAltName =  "Bkg_Alt_"+ch
+              
               if(doModelling):
                      #ch_red = ch
                      print "channel: ", ch_red
@@ -662,7 +663,7 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                             else:
                                    p4_4_alt = RooRealVar(ch + "_p4_4_alt", "p4", 1., -10., 100.)  
 
-                            modelAltName =  "Bkg_Alt_"+ch
+
 
                             modelAlt1 = RooGenericPdf(modelAltName+"1", "Bkg. fit (1 par.)", "(exp(log(@1*(@0/13000) + 1)))", RooArgList(mT, p1_1_alt))
                             modelAlt2 = RooGenericPdf(modelAltName+"2", "Bkg. fit (2 par.)", "(exp(log(@1*(@0/13000) + 1))) / pow((@0/13000),@2)", RooArgList(mT, p1_2_alt, p2_2_alt))
@@ -817,6 +818,19 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                             print "Functions with", order+1, "or more parameters are needed to fit the background"
                             exit()
 
+                     modelBkg.SetName(modelName)
+                     normBkg.SetName(modelName+"_norm")
+                     wsfilename = "%s/ws.root" % (WORKDIR)
+                     wfile_ = ROOT.TFile(wsfilename)
+                     w_ = wfile_.FindObjectAny("BackgroundWS")
+                     if not w_.__nonzero__() :  w_ = RooWorkspace("BackgroundWS", "workspace")
+                     else:  w_ =  wfile_.Get("BackgroundWS")
+                     print "Storing ", modelName
+                     getattr(w_, "import")(modelBkg, RooFit.Rename(modelBkg.GetName()))
+
+                     getattr(w_, "import")(obsData, RooFit.Rename("data_obs"))
+
+
                      if bias:
 
                             if order_alt==1:
@@ -834,24 +848,15 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                             else:
                                    print "Functions with", order_alt+1, "or more parameters are needed to fit the background"
                                    exit()
+                            modelAlt.SetName(modelAltName)
+                            normAlt.SetName(modelAltName+"_norm")
+                            getattr(w_, "import")(modelAlt, RooFit.Rename(modelAlt.GetName()))
 
-
-                     modelBkg.SetName(modelName)
-                     normBkg.SetName(modelName+"_norm")
-                     wsfilename = "%s/ws.root" % (WORKDIR)
-                     wfile_ = ROOT.TFile(wsfilename)
-                     w_ = wfile_.FindObjectAny("BackgroundWS")
-                     if not w_.__nonzero__() :  w_ = RooWorkspace("BackgroundWS", "workspace")
-                     else:  w_ =  wfile_.Get("BackgroundWS")
-                     print "Storing ", modelName
-                     getattr(w_, "import")(modelBkg, RooFit.Rename(modelBkg.GetName()))
-                     getattr(w_, "import")(obsData, RooFit.Rename("data_obs"))
                      wstatus = w_.writeToFile(wsfilename, False)
 
 
-                     if bias:
-                            modelAlt.SetName(modelAltName)
-                            normAlt.SetName(modelAltName+"_norm")
+
+
 
 
 
@@ -860,6 +865,8 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
               print "workspace ", wBkg.Print()
               print "Model name: ", modelName
               modelBkg = wBkg.pdf(modelName)
+              modelAlt = wBkg.pdf(modelAltName)
+              modelAlt = wBkg.pdf(modelAltName+"_norm")
               normBkg =  wBkg.pdf(modelName+"_norm")
               parSet = modelBkg.getParameters(obsData)
               parSet.Print()
@@ -1096,13 +1103,11 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
 
        for par in parNames: card += "%-20s%-20s\n" % (par, "flatParam")
 
-       card += "SF            extArg     1 [0.75,1.25]\n"
-
-       for par, formula in rateParams.iteritems(): 
-              formula = formula.replace("%s", '%.3f' % (eff))
-              #if "SVJ1" in par:par = "SVJ1_rate"
-              #if "SVJ2" in par:par = "SVJ2_rate"
-              card += "%-20s%-20s%-20s%-20s%s   %-20s\n" % (par + "_rate", "rateParam", ch, sig, formula, "SF")
+       #card += "SF            extArg     1 [0.75,1.25]\n"
+       #card += "SF param 1 0.25\n"
+       #for par, formula in rateParams.iteritems(): 
+       #       formula = formula.replace("%s", '%.3f' % (eff))
+       #       card += "%-20s %-20s %-20s %-20s %s %-20s\n" % (par + "_rate", "rateParam", ch, sig, formula, "SF")
 
 
       # card += "\n"

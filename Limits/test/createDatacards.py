@@ -88,9 +88,18 @@ cmd = "rm Efficiencies.txt"
 os.system(cmd)
 
 effs = {}
+
+
+ch_eff = ["lowSVJ0", "lowSVJ1", "lowSVJ2", "highSVJ0", "highSVJ1", "highSVJ2"]
+ch_eff_year = []
+for y in years:
+    ch_eff_years = [ch + '_' + y for ch in ch_eff ]
+    ch_eff_year= ch_eff_year + ch_eff_years
+
+
 for s in signals:
 
-    effs[s] = getEfficiency(s, ch_year, ifilename)
+    effs[s] = getEfficiency(s, ch_eff_year, ifilename)
 
 y = json.dumps(effs)
 outname =  "Efficiencies.txt"
