@@ -6,7 +6,7 @@ from Stat.Limits.datacards import *
 
 print "====> CHANNELS: ", channels
 
-path = "/t3home/decosa/SVJ/CMSSW_8_1_0/src/Stat/Limits/test/"
+path = "/uscms_data/d3/cfallon/SVJ/biasStudies/CMSSW_10_2_13/src/Stat/Limits/test"
 
 usage = 'usage: %prog -p histosPath -o outputFile'
 parser = optparse.OptionParser(usage)
@@ -115,4 +115,4 @@ for s in signals:
 
     if (signals.index(s)!=0): doModelling = False
     for ch in ch_year:
-        getCard(s, ch, ifilename, outdir, doModelling, mode, bias)
+        getCard(s, ch, ifilename, outdir, doModelling, mode, bias, True)
