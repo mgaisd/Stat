@@ -1,13 +1,13 @@
 import ROOT as rt
 import random
 rt.gSystem.Load("libHiggsAnalysisCombinedLimit.so")
-rt.gStyle.SetOptStat(111111)
+rt.gStyle.SetOptStat(0)
 rt.gStyle.SetOptFit(1011)
 
 # runover each SR to fit all 100 toys to the main function
 
-regions = ["lowCut"]#,"lowSVJ1","lowSVJ2","highCut","highSVJ1","highSVJ2"]
-#regions = ["lowSVJ1","lowSVJ2","highSVJ1","highSVJ2"]
+#regions = ["lowCut"]#,"lowSVJ1","lowSVJ2","highCut","highSVJ1","highSVJ2"]
+regions = ["lowCut","lowSVJ2","highCut","highSVJ2"]
 #regions = ["lowSVJ2"]
 
 # Generate plots of fit_status, r, rErr, and (r-STR)/rErr for all, fit_status <300, and fit_status==0
@@ -21,9 +21,9 @@ for region in regions:
 				halfName = toyFunc+sigStr
 				fullName = toyFunc+sigStr+fitFunc
 				n = sigStr[3]
-				fitDiagFile = rt.TFile.Open("cards_Feb21_Thry/SVJ_mZprime3000_mDark20_rinv03_alphapeak/"+region+"/fitDiagnostics"+fullName+".root","read")
-				genOnlyFile = rt.TFile.Open("cards_Feb21_Thry/SVJ_mZprime3000_mDark20_rinv03_alphapeak/"+region+"/higgsCombine"+halfName+".GenerateOnly.mH125.123456.root","read")
-				dataObsFile = rt.TFile.Open("cards_Feb21_Thry/SVJ_mZprime3000_mDark20_rinv03_alphapeak/ws_SVJ_mZprime3000_mDark20_rinv03_alphapeak_"+region+"_2018_template.root","read")
+				fitDiagFile = rt.TFile.Open("cards_Mar3_ThryDij/SVJ_mZprime3000_mDark20_rinv03_alphapeak/"+region+"/fitDiagnostics"+fullName+".root","read")
+				genOnlyFile = rt.TFile.Open("cards_Mar3_ThryDij/SVJ_mZprime3000_mDark20_rinv03_alphapeak/"+region+"/higgsCombine"+halfName+".GenerateOnly.mH125.123456.root","read")
+				dataObsFile = rt.TFile.Open("cards_Mar3_ThryDij/SVJ_mZprime3000_mDark20_rinv03_alphapeak/ws_SVJ_mZprime3000_mDark20_rinv03_alphapeak_"+region+"_2018_template.root","read")
 				svjWs = dataObsFile.Get("SVJ")
 				data = rt.RooDataHist()
 				data = svjWs.data("data_obs")
@@ -38,7 +38,7 @@ for region in regions:
 				c1.Divide(2,2)
 				c1.cd(1)
 				selection = "" #"fit_status==0||fit_status==1"
-				tree.Draw("r>>h1(60,-10,10)",selection)
+				tree.Draw("r>>h1(60,-20,20)",selection)
 				rt.gDirectory.Get("h1").SetLineColor(rt.kBlack)
 				rt.gDirectory.Get("h1").SetLineWidth(2)
 				#tree.Draw("r>>h1p","r>0","same")
@@ -55,13 +55,13 @@ for region in regions:
 				rt.gPad.Update()
 				c1.cd(3)
 				frame = rt.RooPlot(svjWs.var("mH"),1500.,3800.,23)
-				#frame = rt.RooPlot(svjWs.var("mH"),1500.,6000.,45)
-				frame.SetTitle("data, random toy, inital fit")
+				#rame = rt.RooPlot(svjWs.var("mH"),1500.,6000.,45)
+				frame.SetTitle("data, inital fit")
 				rt.gPad.SetLogy()
 				data.plotOn(frame, rt.RooFit.MarkerColor(rt.kBlack))
 				fitPdf.plotOn(frame,rt.RooFit.LineColor(rt.kMagenta))
-				toy = genOnlyFile.Get("toys/toy_{}".format(random.randint(1,100)))
-				toy.plotOn(frame,rt.RooFit.MarkerColor(rt.kBlue))
+				#toy = genOnlyFile.Get("toys/toy_{}".format(random.randint(1,100)))
+				#toy.plotOn(frame,rt.RooFit.MarkerColor(rt.kBlue))
 				frame.SetAxisRange(0.001,50000,"Y")
 				frame.Draw()
 				c1.cd(4)
@@ -81,15 +81,15 @@ for region in regions:
 				title = rt.TPaveText(0.3,0.5,0.7,0.53)
 				title.AddText("{} {}".format(region, fullName))
 				title.Draw()
-				c1.SaveAs("cards_Feb21_Thry/SVJ_mZprime3000_mDark20_rinv03_alphapeak/plots/"+region+"_fit_status_"+fullName+"_plots.png")
+				c1.SaveAs("cards_Mar3_ThryDij/SVJ_mZprime3000_mDark20_rinv03_alphapeak/plots/"+region+"_fit_status_"+fullName+"_plots.png")
 				c2 = rt.TCanvas("c2","c2",1000,1000)
 				#frame2 = rt.RooPlot(svjWs.var("mH"),1500.,6000.,45)
 				frame2 = rt.RooPlot(svjWs.var("mH"),1500.,3800.,23)
-				for iToy in range(1,101):
-					genOnlyFile.Get("toys/toy_{}".format(iToy)).plotOn(frame2,rt.RooFit.LineColor(rt.kMagenta),rt.RooFit.MarkerColor(rt.kMagenta))
+				#for iToy in range(1,101):
+				#	genOnlyFile.Get("toys/toy_{}".format(iToy)).plotOn(frame2,rt.RooFit.LineColor(rt.kMagenta),rt.RooFit.MarkerColor(rt.kMagenta))
 				data.plotOn(frame2, rt.RooFit.MarkerColor(rt.kBlack))
 				frame2.Draw()
-				c2.SaveAs("cards_Feb21_Thry/SVJ_mZprime3000_mDark20_rinv03_alphapeak/plots/"+region+"_AllToys_"+fullName+".png")
+				c2.SaveAs("cards_Mar3_ThryDij/SVJ_mZprime3000_mDark20_rinv03_alphapeak/plots/"+region+"_AllToys_"+fullName+".png")
 
 				fitDiagFile.Close()
 				genOnlyFile.Close()

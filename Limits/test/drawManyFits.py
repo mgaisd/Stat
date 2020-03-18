@@ -6,9 +6,16 @@ rt.gStyle.SetOptFit(1011)
 
 # runover each SR to fit all 100 toys to the main function
 
-regions = ["lowCut","lowSVJ1","lowSVJ2","highCut","highSVJ1","highSVJ2"]
+regions = ["lowCut","lowSVJ2","highCut","highSVJ2"]
 #regions = ["lowSVJ1","lowSVJ2","highSVJ1","highSVJ2"]
 #regions = ["lowSVJ2"]
+
+# Mar3_ThryDij
+# Region Thry/Main Dijet/Alt
+# highCut 2 3
+# highSVJ2 1 1
+# lowCut 2 2
+# lowSVJ2 2 2
 
 # Generate 4 plots:
 #	distribution of param1, for all and for qunatExp = 0.5
@@ -23,10 +30,10 @@ for region in regions:
 				halfName = toyFunc+sigStr
 				fullName = toyFunc+sigStr+fitFunc
 				n = sigStr[3]
-				fitDiagFile = rt.TFile.Open("cards_Feb12_3params/SVJ_mZprime3000_mDark20_rinv03_alphapeak/"+region+"/fitDiagnostics"+fullName+".root","read")
-				fitOnlyFile = rt.TFile.Open("cards_Feb12_3params/SVJ_mZprime3000_mDark20_rinv03_alphapeak/"+region+"/higgsCombine"+fullName+".FitDiagnostics.mH120.123456.root","read")
-				genOnlyFile = rt.TFile.Open("cards_Feb12_3params/SVJ_mZprime3000_mDark20_rinv03_alphapeak/"+region+"/higgsCombine"+halfName+".GenerateOnly.mH125.123456.root","read")
-				dataObsFile = rt.TFile.Open("cards_Feb12_3params/SVJ_mZprime3000_mDark20_rinv03_alphapeak/ws_SVJ_mZprime3000_mDark20_rinv03_alphapeak_"+region+"_2018_template.root","read")
+				fitDiagFile = rt.TFile.Open("cards_Mar3_ThryDij/SVJ_mZprime3000_mDark20_rinv03_alphapeak/"+region+"/fitDiagnostics"+fullName+".root","read")
+				fitOnlyFile = rt.TFile.Open("cards_Mar3_ThryDij/SVJ_mZprime3000_mDark20_rinv03_alphapeak/"+region+"/higgsCombine"+fullName+".FitDiagnostics.mH120.123456.root","read")
+				genOnlyFile = rt.TFile.Open("cards_Mar3_ThryDij/SVJ_mZprime3000_mDark20_rinv03_alphapeak/"+region+"/higgsCombine"+halfName+".GenerateOnly.mH125.123456.root","read")
+				dataObsFile = rt.TFile.Open("cards_Mar3_ThryDij/SVJ_mZprime3000_mDark20_rinv03_alphapeak/ws_SVJ_mZprime3000_mDark20_rinv03_alphapeak_"+region+"_2018_template.root","read")
 				svjWs = dataObsFile.Get("SVJ")
 				toysDirect = genOnlyFile.Get("toys")
 				#print(type(svjWs),type(toysDirect))
@@ -46,44 +53,44 @@ for region in regions:
 				c1 = rt.TCanvas("c1","c1",1500,1000)
 				c1.Divide(3,2)
 				quantCut = "quantileExpected==-1"
-				#if region != "highSVJ2":
-				c1.cd(1)
-				limit.Draw("trackedParam_"+region+"_p1_3>>h1(100,-200,100)","")
-				rt.gDirectory.Get("h1").SetLineColor(rt.kBlack)
-				rt.gDirectory.Get("h1").SetLineWidth(2)
-				limit.Draw("trackedParam_"+region+"_p1_3>>h2(100,-200,100)",quantCut,"same")
-				rt.gDirectory.Get("h2").SetLineColor(rt.kRed)
-				rt.gDirectory.Get("h2").SetLineWidth(2)
-				rt.gDirectory.Get("h1").SetAxisRange(0,rt.gDirectory.Get("h1").GetMaximum()*1.1,"Y")
-				rt.gPad.Update()
-				c1.cd(2)
-				limit.Draw("trackedParam_"+region+"_p2_3>>h3(100,-500,500)","")
-				rt.gDirectory.Get("h3").SetLineColor(rt.kBlack)
-				rt.gDirectory.Get("h3").SetLineWidth(2)
-				limit.Draw("trackedParam_"+region+"_p2_3>>h4(100,-500,500)",quantCut,"same")
-				rt.gDirectory.Get("h4").SetLineColor(rt.kRed)
-				rt.gDirectory.Get("h4").SetLineWidth(2)
-				rt.gDirectory.Get("h3").SetAxisRange(0,rt.gDirectory.Get("h3").GetMaximum()*1.1,"Y")
-				rt.gPad.Update()
-				#else:
-				#	c1.cd(1)
-				#	limit.Draw("trackedParam_"+region+"_p1_1>>h1","")
-				#	rt.gDirectory.Get("h1").SetLineColor(rt.kBlack)
-				#	rt.gDirectory.Get("h1").SetLineWidth(2)
-				#	limit.Draw("trackedParam_"+region+"_p1_1>>h2",quantCut,"same")
-				#	rt.gDirectory.Get("h2").SetLineColor(rt.kRed)
-				#	rt.gDirectory.Get("h2").SetLineWidth(2)
-				#	rt.gDirectory.Get("h1").SetAxisRange(0,rt.gDirectory.Get("h1").GetMaximum()*1.1,"Y")
-				#	rt.gPad.Update()
-				c1.cd(3)
-				limit.Draw("trackedParam_"+region+"_p3_3>>h5(100,-100,100)","")
-				rt.gDirectory.Get("h5").SetLineColor(rt.kBlack)
-				rt.gDirectory.Get("h5").SetLineWidth(2)
-				limit.Draw("trackedParam_"+region+"_p3_3>>h6(100,-100,100)",quantCut,"same")
-				rt.gDirectory.Get("h6").SetLineColor(rt.kRed)
-				rt.gDirectory.Get("h6").SetLineWidth(2)
-				rt.gDirectory.Get("h5").SetAxisRange(0,rt.gDirectory.Get("h5").GetMaximum()*1.1,"Y")
-				rt.gPad.Update()
+				if region != "highSVJ2":
+					c1.cd(1)
+					#limit.Draw("trackedParam_"+region+"_p1_2>>h1(100,-200,100)","")
+					#rt.gDirectory.Get("h1").SetLineColor(rt.kBlack)
+					#rt.gDirectory.Get("h1").SetLineWidth(2)
+					limit.Draw("trackedParam_"+region+"_p1_2>>h2(100,-200,100)",quantCut)
+					rt.gDirectory.Get("h2").SetLineColor(rt.kRed)
+					rt.gDirectory.Get("h2").SetLineWidth(2)
+					rt.gDirectory.Get("h2").SetAxisRange(0,rt.gDirectory.Get("h2").GetMaximum()*1.1,"Y")
+					rt.gPad.Update()
+					c1.cd(2)
+					#limit.Draw("trackedParam_"+region+"_p2_2>>h3(100,-500,500)","")
+					#rt.gDirectory.Get("h3").SetLineColor(rt.kBlack)
+					#rt.gDirectory.Get("h3").SetLineWidth(2)
+					limit.Draw("trackedParam_"+region+"_p2_2>>h4(100,-500,500)",quantCut)
+					rt.gDirectory.Get("h4").SetLineColor(rt.kRed)
+					rt.gDirectory.Get("h4").SetLineWidth(2)
+					rt.gDirectory.Get("h4").SetAxisRange(0,rt.gDirectory.Get("h4").GetMaximum()*1.1,"Y")
+					rt.gPad.Update()
+				else:
+					c1.cd(1)
+					#limit.Draw("trackedParam_"+region+"_p1_1>>h1","")
+					#rt.gDirectory.Get("h1").SetLineColor(rt.kBlack)
+					#rt.gDirectory.Get("h1").SetLineWidth(2)
+					limit.Draw("trackedParam_"+region+"_p1_1>>h2",quantCut)
+					rt.gDirectory.Get("h2").SetLineColor(rt.kRed)
+					rt.gDirectory.Get("h2").SetLineWidth(2)
+					rt.gDirectory.Get("h2").SetAxisRange(0,rt.gDirectory.Get("h1").GetMaximum()*1.1,"Y")
+					rt.gPad.Update()
+				#c1.cd(3)
+				#limit.Draw("trackedParam_"+region+"_p3_3>>h5(100,-100,100)","")
+				#rt.gDirectory.Get("h5").SetLineColor(rt.kBlack)
+				#rt.gDirectory.Get("h5").SetLineWidth(2)
+				#limit.Draw("trackedParam_"+region+"_p3_3>>h6(100,-100,100)",quantCut,"same")
+				#rt.gDirectory.Get("h6").SetLineColor(rt.kRed)
+				#rt.gDirectory.Get("h6").SetLineWidth(2)
+				#rt.gDirectory.Get("h5").SetAxisRange(0,rt.gDirectory.Get("h5").GetMaximum()*1.1,"Y")
+				#rt.gPad.Update()
 				#c1.cd(4)
 				#limit.Draw("trackedParam_"+region+"_p4_4>>hi(100,-100,100)","")
 				#rt.gDirectory.Get("hi").SetLineColor(rt.kBlack)
@@ -112,7 +119,7 @@ for region in regions:
 				rt.gDirectory.Get("h11").SetAxisRange(0,rt.gDirectory.Get("h11").GetMaximum()*1.1,"Y")
 				rt.gPad.Update()
 				c1.cd(0)
-				c1.SaveAs("cards_Feb12_3params/SVJ_mZprime3000_mDark20_rinv03_alphapeak/plots/"+region+"_fitParams_"+fullName+".png")
+				c1.SaveAs("cards_Mar3_ThryDij/SVJ_mZprime3000_mDark20_rinv03_alphapeak/plots/"+region+"_fitParams_"+fullName+".png")
 				c2 = rt.TCanvas("c2","c2",1000,500)
 				c2.Divide(2,1)
 				c2.cd(1)
@@ -217,7 +224,7 @@ for region in regions:
 				c2.Update()
 				c2.cd(2)
 				chi2hist.Draw()
-				c2.SaveAs("cards_Feb12_3params/SVJ_mZprime3000_mDark20_rinv03_alphapeak/plots/"+region+"_manyFits_"+fullName+".png")
+				c2.SaveAs("cards_Mar3_ThryDij/SVJ_mZprime3000_mDark20_rinv03_alphapeak/plots/"+region+"_manyFits_"+fullName+".png")
 				c3 = rt.TCanvas("c3","c3",1000,1000)
 				c3.SetLogy()
 				opts = ""
@@ -241,7 +248,7 @@ for region in regions:
 					opts = "same"
 				chi2MaxText.Draw("same")
 				chi2MinText.Draw("same")
-				c3.SaveAs("cards_Feb12_3params/SVJ_mZprime3000_mDark20_rinv03_alphapeak/plots/minMax"+region+"/minMax_"+fullName+".png")
+				c3.SaveAs("cards_Mar3_ThryDij/SVJ_mZprime3000_mDark20_rinv03_alphapeak/plots/minMax"+region+"/minMax_"+fullName+".png")
 				fitDiagFile.Close()
 				genOnlyFile.Close()
 				dataObsFile.Close()

@@ -42,7 +42,7 @@ def getRate(ch, process, ifile):
        h = ifile.Get(hName)
        #return h.Integral()
        #return h.Integral(1,h.GetXaxis().GetNbins()-1)
-       return h.Integral(1,24)
+       return h.Integral(1,91)
 
 def getHist(ch, process, ifile):
        hName = ch + "/"+ process
@@ -96,7 +96,7 @@ def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label
        frame = variable.frame(ROOT.RooFit.Title(""))
        dataset.plotOn(frame, RooFit.Invisible())
        print(fitRes[0])
-       if len(fitRes) > 0: model.plotOn(frame, RooFit.VisualizeError(fitRes[0], 1, False), RooFit.Normalization(norm if norm>0 else dataset.sumEntries(), ROOT.RooAbsReal.NumEvent), RooFit.LineColor(ROOT.kBlue), RooFit.FillColor(ROOT.kOrange), RooFit.FillStyle(1001), RooFit.DrawOption("FL"), RooFit.Range("Full"))
+       #if len(fitRes) > 0: model.plotOn(frame, RooFit.VisualizeError(fitRes[0], 1, False), RooFit.Normalization(norm if norm>0 else dataset.sumEntries(), ROOT.RooAbsReal.NumEvent), RooFit.LineColor(ROOT.kBlue), RooFit.FillColor(ROOT.kOrange), RooFit.FillStyle(1001), RooFit.DrawOption("FL"), RooFit.Range("Full"))
        if len(fitRes) > 0: graphFit = model.plotOn(frame, RooFit.VisualizeError(fitRes[0], 1, False), RooFit.Normalization(norm if norm>0 else dataset.sumEntries(), ROOT.RooAbsReal.NumEvent), RooFit.LineColor(ROOT.kBlue), RooFit.FillColor(ROOT.kOrange), RooFit.FillStyle(1001), RooFit.DrawOption("FL"), RooFit.Range("Full"))
 
        model.plotOn(frame, RooFit.Normalization(norm if norm>0 else dataset.sumEntries(), ROOT.RooAbsReal.NumEvent), RooFit.LineColor(ROOT.kBlue), RooFit.FillColor(ROOT.kOrange), RooFit.FillStyle(1001), RooFit.DrawOption("L"), RooFit.Name(model.GetName()),  RooFit.Range("Full"))
@@ -120,8 +120,8 @@ def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label
        residuals = frame.residHist(dataset.GetName(), model.GetName(), False, True) # this is y_i - f(x_i)
     
        roochi2 = frame.chiSquare(model.GetName(), dataset.GetName(),npar)#dataset.GetName(), model.GetName()) #model.GetName(), dataset.GetName()
-       print "forcing bins: 23"
-       nbins = 23
+       print "forcing bins: 48"
+       nbins = 48
        chi = roochi2 * ( nbins - npar)
        print "pls: ", chi,  nbins
        roopro = ROOT.TMath.Prob(chi, nbins - npar)
@@ -353,7 +353,12 @@ def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label
        print "=======> sumErrors: ", sumErrors
         
        rss = math.sqrt(rss)
-       out = {"chiSquared":roochi2,"chi2" : chi2, "chi1" : chi1, "rss" : rss, "res" : res, "nbins" : hist.GetN(), "npar" : npar}
+       parValList = []
+       print(len(fitRes[0].floatParsFinal()))
+       for iPar in range(len(fitRes[0].floatParsFinal())):
+              print(iPar)
+              parValList.append((fitRes[0].floatParsFinal().at(iPar)).getValV())
+       out = {"chiSquared":roochi2,"chi2" : chi2, "chi1" : chi1, "rss" : rss, "res" : res, "nbins" : hist.GetN(), "npar" : npar, "parVals": parValList}
        #c.SaveAs(carddir + "/plots/Residuals_"+ch+"_"+name+".pdf")
        length=1
        if(length<2):
@@ -506,7 +511,7 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
               print "histSigData: ", histSig.Integral()
               #print "histBkgData: ", histBkgData.Integral()
               xvarmin = 1500.
-              xvarmax = 3800.
+              xvarmax = 6000.
               mT = RooRealVar(  "mH",    "m_{T}", xvarmin, xvarmax, "GeV")
               binMax = histData.FindBin(xvarmax)
               bkgData = RooDataHist("bkgdata", "Data (MC Bkg)",  RooArgList(mT), histBkgData, 1.)
@@ -517,6 +522,7 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
               #nBkgEvts = histBkgData.Integral(1, histBkgData.GetXaxis().GetNbins()-1) 
               nBkgEvts = histBkgData.Integral(1, binMax)
               nDataEvts = histData.Integral(1, binMax)
+              nSigEvts = histSig.Integral(1, binMax)
 #              nBkgEvts = histData.Integral(1, histData.GetXaxis().GetNbins()-1)
 #              nDataEvts = histData.Integral(1, histData.GetXaxis().GetNbins()-1) 
               #print "Bkg Events: ", nBkgEvts
@@ -607,10 +613,17 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                      #modelBkg4 = RooGenericPdf(modelName+"4", "Bkg. fit (4 par.)", "pow(1 - @0/13000, abs(@1)) * pow(@0/13000, -abs(@2)-log(@0/13000)*(abs(@3) + abs(@4)* log(@0/13000)))", RooArgList(mT, p1_4, p2_4, p3_4, p4_4))
 
                      #Function from Theorists
-                     modelBkg1 = RooGenericPdf(modelName+"1", "Thry. fit (1 par.)", "pow(1 - @0/13000, @1) ", RooArgList(mT, p1_1))
-                     modelBkg2 = RooGenericPdf(modelName+"2", "Thry. fit (2 par.)", "pow(1 - @0/13000, @1+@2*log(@0/13000)) ", RooArgList(mT, p1_2, p2_2))
-                     modelBkg3 = RooGenericPdf(modelName+"3", "Thry. fit (3 par.)", "pow(1 - @0/13000, @1+@2*log(@0/13000)) * pow(@0/13000, -@3)", RooArgList(mT, p1_3, p2_3, p3_3))
-                     modelBkg4 = RooGenericPdf(modelName+"4", "Thry. fit (4 par.)", "pow(1 - @0/13000, @1+@2*log(@0/13000)) * pow(@0/13000, -@3-@4*log(@0/13000))", RooArgList(mT, p1_4, p2_4, p3_4, p4_4))
+                     #modelBkg1 = RooGenericPdf(modelName+"1", "Thry. fit (1 par.)", "pow(1 - @0/13000, @1) ", RooArgList(mT, p1_1))
+                     #modelBkg2 = RooGenericPdf(modelName+"2", "Thry. fit (2 par.)", "pow(1 - @0/13000, @1+@2*log(@0/13000)) ", RooArgList(mT, p1_2, p2_2))
+                     #modelBkg3 = RooGenericPdf(modelName+"3", "Thry. fit (3 par.)", "pow(1 - @0/13000, @1+@2*log(@0/13000)) * pow(@0/13000, -@3)", RooArgList(mT, p1_3, p2_3, p3_3))
+                     #modelBkg4 = RooGenericPdf(modelName+"4", "Thry. fit (4 par.)", "pow(1 - @0/13000, @1+@2*log(@0/13000)) * pow(@0/13000, -@3-@4*log(@0/13000))", RooArgList(mT, p1_4, p2_4, p3_4, p4_4))
+
+                     #Function from Theorists, combo testing, sequence E, 1, 11, 12, 22
+                     # model NM has N params on 1-x and M params on x. exponents are (p_i + p_{i+1} * log(x))
+                     modelBkg1 = RooGenericPdf(modelName+"1", "Thry. fit (01)", "pow(@0/13000, -@1)", RooArgList(mT, p1_1))
+                     modelBkg2 = RooGenericPdf(modelName+"2", "Thry. fit (11)", "pow(1 - @0/13000, @2) *pow(@0/13000, -@1)", RooArgList(mT, p1_2, p2_2))
+                     modelBkg3 = RooGenericPdf(modelName+"3", "Thry. fit (12)", "pow(1 - @0/13000, @2) * pow(@0/13000, -@1-@3*log(@0/13000))", RooArgList(mT, p1_3, p2_3, p3_3))
+                     modelBkg4 = RooGenericPdf(modelName+"4", "Thry. fit (22)", "pow(1 - @0/13000, @2+@4*log(@0/13000)) * pow(@0/13000, -@1-@3*log(@0/13000))", RooArgList(mT, p1_4, p2_4, p3_4, p4_4))
 
                      # modified Theorists' Function, no x term
                      #modelBkg1 = RooGenericPdf(modelName+"1", "Thry. fit (1 par.)", "pow(1 - @0/13000, @1) ", RooArgList(mT, p1_1))
@@ -920,11 +933,17 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                                    print "%d par are needed" % (RSS[o2]['npar']),
 
                             print "\\\\"
+                     moreParFlag = 0
+                     if order == 0:
+                            order = 4
+                            moreParFlag = 1
                      print "\\hline"
                      print "-"*25   
                      print "Order is", order, "("+ch+")"
                      report += "Order is %d (%s)\n" % (order, ch)
+                     report += ("Parameter values are: " + ", ".join(['%.2f']*len(RSS[order]["parVals"])) + "\n") % tuple(RSS[order]["parVals"])
                      report += "%d par are sufficient\n" % (RSS[order]['npar'])
+                     if moreParFlag: report += "BUT really, more Pars are needed!"
                      for i in range(1,len(RSS)+1):
                             report += "model%i chi2: %.2f\n" % (i, RSS[i]['chiSquared'])
 
@@ -964,11 +983,17 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                                           print "%d par are needed" % (RSS_alt[o2]['npar']),
 
                                    print "\\\\"
+                            moreParFlag_alt = 0
+                            if order_alt == 0:
+                                   order_alt = 4
+                            moreParFlag_alt = 1
                             print "\\hline"
                             print "-"*25   
                             print "Order is", order_alt, "("+ch+")"
                             report += "Order is %d (%s)\n" % (order_alt, ch)
+                            report += ("Parameter values are: " + ", ".join(['%.2f']*len(RSS_alt[order_alt]["parVals"])) + "\n") % tuple(RSS_alt[order_alt]["parVals"])
                             report += "%d par are sufficient\n" % (RSS_alt[order_alt]['npar'])
+                            if moreParFlag_alt: report += "BUT really, more Pars are needed!"
                             for i in range(1,min(len(RSS),len(RSS_alt))+1):
                                    report += "model%i chi2, chi2_alt: %.2f %.2f\n" % (i, RSS[i]['chiSquared'],RSS_alt[i]['chiSquared'])
 
@@ -1173,8 +1198,9 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
 
 
        rates["data_obs"] = getRate(ch, "data_obs", ifile)
-       print "TEST: ", rates["data_obs"], nDataEvts
+       print "TEST bkg/obs: ", rates["data_obs"], nDataEvts, binMax
        rates[sig] = getRate(ch, sig, ifile)
+       print "TEST sig: ", rates[sig], nSigEvts, binMax
 
 
 
