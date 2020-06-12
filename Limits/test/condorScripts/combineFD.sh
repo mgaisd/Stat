@@ -40,32 +40,68 @@ xrdcp -s root://cmseos.fnal.gov//store/user/cfallon/biasStudies/${SVJ_NAME}/ws_$
 
 if [ ${REGION} == "highCut" ]
 then
-  parOpts="--setParameters pdf_index_${REGION}_2018=0,${REGION}_p1_2_alt=0,${REGION}_p2_2_alt=0 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_2_alt,${REGION}_p2_2_alt --trackParameters ${REGION}_p1_3,${REGION}_p2_3,${REGION}_p3_3"
+  parOptsGenMain="--setParameters pdf_index_${REGION}_2018=0,${REGION}_p1_2_alt=0,${REGION}_p2_2_alt=0 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_2_alt,${REGION}_p2_2_alt"
+  parOptsFitMain="--setParameters pdf_index_${REGION}_2018=0,${REGION}_p1_2_alt=0,${REGION}_p2_2_alt=0 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_2_alt,${REGION}_p2_2_alt --trackParameters ${REGION}_p1_3,${REGION}_p2_3,${REGION}_p3_3"
+  parOptsGenAlt="--setParameters pdf_index_${REGION}_2018=1,${REGION}_p1_3=0,${REGION}_p2_3=0,${REGION}_p3_3=0 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_3,${REGION}_p2_3,${REGION}_p3_3"
+  parOptsFitAlt="--setParameters pdf_index_${REGION}_2018=1,${REGION}_p1_3=0,${REGION}_p2_3=0,${REGION}_p3_3=0 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_3,${REGION}_p2_3,${REGION}_p3_3 --trackParameters ${REGION}_p1_2_alt,${REGION}_p2_2_alt"
 elif [ ${REGION} == "lowCut" ]
 then
-  parOpts="--setParameters pdf_index_${REGION}_2018=0,${REGION}_p1_2_alt=0,${REGION}_p2_2_alt=0 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_2_alt,${REGION}_p2_2_alt --trackParameters ${REGION}_p1_2,${REGION}_p2_2"
+  parOptsGenMain="--setParameters pdf_index_${REGION}_2018=0,${REGION}_p1_2_alt=0,${REGION}_p2_2_alt=0 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_2_alt,${REGION}_p2_2_alt"
+  parOptsFitMain="--setParameters pdf_index_${REGION}_2018=0,${REGION}_p1_2_alt=0,${REGION}_p2_2_alt=0 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_2_alt,${REGION}_p2_2_alt --trackParameters ${REGION}_p1_2,${REGION}_p2_2"
+  parOptsGenAlt="--setParameters pdf_index_${REGION}_2018=1,${REGION}_p1_2=0,${REGION}_p2_2=0, --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_2,${REGION}_p2_2"
+  parOptsFitAlt="--setParameters pdf_index_${REGION}_2018=1,${REGION}_p1_2=0,${REGION}_p2_2=0 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_2,${REGION}_p2_2 --trackParameters ${REGION}_p1_2_alt,${REGION}_p2_2_alt"
 elif [ ${REGION} == "highSVJ2" ]
 then
-  parOpts="--setParameters pdf_index_${REGION}_2018=0,${REGION}_p1_1_alt=0 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_1_alt --trackParameters ${REGION}_p1_1"
+  parOptsGenMain="--setParameters pdf_index_${REGION}_2018=0,${REGION}_p1_1_alt=0 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_1_alt"
+  parOptsFitMain="--setParameters pdf_index_${REGION}_2018=0,${REGION}_p1_1_alt=0 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_1_alt --trackParameters ${REGION}_p1_1"
+  parOptsGenAlt="--setParameters pdf_index_${REGION}_2018=1,${REGION}_p1_1=0 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_1"
+  parOptsFitAlt="--setParameters pdf_index_${REGION}_2018=1,${REGION}_p1_1=0 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_1 --trackParameters ${REGION}_p1_1_alt"
 elif [ ${REGION} == "lowSVJ2" ]
 then
-  parOpts="--setParameters pdf_index_${REGION}_2018=0,${REGION}_p1_2_alt=0,${REGION}_p2_2_alt=0 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_2_alt,${REGION}_p2_2_alt --trackParameters ${REGION}_p1_2,${REGION}_p2_2"
+  parOptsGenMain="--setParameters pdf_index_${REGION}_2018=0,${REGION}_p1_2_alt=0,${REGION}_p2_2_alt=0 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_2_alt,${REGION}_p2_2_alt"
+  parOptsFitMain="--setParameters pdf_index_${REGION}_2018=0,${REGION}_p1_2_alt=0,${REGION}_p2_2_alt=0 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_2_alt,${REGION}_p2_2_alt --trackParameters ${REGION}_p1_2,${REGION}_p2_2"
+  parOptsGenAlt="--setParameters pdf_index_${REGION}_2018=1,${REGION}_p1_2=0,${REGION}_p2_2=0, --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_2,${REGION}_p2_2"
+  parOptsFitAlt="--setParameters pdf_index_${REGION}_2018=1,${REGION}_p1_2=0,${REGION}_p2_2=0 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_2,${REGION}_p2_2 --trackParameters ${REGION}_p1_2_alt,${REGION}_p2_2_alt"
 else
   exit 1
 fi
 
 bonus="--robustFit=1 --setRobustFitTolerance=1."
 
-if [ ${SVJOPTS} = 1]
+if [ ${SVJOPTS} -eq 1 ]
 then
   bonus="--robustFit=1 --minos none --cminDefaultMinimizerStrategy 0 --cminDefaultMinimizerType Minuit --cminDefaultMinimizerAlgo Simplex"
 fi
 
-cmd="combine ${SVJ_NAME}_${REGION}_2018_template_bias.txt -M FitDiagnostics ${bonus} ${parOpts} -n ${REGION}_expSig${expSig}${extraName} -t ${nTOYS} --toysFrequentist --saveToys --expectSignal ${expSig} --rMin -80 --rMax 80 -v 3"
+
+if [ ${genFunc} -eq 0 ]
+then
+  genName="${REGION}Sig${expSig}GenMain"
+  parOptsGen=${parOptsGenMain}
+elif [ ${genFunc} -eq 1 ]
+then
+  genName="${REGION}Sig${expSig}GenAlt"
+  parOptsGen=${parOptsGenAlt}
+fi
+
+if [ ${fitFunc} -eq 0 ]
+then
+  fitName="${genName}FitMain"
+  parOptsFit=${parOptsFitMain}
+elif [ ${genFunc} -eq 1 ]
+then
+  fitName="${genName}FitAlt"
+  parOptsFit=${parOptsFitAlt}
+fi
+
+cmdGen="combine ${SVJ_NAME}_${REGION}_2018_template_bias.txt -M GenerateOnly ${bonus} ${parOptsGen} -n ${genName} -t ${nTOYS} --toysFrequentist --saveToys --expectSignal ${expSig}"
+cmdFit="combine ${SVJ_NAME}_${REGION}_2018_template_bias.txt -M FitDiagnostics ${bonus} ${parOptsFit} -n ${fitName} --toysFile higgsCombine${genName}.GenerateOnly.mH125.123456.root -t ${nTOYS} --toysFrequentist --saveToys --expectSignal ${expSig} --rMin -80 --rMax 80 -v 3"
 
 echo "combine commands:"
-echo ${cmd}
-$cmd
+echo ${cmdGen}
+echo ${cmdFit}
+$cmdGen
+$cmdFit
 
 # export items to EOS
 echo "List all root files = "
