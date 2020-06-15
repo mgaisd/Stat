@@ -624,42 +624,34 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                             # alternative function is Silvio's nominal function, but with +1 instead of -1
                             normAlt = RooRealVar("Bkg_"+ch+"alt_norm", "Number of background events", nBkgEvts, 0., 2.e4)
                             normData = RooRealVar("Data_"+ch+"alt_norm", "Number of background events", nDataEvts, 0., 2.e4) 
-                            p1_1_alt = RooRealVar(ch_red + "_p1_1_alt", "p1", 1., 0., 50.)
-                            p1_2_alt = RooRealVar(ch_red + "_p1_2_alt", "p1", 1., 0., 50.)
-                            if(ch == "lowSVJ2_2017" or ch == "highSVJ2_2017"):
-                                   #p1_3_alt = RooRealVar(ch_red + "_p1_3_alt", "p1", 1., 0., 10.)
-                                   p1_3_alt = RooRealVar(ch_red + "_p1_3_alt", "p1", 1., -1000., 1000.)
-                            else:
-                                   p1_3_alt = RooRealVar(ch_red + "_p1_3_alt", "p1", 1., -1000., 1000.)
-                            p1_4_alt = RooRealVar(ch_red + "_p1_4_alt", "p1", 1., 0., 1000.)
-                            p2_2_alt = RooRealVar(ch_red + "_p2_2_alt", "p2", 1., 0., 20.)
-                            if(ch == "highSVJ2_2016" or ch == "highSVJ2_2017" or ch == "highSVJ2_2018" or ch == "lowSVJ2_2017" or ch == "highSVJ"):
-                                   #p2_3_alt = RooRealVar(ch_red + "_p2_3_alt", "p2", 1., 0., 10.)
-                                   p2_3_alt = RooRealVar(ch_red + "_p2_3_alt", "p2", 1., -1000., 1000.)
-                            else:
-                                   p2_3_alt = RooRealVar(ch_red + "_p2_3_alt", "p2", 1., -1000., 1000.)
-                            p2_4_alt = RooRealVar(ch_red + "_p2_4_alt", "p2", 1., 0., 1000.)
-                            if(ch == "highSVJ2_2016" or ch == "highSVJ2_2017" or ch == "highSVJ2_2018" or ch == "lowSVJ2_2017" or ch == "highSVJ2"):
-                                   #p3_3_alt = RooRealVar(ch_red + "_p3_3_alt", "p3", 1., 0., 10.)
-                                   p3_3_alt = RooRealVar(ch_red + "_p3_3_alt", "p3", 1., -1000., 1000.)
-                            else:
-                                   p3_3_alt = RooRealVar(ch_red + "_p3_3_alt", "p3", 1., 0., 1000.)
-                            p3_4_alt = RooRealVar(ch_red + "_p3_4_alt", "p3", 1., 0., 1000.)
-                            p4_4_alt = RooRealVar(ch_red + "_p4_4_alt", "p4", 1., 0., 1000.) 
+
+                            p1_1_alt = RooRealVar(ch_red + "_p1_1_alt", "p1", 1., -50., 50.)
+                            p1_2_alt = RooRealVar(ch_red + "_p1_2_alt", "p1", 1., -50., 50.)
+                            p1_3_alt = RooRealVar(ch_red + "_p1_3_alt", "p1", 1., -50., 50.)
+                            p1_4_alt = RooRealVar(ch_red + "_p1_4_alt", "p1", 1., -50., 50.)
+
+                            p2_2_alt = RooRealVar(ch_red + "_p2_2_alt", "p2", 1., -50., 50.)
+                            p2_3_alt = RooRealVar(ch_red + "_p2_3_alt", "p2", 1., -50., 50.)
+                            p2_4_alt = RooRealVar(ch_red + "_p2_4_alt", "p2", 1., -50., 50.)
+
+                            p3_3_alt = RooRealVar(ch_red + "_p3_3_alt", "p3", 1., -50., 50.)
+                            p3_4_alt = RooRealVar(ch_red + "_p3_4_alt", "p3", 1., -50., 50.)
+
+                            p4_4_alt = RooRealVar(ch_red + "_p4_4_alt", "p4", 1., -50., 50.) 
 
 
 
                             # Dijet Function Alt
-                            modelAlt1_rgp = RooGenericPdf(modelAltName+"1_rgp", "Dij. fit (1 par.)", "pow(1 - @0/13000, abs(@1)) ", RooArgList(mT, p1_1_alt))
-                            modelAlt2_rgp = RooGenericPdf(modelAltName+"2_rgp", "Dij. fit (2 par.)", "pow(1 - @0/13000, abs(@1)) * pow(@0/13000, -abs(@2))", RooArgList(mT, p1_2_alt, p2_2_alt))
-                            modelAlt3_rgp = RooGenericPdf(modelAltName+"3_rgp", "Dij. fit (3 par.)", "pow(1 - @0/13000, abs(@1)) * pow(@0/13000, -abs(@2)-abs(@3)*log(@0/13000))", RooArgList(mT, p1_3_alt, p2_3_alt, p3_3_alt))
-                            modelAlt4_rgp = RooGenericPdf(modelAltName+"4_rgp", "Dij. fit (4 par.)", "pow(1 - @0/13000, abs(@1)) * pow(@0/13000, -abs(@2)-log(@0/13000)*(abs(@3) + abs(@4)* log(@0/13000)))", RooArgList(mT, p1_4_alt, p2_4_alt, p3_4_alt, p4_4_alt))
+                            #modelAlt1_rgp = RooGenericPdf(modelAltName+"1_rgp", "Dij. fit (1 par.)", "pow(1 - @0/13000, abs(@1)) ", RooArgList(mT, p1_1_alt))
+                            #modelAlt2_rgp = RooGenericPdf(modelAltName+"2_rgp", "Dij. fit (2 par.)", "pow(1 - @0/13000, abs(@1)) * pow(@0/13000, -abs(@2))", RooArgList(mT, p1_2_alt, p2_2_alt))
+                            #modelAlt3_rgp = RooGenericPdf(modelAltName+"3_rgp", "Dij. fit (3 par.)", "pow(1 - @0/13000, abs(@1)) * pow(@0/13000, -abs(@2)-abs(@3)*log(@0/13000))", RooArgList(mT, p1_3_alt, p2_3_alt, p3_3_alt))
+                            #modelAlt4_rgp = RooGenericPdf(modelAltName+"4_rgp", "Dij. fit (4 par.)", "pow(1 - @0/13000, abs(@1)) * pow(@0/13000, -abs(@2)-log(@0/13000)*(abs(@3) + abs(@4)* log(@0/13000)))", RooArgList(mT, p1_4_alt, p2_4_alt, p3_4_alt, p4_4_alt))
 
                             # New Alt Function
-                            #modelAlt1_rgp = RooGenericPdf(modelAltName+"1_rgp", "Alt. fit (1 par.)", "exp(@1*(@0/13000))", RooArgList(mT, p1_1_alt))
-                            #modelAlt2_rgp = RooGenericPdf(modelAltName+"2_rgp", "Alt. fit (2 par.)", "exp(@1*(@0/13000)+@2*log(@0/13000))", RooArgList(mT, p1_2_alt, p2_2_alt))
-                            #modelAlt3_rgp = RooGenericPdf(modelAltName+"3_rgp", "Alt. fit (3 par.)", "exp(@1*(@0/13000)+@2*log(@0/13000)+@3*pow(log(@0/13000),2))", RooArgList(mT, p1_3_alt, p2_3_alt, p3_3_alt))
-                            #modelAlt4_rgp = RooGenericPdf(modelAltName+"4_rgp", "Alt. fit (4 par.)", "exp(@1*(@0/13000)+@2*log(@0/13000)+@3*pow(log(@0/13000),2)+@4*pow(log(@0/13000),3))", RooArgList(mT, p1_4_alt, p2_4_alt, p3_4_alt, p4_4_alt))
+                            modelAlt1_rgp = RooGenericPdf(modelAltName+"1_rgp", "Alt. fit (1 par.)", "exp(@1*(@0/13000))", RooArgList(mT, p1_1_alt))
+                            modelAlt2_rgp = RooGenericPdf(modelAltName+"2_rgp", "Alt. fit (2 par.)", "exp(@1*(@0/13000)+@2*log(@0/13000))", RooArgList(mT, p1_2_alt, p2_2_alt))
+                            modelAlt3_rgp = RooGenericPdf(modelAltName+"3_rgp", "Alt. fit (3 par.)", "exp(@1*(@0/13000)+@2*log(@0/13000)+@3*pow(log(@0/13000),2))", RooArgList(mT, p1_3_alt, p2_3_alt, p3_3_alt))
+                            modelAlt4_rgp = RooGenericPdf(modelAltName+"4_rgp", "Alt. fit (4 par.)", "exp(@1*(@0/13000)+@2*log(@0/13000)+@3*pow(log(@0/13000),2)+@4*pow(log(@0/13000),3))", RooArgList(mT, p1_4_alt, p2_4_alt, p3_4_alt, p4_4_alt))
 
                             modelAlt1 = RooParametricShapeBinPdf(modelAltName+"1", "Alt. Fit 1par", modelAlt1_rgp, mT, RooArgList(p1_1_alt), histBkgData)
                             modelAlt2 = RooParametricShapeBinPdf(modelAltName+"2", "Alt. Fit 2par", modelAlt2_rgp, mT, RooArgList(p1_2_alt, p2_2_alt), histBkgData)

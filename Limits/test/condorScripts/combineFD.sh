@@ -15,12 +15,6 @@ eval `scramv1 runtime -sh`
 echo "CMSSW: "$CMSSW_BASE
 
 cd Stat/Limits/test
-SVJOPTS=1
-extraName=""
-if [ ${SVJOPTS} -eq 1 ]
-then
-  extraName="_extra"
-fi
 #give names to parameters
 mZ=${1}
 mD=${2}
@@ -32,10 +26,18 @@ expSig=${7}
 genFunc=${8} # 0 for bkgFunc, 1 for altFunc
 fitFunc=${9} # 0 for bkgFunc, 1 for altFunc
 
+
+SVJOPTS=0
+optName="OptD"
+if [ ${SVJOPTS} -eq 1 ]
+then
+  optName="OptS"
+fi
+
 SVJ_NAME="SVJ_mZprime${mZ}_mDark${mD}_rinv${rI}_alpha${aD}"
 
-xrdcp -s root://cmseos.fnal.gov//store/user/cfallon/biasStudies/${SVJ_NAME}/${SVJ_NAME}_${REGION}_2018_template_bias.txt ${SVJ_NAME}_${REGION}_2018_template_bias.txt
-xrdcp -s root://cmseos.fnal.gov//store/user/cfallon/biasStudies/${SVJ_NAME}/ws_${SVJ_NAME}_${REGION}_2018_template.root ws_${SVJ_NAME}_${REGION}_2018_template.root
+xrdcp -s root://cmseos.fnal.gov//store/user/cfallon/biasStudies2/${SVJ_NAME}/${SVJ_NAME}_${REGION}_2018_template_bias.txt ${SVJ_NAME}_${REGION}_2018_template_bias.txt
+xrdcp -s root://cmseos.fnal.gov//store/user/cfallon/biasStudies2/${SVJ_NAME}/ws_${SVJ_NAME}_${REGION}_2018_template.root ws_${SVJ_NAME}_${REGION}_2018_template.root
 
 
 if [ ${REGION} == "highCut" ]
@@ -66,11 +68,13 @@ else
   exit 1
 fi
 
-bonus="--robustFit=1 --setRobustFitTolerance=1."
+bonusGen=""
+bonusFit="--robustFit=1 --setRobustFitTolerance=1."
 
 if [ ${SVJOPTS} -eq 1 ]
 then
-  bonus="--robustFit=1 --minos none --cminDefaultMinimizerStrategy 0 --cminDefaultMinimizerType Minuit --cminDefaultMinimizerAlgo Simplex"
+  bonusGen="--cminDefaultMinimizerType Minuit --cminDefaultMinimizerAlgo Simplex"
+  bonusFit="--robustFit=1 --minos none --cminDefaultMinimizerStrategy 0 --cminDefaultMinimizerType Minuit --cminDefaultMinimizerAlgo Simplex"
 fi
 
 
@@ -86,22 +90,28 @@ fi
 
 if [ ${fitFunc} -eq 0 ]
 then
-  fitName="${genName}FitMain"
+  fitName="${genName}FitMain${OptName}"
   parOptsFit=${parOptsFitMain}
 elif [ ${genFunc} -eq 1 ]
 then
-  fitName="${genName}FitAlt"
+  fitName="${genName}FitAlt${OptName}"
   parOptsFit=${parOptsFitAlt}
 fi
 
-cmdGen="combine ${SVJ_NAME}_${REGION}_2018_template_bias.txt -M GenerateOnly ${bonus} ${parOptsGen} -n ${genName} -t ${nTOYS} --toysFrequentist --saveToys --expectSignal ${expSig}"
-cmdFit="combine ${SVJ_NAME}_${REGION}_2018_template_bias.txt -M FitDiagnostics ${bonus} ${parOptsFit} -n ${fitName} --toysFile higgsCombine${genName}.GenerateOnly.mH125.123456.root -t ${nTOYS} --toysFrequentist --saveToys --expectSignal ${expSig} --rMin -80 --rMax 80 -v 3"
+cmdGen="combine ${SVJ_NAME}_${REGION}_2018_template_bias.txt -M GenerateOnly ${bonusGen} ${parOptsGen} -n ${genName} -t ${nTOYS} --toysFrequentist --saveToys --expectSignal ${expSig}"
+cmdFit="combine ${SVJ_NAME}_${REGION}_2018_template_bias.txt -M FitDiagnostics ${bonusFit} ${parOptsFit} -n ${fitName} --toysFile higgsCombine${genName}.GenerateOnly.mH120.123456.root -t ${nTOYS} --toysFrequentist --saveToys --expectSignal ${expSig} --rMin -80 --rMax 80 -v 3"
 
 echo "combine commands:"
 echo ${cmdGen}
 echo ${cmdFit}
+
+echo "Doing Gen" >/dev/stderr
 $cmdGen
+echo "Done with Gen" >/dev/stderr
+ls >/dev/stderr
+echo "Doing Fit" >/dev/stderr
 $cmdFit
+echo "Done with Fit" >/dev/stderr
 
 # export items to EOS
 echo "List all root files = "
@@ -109,7 +119,7 @@ ls *.root
 echo "List all files"
 ls 
 echo "*******************************************"
-OUTDIR=root://cmseos.fnal.gov//store/user/cfallon/biasStudies/${SVJ_NAME}
+OUTDIR=root://cmseos.fnal.gov//store/user/cfallon/biasStudies2/${SVJ_NAME}
 echo "xrdcp output for condor"
 for FILE in *.root
 do
