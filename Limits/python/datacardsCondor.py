@@ -25,7 +25,7 @@ ROOT.gStyle.SetPadColor(0)
 
 
 syst = collections.OrderedDict()
-syst["lumi"] = ("lnN", "all", 1.10)
+syst["lumi"] = ("lnN", "Bkg", 1.10) # lumi should only apply to 'Bkg', not 'all'
 
 rateParams = {}
 rateParams["lowSVJ1_2018"] = "TMath::Power(TMath::Range(0.01,0.99,@0),1)*TMath::Power(1-TMath::Range(0.01,0.99,@0*%s),1)/(TMath::Power(1-%s,1))"
@@ -478,6 +478,8 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
        hist_filename = os.getcwd()+"/"+ifilename
        hist = getHist(ch, sig, ifile)
 
+       
+
 
        #*******************************************************#
        #                                                       #
@@ -499,6 +501,7 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
               xvarmin = 1500.
               xvarmax = 6000.
               mT = RooRealVar(  "mH",    "m_{T}", xvarmin, xvarmax, "GeV")
+              binMin = histData.FindBin(xvarmin)
               binMax = histData.FindBin(xvarmax)
               bkgData = RooDataHist("bkgdata", "MC Bkg",  RooArgList(mT), histBkgData, 1.)
               obsData = RooDataHist("data_obs", "Data",  RooArgList(mT), histData, 1.)
@@ -506,9 +509,9 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
               print "SUM ENTRIES: ", sigData.sumEntries()
               print "Bkg Integral: ", histData.Integral() 
               #nBkgEvts = histBkgData.Integral(1, histBkgData.GetXaxis().GetNbins()-1) 
-              nBkgEvts = histBkgData.Integral(1, binMax)
-              nDataEvts = histData.Integral(1, binMax)
-              nSigEvts = histSig.Integral(1, binMax)
+              nBkgEvts = histBkgData.Integral(binMin, binMax)
+              nDataEvts = histData.Integral(binMin, binMax)
+              nSigEvts = histSig.Integral(binMin, binMax)
 #              nBkgEvts = histData.Integral(1, histData.GetXaxis().GetNbins()-1)
 #              nDataEvts = histData.Integral(1, histData.GetXaxis().GetNbins()-1) 
               #print "Bkg Events: ", nBkgEvts
@@ -906,9 +909,9 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                      if not w_.__nonzero__() :  w_ = RooWorkspace("BackgroundWS", "workspace")
                      else:  w_ =  wfile_.Get("BackgroundWS")
                      print "Storing ", modelName
-                     getattr(w_, "import")(modelBkg, RooFit.Rename(modelBkg.GetName()))
+                     getattr(w_, "import")(modelBkg, RooFit.Rename(modelBkg.GetName())) #Bkg func with optimal num Paras
 
-                     getattr(w_, "import")(obsData, RooFit.Rename("data_obs"))
+                     getattr(w_, "import")(obsData, RooFit.Rename("data_obs")) # data_obs histogram
 
 
                      if bias:
@@ -935,7 +938,7 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                                    exit()
                             modelAlt.SetName(modelAltName)
                             normAlt.SetName(modelAltName+"_norm")
-                            getattr(w_, "import")(modelAlt, RooFit.Rename(modelAlt.GetName()))
+                            getattr(w_, "import")(modelAlt, RooFit.Rename(modelAlt.GetName())) # Alt func with optimal num Paras
 
                      wstatus = w_.writeToFile(wsfilename, False)
 
@@ -1110,8 +1113,9 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
 
 
        for sysName,sysValue  in syst.iteritems():
-
-              if(sysValue[0]=="lnN"): 
+              if sysName == "lumi":
+                     card += "%-20s%-20s%-20s%-20s" % (sysName, sysValue[0], "-", sysValue[2])
+              elif(sysValue[0]=="lnN"): 
                      card += "%-20s%-20s" % (sysName, sysValue[0])
                      if(sysValue[1]=="all"and len(sysValue)>2):
                             if(mode == "template"): card += "%-20s" % (sysValue[2]) * (2)
@@ -1133,10 +1137,11 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                                    card += "%-20s" % (sigSys)
                             else:  card += "%-20s" % ("-")
                             for p in processes:
+                                   print(p, processes)
                                    if (p in sysValue[1]):
                                           if (getRate(ch, p, ifile) != 0.): bkgSys = abs((getRate(ch, p+hsysNameUp, ifile) - getRate(ch, p+hsysNameDown, ifile))/ (2* getRate(ch, p, ifile)) )
                                           else: bkgSys = 1
-                                          if(bkgSys<1.and bkgSys >0.): bkgSys = bkgSys + 1
+                                          if(bkgSys<1. and bkgSys >0.): bkgSys = bkgSys + 1
                                           card += "%-20s" % (bkgSys)
                                    else:  card += "%-20s" % ("-")
 

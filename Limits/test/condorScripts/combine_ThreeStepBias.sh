@@ -97,14 +97,20 @@ then
   fitName="${genName}FitAlt"
   parOptsFit=${parOptsFitAlt}
 fi
+cmdMDF="combine ${SVJ_NAME}_${REGION}_2018_template_bias.txt -M MultiDimFit -n ${genName} --saveWorkspace --rMin -80 --rMax 80 ${parOptsGen} " 
+cmdGen="combine higgsCombine${genName}.MultiDimFit.mH120.root -M GenerateOnly ${bonusGen} ${parOptsGen} -n ${genName} -t ${nTOYS} --toysFrequentist --saveToys --expectSignal ${expSig} --bypassFrequentistFit"
+cmdFit="combine higgsCombine${genName}.MultiDimFit.mH120.root -M FitDiagnostics ${bonusFit} ${parOptsFit} -n ${fitName} --toysFile higgsCombine${genName}.GenerateOnly.mH120.123456.root -t ${nTOYS} --toysFrequentist --saveToys --expectSignal ${expSig} --rMin -80 --rMax 80 -v 3 --bypassFrequentistFit"
 
-cmdGen="combine ${SVJ_NAME}_${REGION}_2018_template_bias.txt -M GenerateOnly ${bonusGen} ${parOptsGen} -n ${genName} -t ${nTOYS} --toysFrequentist --saveToys --expectSignal ${expSig}"
-cmdFit="combine ${SVJ_NAME}_${REGION}_2018_template_bias.txt -M FitDiagnostics ${bonusFit} ${parOptsFit} -n ${fitName} --toysFile higgsCombine${genName}.GenerateOnly.mH120.123456.root -t ${nTOYS} --toysFrequentist --saveToys --expectSignal ${expSig} --rMin -80 --rMax 80 -v 3"
 
 echo "combine commands:"
+echo ${cmdMDF}
 echo ${cmdGen}
 echo ${cmdFit}
 
+echo "Doing Snapshot" >/dev/stderr
+$cmdMDF
+echo "Done with Snapshot" >/dev/stderr
+ls >/dev/stderr
 echo "Doing Gen" >/dev/stderr
 $cmdGen
 echo "Done with Gen" >/dev/stderr
@@ -112,6 +118,7 @@ ls >/dev/stderr
 echo "Doing Fit" >/dev/stderr
 $cmdFit
 echo "Done with Fit" >/dev/stderr
+ls >/dev/stderr
 
 # export items to EOS
 echo "List all root files = "
