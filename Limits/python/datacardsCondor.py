@@ -138,8 +138,8 @@ def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label
        residuals = frame.residHist(dataset.GetName(), model.GetName(), False, True) # this is y_i - f(x_i)
     
        roochi2 = frame.chiSquare(model.GetName(), dataset.GetName(),npar)#dataset.GetName(), model.GetName()) #model.GetName(), dataset.GetName()
-       print "forcing bins: 90"
-       nbins = 90
+       print "forcing bins: 130"
+       nbins = 130
        chi = roochi2 * ( nbins - npar)
        print "pls: ", chi,  nbins
        roopro = ROOT.TMath.Prob(chi, nbins - npar)
@@ -499,7 +499,7 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
               print "histSigData: ", histSig.Integral()
               #print "histBkgData: ", histBkgData.Integral()
               xvarmin = 1500.
-              xvarmax = 6000.
+              xvarmax = 8000.
               mT = RooRealVar(  "mH",    "m_{T}", xvarmin, xvarmax, "GeV")
               binMin = histData.FindBin(xvarmin)
               binMax = histData.FindBin(xvarmax)
@@ -528,19 +528,19 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                      print "channel: ", ch_red
 
 
-                     p1_1 = RooRealVar(ch_red + "_p1_1", "p1", 1., -1000., 1000.)
-                     p1_2 = RooRealVar(ch_red + "_p1_2", "p1", 1., -1000., 1000.)
-                     p1_3 = RooRealVar(ch_red + "_p1_3", "p1", 1., -1000., 1000.)
-                     p1_4 = RooRealVar(ch_red + "_p1_4", "p1", 1., -1000., 1000.)
+                     p1_1 = RooRealVar(ch_red + "_p1_1", "p1", 1., -50., 50.)
+                     p1_2 = RooRealVar(ch_red + "_p1_2", "p1", 1., -50., 50.)
+                     p1_3 = RooRealVar(ch_red + "_p1_3", "p1", 1., -50., 50.)
+                     p1_4 = RooRealVar(ch_red + "_p1_4", "p1", 1., -50., 50.)
 
-                     p2_2 = RooRealVar(ch_red + "_p2_2", "p2", 1., -1000., 1000.)
-                     p2_3 = RooRealVar(ch_red + "_p2_3", "p2", 1., -1000., 1000.)
-                     p2_4 = RooRealVar(ch_red + "_p2_4", "p2", 1., -1000., 1000.)
+                     p2_2 = RooRealVar(ch_red + "_p2_2", "p2", 1., -50., 50.)
+                     p2_3 = RooRealVar(ch_red + "_p2_3", "p2", 1., -50., 50.)
+                     p2_4 = RooRealVar(ch_red + "_p2_4", "p2", 1., -50., 50.)
 
-                     p3_3 = RooRealVar(ch_red + "_p3_3", "p3", 1., -1000., 1000.)
-                     p3_4 = RooRealVar(ch_red + "_p3_4", "p3", 1., -1000., 1000.)
+                     p3_3 = RooRealVar(ch_red + "_p3_3", "p3", 1., -50., 50.)
+                     p3_4 = RooRealVar(ch_red + "_p3_4", "p3", 1., -50., 50.)
 
-                     p4_4 = RooRealVar(ch_red + "_p4_4", "p4", 1., -1000., 1000.)
+                     p4_4 = RooRealVar(ch_red + "_p4_4", "p4", 1., -50., 50.)
 
 
                      #Function from Theorists, combo testing, sequence E, 1, 11, 12, 22
@@ -1113,6 +1113,7 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
 
 
        for sysName,sysValue  in syst.iteritems():
+              print(sysName, sysValue, "testSystematicValues")
               if sysName == "lumi":
                      card += "%-20s%-20s%-20s%-20s" % (sysName, sysValue[0], "-", sysValue[2])
               elif(sysValue[0]=="lnN"): 
