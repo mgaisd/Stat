@@ -1115,7 +1115,7 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
        for sysName,sysValue  in syst.iteritems():
               print(sysName, sysValue, "testSystematicValues")
               if sysName == "lumi":
-                     card += "%-20s%-20s%-20s%-20s" % (sysName, sysValue[0], "-", sysValue[2])
+                     card += "%-20s%-20s%-20s%-20s" % (sysName, sysValue[0], sysValue[2], "-")
               elif(sysValue[0]=="lnN"): 
                      card += "%-20s%-20s" % (sysName, sysValue[0])
                      if(sysValue[1]=="all"and len(sysValue)>2):
