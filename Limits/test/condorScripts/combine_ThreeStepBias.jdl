@@ -19,20 +19,8 @@ fitFunc = 0
 svjOpts = 0
 Arguments = $(mZ) $(mD) $(rI) $(aD) $(region) $(nToys) $(expSig) $(genFunc) $(fitFunc) $(svjOpts)
 Queue mZ, mD, rI, aD, region, expSig, genFunc, fitFunc, svjOpts from (
-3000, 20, 03, peak, highCut, 0, 0, 0, 0
-3000, 20, 03, peak, highCut, 1, 0, 0, 0
-3000, 20, 03, peak, highCut, 0, 1, 0, 0
-3000, 20, 03, peak, highCut, 1, 1, 0, 0
 3000, 20, 03, peak, highSVJ2, 0, 0, 0, 0
 3000, 20, 03, peak, highSVJ2, 1, 0, 0, 0
 3000, 20, 03, peak, highSVJ2, 0, 1, 0, 0
 3000, 20, 03, peak, highSVJ2, 1, 1, 0, 0
-3000, 20, 03, peak, lowCut, 0, 0, 0, 0
-3000, 20, 03, peak, lowCut, 1, 0, 0, 0
-3000, 20, 03, peak, lowCut, 0, 1, 0, 0
-3000, 20, 03, peak, lowCut, 1, 1, 0, 0
-3000, 20, 03, peak, lowSVJ2, 0, 0, 0, 0
-3000, 20, 03, peak, lowSVJ2, 1, 0, 0, 0
-3000, 20, 03, peak, lowSVJ2, 0, 1, 0, 0
-3000, 20, 03, peak, lowSVJ2, 1, 1, 0, 0
 )

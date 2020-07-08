@@ -36,8 +36,8 @@ fi
 
 SVJ_NAME="SVJ_mZprime${mZ}_mDark${mD}_rinv${rI}_alpha${aD}"
 
-xrdcp -s root://cmseos.fnal.gov//store/user/cfallon/biasStudies_ThreeSteps/${SVJ_NAME}/${SVJ_NAME}_${REGION}_2018_template_bias.txt ${SVJ_NAME}_${REGION}_2018_template_bias.txt
-xrdcp -s root://cmseos.fnal.gov//store/user/cfallon/biasStudies_ThreeSteps/${SVJ_NAME}/ws_${SVJ_NAME}_${REGION}_2018_template.root ws_${SVJ_NAME}_${REGION}_2018_template.root
+xrdcp -s root://cmseos.fnal.gov//store/user/cfallon/biasStudies_noRobustFit/${SVJ_NAME}/${SVJ_NAME}_${REGION}_2018_template_bias.txt ${SVJ_NAME}_${REGION}_2018_template_bias.txt
+xrdcp -s root://cmseos.fnal.gov//store/user/cfallon/biasStudies_noRobustFit/${SVJ_NAME}/ws_${SVJ_NAME}_${REGION}_2018_template.root ws_${SVJ_NAME}_${REGION}_2018_template.root
 
 rMin=-80
 rMax=80
@@ -81,6 +81,7 @@ else
 fi
 
 bonusGen=""
+#bonusFit="--robustFit=1 --setRobustFitTolerance=1."
 bonusFit="--robustFit=1 --setRobustFitTolerance=1."
 
 if [ ${SVJOPTS} -eq 1 ]
@@ -111,8 +112,8 @@ then
 fi
 
 cmdMDF="combine ${SVJ_NAME}_${REGION}_2018_template_bias.txt -M MultiDimFit -n ${genName} --saveWorkspace --rMin ${rMin} --rMax ${rMax} ${parOptsGen} " 
-cmdGen="combine higgsCombine${genName}.MultiDimFit.mH120.root -M GenerateOnly ${bonusGen} ${parOptsGen} -n ${genName} -t ${nTOYS} --toysFrequentist --saveToys --expectSignal ${expSig} --bypassFrequentistFit"
-cmdFit="combine higgsCombine${genName}.MultiDimFit.mH120.root -M FitDiagnostics ${bonusFit} ${parOptsFit} -n ${fitName} --toysFile higgsCombine${genName}.GenerateOnly.mH120.123456.root -t ${nTOYS} --toysFrequentist --saveToys --expectSignal ${expSig} --rMin ${rMin} --rMax ${rMax} -v 3 --bypassFrequentistFit"
+cmdGen="combine higgsCombine${genName}.MultiDimFit.mH120.root --snapshotName MultiDimFit -M GenerateOnly ${bonusGen} ${parOptsGen} -n ${genName} -t ${nTOYS} --toysFrequentist --saveToys --expectSignal ${expSig} --bypassFrequentistFit --saveWorkspace"
+cmdFit="combine higgsCombine${genName}.MultiDimFit.mH120.root --snapshotName MultiDimFit -M FitDiagnostics ${bonusFit} ${parOptsFit} -n ${fitName} --toysFile higgsCombine${genName}.GenerateOnly.mH120.123456.root -t ${nTOYS} --toysFrequentist --saveToys --expectSignal ${expSig} --rMin ${rMin} --rMax ${rMax} -v 3 --bypassFrequentistFit"
 
 
 echo "combine commands:"
@@ -139,7 +140,7 @@ ls *.root
 echo "List all files"
 ls 
 echo "*******************************************"
-OUTDIR=root://cmseos.fnal.gov//store/user/cfallon/biasStudies_ThreeSteps/${SVJ_NAME}
+OUTDIR=root://cmseos.fnal.gov//store/user/cfallon/biasStudies_noRobustFit/${SVJ_NAME}
 echo "xrdcp output for condor"
 for FILE in *.root
 do

@@ -28,7 +28,7 @@ ls *.root
 echo "List all files"
 ls 
 echo "*******************************************"
-OUTDIR=root://cmseos.fnal.gov//store/user/cfallon/biasStudies_ThreeSteps/${1}
+OUTDIR=root://cmseos.fnal.gov//store/user/cfallon/biasStudies_noRobustFit/${1}
 echo "xrdcp output for condor"
 for FILE in *.root *.pdf *.txt
 do
