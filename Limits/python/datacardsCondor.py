@@ -547,7 +547,7 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                      # model NM has N params on 1-x and M params on x. exponents are (p_i + p_{i+1} * log(x))
                      # these are the RooGenericPdf verisons, convert to RooParametricShapeBinPdf below
                      modelBkg1_rgp = RooGenericPdf(modelName+"1_rgp", "Thry. fit (01)", "pow(@0/13000, -@1)", RooArgList(mT, p1_1))
-                     modelBkg2_rgp = RooGenericPdf(modelName+"2_rgp", "Thry. fit (11)", "pow(1 - @0/13000, @2) *pow(@0/13000, -@1)", RooArgList(mT, p1_2, p2_2))
+                     modelBkg2_rgp = RooGenericPdf(modelName+"2_rgp", "Thry. fit (11)", "pow(1 - @0/13000, @2) * pow(@0/13000, -@1)", RooArgList(mT, p1_2, p2_2))
                      modelBkg3_rgp = RooGenericPdf(modelName+"3_rgp", "Thry. fit (12)", "pow(1 - @0/13000, @2) * pow(@0/13000, -@1-@3*log(@0/13000))", RooArgList(mT, p1_3, p2_3, p3_3))
                      modelBkg4_rgp = RooGenericPdf(modelName+"4_rgp", "Thry. fit (22)", "pow(1 - @0/13000, @2+@4*log(@0/13000)) * pow(@0/13000, -@1-@3*log(@0/13000))", RooArgList(mT, p1_4, p2_4, p3_4, p4_4))
 
@@ -989,7 +989,8 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                      pdfs.add(modelBkg)
                      pdfs.add(modelAlt)
                      roomultipdf = RooMultiPdf("roomultipdf", "All Pdfs", cat, pdfs)
-                     normulti = RooRealVar("roomultipdf_norm", "Number of background events", nDataEvts, 0., 1.e6)
+                     #normulti = RooRealVar("roomultipdf_norm", "Number of background events", nDataEvts, 0., 1.e6)
+                     normulti = RooRealVar("roomultipdf_norm", "Number of background events", 1.0, 0., 1.e6)
 
               # create workspace
               w = RooWorkspace("SVJ", "workspace")

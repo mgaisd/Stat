@@ -23,9 +23,10 @@ def runSinglePoint(path_, mZprime, mDark, rinv, alpha, categories, method, runSi
 
     path = ("%s/SVJ_mZprime%s_mDark%s_rinv%s_alpha%s" % (path_, mZprime, mDark, rinv, alpha) )
     print "path: ", path
+    print(os.path.exists(path))
     if(os.path.exists(path)):
         os.chdir(path)
-        
+        print("changed path.")
         if len(categories)>1:
             cmd = "combineCards.py SVJ_mZprime%s_mDark%s_rinv%s_alpha%s_*_%s.txt > SVJ_mZprime%s_mDark%s_rinv%s_alpha%s_%s.txt" % (mZprime, mDark, rinv, alpha, method, mZprime, mDark, rinv, alpha, method)
             if singleYear!="": cmd = "combineCards.py SVJ_mZprime%s_mDark%s_rinv%s_alpha%s_*%s_%s.txt > SVJ_mZprime%s_mDark%s_rinv%s_alpha%s_%s.txt" % (mZprime, mDark, rinv, alpha, singleYear, method, mZprime, mDark, rinv, alpha, method)

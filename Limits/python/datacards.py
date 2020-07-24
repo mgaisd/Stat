@@ -2,7 +2,7 @@ import ROOT
 import json
 
 
-from ROOT import RooRealVar, RooDataHist, RooArgList, RooGenericPdf, RooBernstein, RooExtendPdf, RooCmdArg, RooWorkspace, RooFit, RooDataSet, RooArgSet, RooCategory, RooFitResult, RooCurve 
+from ROOT import RooRealVar, RooDataHist, RooArgList, RooGenericPdf, RooBernstein, RooExtendPdf, RooCmdArg, RooWorkspace, RooFit, RooDataSet, RooArgSet, RooCategory, RooFitResult, RooCurve, RooParametricShapeBinPdf
 import os, sys
 from array import array
 import copy, math, pickle
@@ -41,8 +41,8 @@ def getRate(ch, process, ifile):
        hName = ch + "/"+ process
        h = ifile.Get(hName)
        #return h.Integral()
-       #return h.Integral(1,h.GetXaxis().GetNbins()-1)
-       return h.Integral(1,91)
+       return h.Integral(1,h.GetXaxis().GetNbins()-1)
+       #return h.Integral(1,91)
 
 def getHist(ch, process, ifile):
        hName = ch + "/"+ process
@@ -120,8 +120,8 @@ def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label
        residuals = frame.residHist(dataset.GetName(), model.GetName(), False, True) # this is y_i - f(x_i)
     
        roochi2 = frame.chiSquare(model.GetName(), dataset.GetName(),npar)#dataset.GetName(), model.GetName()) #model.GetName(), dataset.GetName()
-       print "forcing bins: 48"
-       nbins = 48
+       print "forcing bins: 90"
+       nbins = 90
        chi = roochi2 * ( nbins - npar)
        print "pls: ", chi,  nbins
        roopro = ROOT.TMath.Prob(chi, nbins - npar)
@@ -257,43 +257,34 @@ def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label
 
  #      ratioHist.SetBins(nBins, graphData.GetXaxis().GetXbins().GetArray())
 
-       hist.Dump()
-       ratioHist.Dump()
-       ratioHist.Print('all')
+       #hist.Dump()
+       #ratioHist.Dump()
+       #ratioHist.Print('all')
 
        sumErrors = 0
-
+       graphFit.Print()
        fitmodel = graphFit.getHist()
-       #fitmodel.Print()
-       fitmodel_curve = graphFit.getCurve("Bkg_"+str(ch)+str(order)+"_Norm[mH]_errorband")
+       fitmodel_curve = graphFit.getCurve("Bkg_"+str(ch)+str(order)+"_rgp_Norm[mH]_errorband")
        if label == "alt":
-              fitmodel_curve = graphFit.getCurve("Bkg_Alt_"+str(ch)+str(order)+"_Norm[mH]_errorband")
+              fitmodel_curve = graphFit.getCurve("Bkg_Alt_"+str(ch)+str(order)+"_rgp_Norm[mH]_errorband")
        print "fitmodel_curve: "
        fitmodel_curve.Print()
 
-       #print "check curve bins"
-       #print np.ndarray(fitmodel_curve.GetN(), 'd', fitmodel_curve.GetX())
        c_x = np.ndarray(fitmodel_curve.GetN(), 'd', fitmodel_curve.GetX())
        c_y_all = np.ndarray(fitmodel_curve.GetN(), 'd', fitmodel_curve.GetY())
        c_y_up = c_y_all[0:len(c_y_all)/2]
        c_y_down = list(reversed(c_y_all[len(c_y_all)/2+1:]))
-       #print c_y_up
-       #print c_y_down
        
        def findClosestLowerBin(x, bins):
               for ib in range(len(bins)):
                      if bins[ib] > x:
                             return ib-1
 
-       #print fitmodel_curve.GetY()[0], fitmodel_curve.GetY()[1], fitmodel_curve.GetY()[2]
-       #print  fitmodel_curve.GetY()[fitmodel_curve.GetN()/2],  fitmodel_curve.GetY()[fitmodel_curve.GetN()/2+1],  fitmodel_curve.GetY()[fitmodel_curve.GetN()/2+2],
        
        for i in xrange(0, hist.GetN()):
               
               print "bin x and y: ",  hist.GetX()[i], hist.GetY()[i]
               print hist.GetN(), fitmodel_curve.GetN()
-#              histBin = fitmodel_curve.FindBin(hist.GetX()[i])
-#              print "curve bin x and y: ",  fitmodel_curve.GetX()[i], fitmodel_curve.GetX()[histBin], fitmodel_curve.GetBinContent(histBin),  fitmodel_curve.GetBinContent(histBin+ fitmodel_curve.GetN()/2)
               err_up = c_y_up[findClosestLowerBin(hist.GetX()[i], c_x)]
               err_down = c_y_down[findClosestLowerBin(hist.GetX()[i], c_x)]
               
@@ -311,10 +302,6 @@ def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label
               pull = pulls.GetY()[i]
               resi = residuals.GetY()[i]
 
-	      #print hist.GetX()[i], hist.GetY()[i], hist.GetErrorXlow(i), hist.GetErrorXhigh(i)
-              #print residuals.GetY()[i]
-              #print pulls.GetY()[i]
-
               if (hx - hexlo) > xmax[0] and hx + hexhi > xmax[0]:
                      continue
 
@@ -322,33 +309,15 @@ def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label
                      continue
               
               res += ry
-              #print "residuals ", ry
               rss += ry**2 
 
-	      #print pull
               chi1 += abs(pull)
               chi2 += abs((resi**2)/pull)
 
-              #print " Residual: ", ry, "Bin Content: ", hy, " new bin: ", (ry-hy)/(-1*hy)
 
               ratioHist.SetBinContent(i+1, (ry - hy)/(-1*hy))
-	      #print "ERROR: ", hey, hy**2
               ratioHist.SetBinError(i+1, (hey/ hy**2))
               ratioHist.Print('all')
- 	      
-             # if hist.GetX()[i] - hist.GetErrorXlow(i) > xmax[0] and hist.GetX()[i] + hist.GetErrorXhigh(i) > xmax[0]: continue# and abs(pulls.GetY()[i]) < 5:
-             # if hist.GetY()[i] <= 0.: continue
-             # res += residuals.GetY()[i]
-             # print "residuals ", residuals.GetY()[i]
-             # rss += residuals.GetY()[i]**2
-
-             # print pulls.GetY()[i]       
-             # chi1 += abs(pulls.GetY()[i])
-             # chi2 += pulls.GetY()[i]**2
-             # print " Residual: ", residuals.GetY()[i], " Bin Content: ", hist.GetY()[i], " new bin: ", (residuals.GetY()[i] - hist.GetY()[i])/(-1 * hist.GetY()[i])
-             # ratioHist.SetBinContent(i, (residuals.GetY()[i] - hist.GetY()[i])/(-1*hist.GetY()[i]))
-             # print "ERROR: ", hist.GetHistogram().GetBinError(i)
-             # ratioHist.SetBinError(i, (hist.GetHistogram().GetBinError(i)/ pow(hist.GetY()[i],2)))
 
        print "=======> sumErrors: ", sumErrors
         
@@ -446,9 +415,9 @@ def fisherTest(RSS1, RSS2, o1, o2, N):
        n1 = o1
        n2 = o2
        F = ((RSS1-RSS2)/(n2-n1)) / (RSS2/(N-n2))
-       print "***************** Value of F: ", F
        CL =  1.-ROOT.TMath.FDistI(F, n2-n1, N-n2)
-       return CL
+       print "***************** Value of F, CL: ", F, CL
+       return CL, F
 
 
 #*******************************************************#
@@ -514,9 +483,9 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
               xvarmax = 6000.
               mT = RooRealVar(  "mH",    "m_{T}", xvarmin, xvarmax, "GeV")
               binMax = histData.FindBin(xvarmax)
-              bkgData = RooDataHist("bkgdata", "Data (MC Bkg)",  RooArgList(mT), histBkgData, 1.)
+              bkgData = RooDataHist("bkgdata", "MC Bkg",  RooArgList(mT), histBkgData, 1.)
               obsData = RooDataHist("data_obs", "Data",  RooArgList(mT), histData, 1.)
-              sigData = RooDataHist("sigdata", "Data (MC sig)",  RooArgList(mT), histSig, 1.)
+              sigData = RooDataHist("sigdata", "MC Sig",  RooArgList(mT), histSig, 1.)
               print "SUM ENTRIES: ", sigData.sumEntries()
               print "Bkg Integral: ", histData.Integral() 
               #nBkgEvts = histBkgData.Integral(1, histBkgData.GetXaxis().GetNbins()-1) 
@@ -537,148 +506,35 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
               if(doModelling):
                      #ch_red = ch
                      print "channel: ", ch_red
-                     #p1_1 = RooRealVar(ch_red + "_p1_1", "p1", 1., 0., 50.)
-                     #p1_2 = RooRealVar(ch_red + "_p1_2", "p1", 1., 0., 50.)
-                     #if(ch == "lowSVJ2_2017" or ch == "highSVJ2_2017"):
-                     #       #p1_3 = RooRealVar(ch_red + "_p1_3", "p1", 1., 0., 10.)
-                     #       p1_3 = RooRealVar(ch_red + "_p1_3", "p1", 1., -1000., 1000.)
-                     #else:
-                     #       p1_3 = RooRealVar(ch_red + "_p1_3", "p1", 1., -1000., 1000.)
-                     #p1_4 = RooRealVar(ch_red + "_p1_4", "p1", 1., 0., 1000.)
-                     #p2_2 = RooRealVar(ch_red + "_p2_2", "p2", 1., 0., 20.)
-                     #if(ch == "highSVJ2_2016" or ch == "highSVJ2_2017" or ch == "highSVJ2_2018" or ch == "lowSVJ2_2017" or ch == "highSVJ"):
-                     #       #p2_3 = RooRealVar(ch_red + "_p2_3", "p2", 1., 0., 10.)
-                     #       p2_3 = RooRealVar(ch_red + "_p2_3", "p2", 1., -1000., 1000.)
-                     #else:
-                     #       p2_3 = RooRealVar(ch_red + "_p2_3", "p2", 1., -1000., 1000.)
-                     #p2_4 = RooRealVar(ch_red + "_p2_4", "p2", 1., 0., 1000.)
-                     #if(ch == "highSVJ2_2016" or ch == "highSVJ2_2017" or ch == "highSVJ2_2018" or ch == "lowSVJ2_2017" or ch == "highSVJ2"):
-                     #       #p3_3 = RooRealVar(ch_red + "_p3_3", "p3", 1., 0., 10.)
-                     #       p3_3 = RooRealVar(ch_red + "_p3_3", "p3", 1., -1000., 1000.)
-                     #else:
-                     #       p3_3 = RooRealVar(ch_red + "_p3_3", "p3", 1., 0., 1000.)
-                     #p3_4 = RooRealVar(ch_red + "_p3_4", "p3", 1., 0., 1000.)
-                     #p4_4 = RooRealVar(ch_red + "_p4_4", "p4", 1., 0., 1000.)
 
 
-                     p1_1 = RooRealVar(ch_red + "_p1_1", "p1", 1., -1000., 1000.)
-                     p1_2 = RooRealVar(ch_red + "_p1_2", "p1", 1., -1000., 1000.)
-                     p1_3 = RooRealVar(ch_red + "_p1_3", "p1", 1., -1000., 1000.)
-                     p1_4 = RooRealVar(ch_red + "_p1_4", "p1", 1., -1000., 1000.)
+                     p1_1 = RooRealVar(ch_red + "_p1_1", "p1", 1., -50., 50.)
+                     p1_2 = RooRealVar(ch_red + "_p1_2", "p1", 1., -50., 50.)
+                     p1_3 = RooRealVar(ch_red + "_p1_3", "p1", 1., -50., 50.)
+                     p1_4 = RooRealVar(ch_red + "_p1_4", "p1", 1., -50., 50.)
 
-                     p2_1 = RooRealVar(ch_red + "_p2_1", "p2", 1., -1000., 1000.)
-                     p2_2 = RooRealVar(ch_red + "_p2_2", "p2", 1., -1000., 1000.)
-                     p2_3 = RooRealVar(ch_red + "_p2_3", "p2", 1., -1000., 1000.)
-                     p2_4 = RooRealVar(ch_red + "_p2_4", "p2", 1., -1000., 1000.)
+                     p2_2 = RooRealVar(ch_red + "_p2_2", "p2", 1., -50., 50.)
+                     p2_3 = RooRealVar(ch_red + "_p2_3", "p2", 1., -50., 50.)
+                     p2_4 = RooRealVar(ch_red + "_p2_4", "p2", 1., -50., 50.)
 
-                     p3_1 = RooRealVar(ch_red + "_p3_1", "p3", 1., -1000., 1000.)
-                     p3_2 = RooRealVar(ch_red + "_p3_2", "p3", 1., -1000., 1000.)
-                     p3_3 = RooRealVar(ch_red + "_p3_3", "p3", 1., -1000., 1000.)
-                     p3_4 = RooRealVar(ch_red + "_p3_4", "p3", 1., -1000., 1000.)
+                     p3_3 = RooRealVar(ch_red + "_p3_3", "p3", 1., -50., 50.)
+                     p3_4 = RooRealVar(ch_red + "_p3_4", "p3", 1., -50., 50.)
 
-                     p4_2 = RooRealVar(ch_red + "_p4_2", "p4", 1., -1000., 1000.)
-                     p4_3 = RooRealVar(ch_red + "_p4_3", "p4", 1., -1000., 1000.)
-                     p4_4 = RooRealVar(ch_red + "_p4_4", "p4", 1., -1000., 1000.)
+                     p4_4 = RooRealVar(ch_red + "_p4_4", "p4", 1., -50., 50.)
 
-                     p5_3 = RooRealVar(ch_red + "_p5_3", "p5", 1., -1000., 1000.)
-                     p5_4 = RooRealVar(ch_red + "_p5_4", "p5", 1., -1000., 1000.)
-
-                     p6_4 = RooRealVar(ch_red + "_p6_4", "p6", 1., -1000., 1000.)
-
-                     p0_1 = RooRealVar(ch_red + "_p0_1", "p0", 1., 0., 1000.) # p0 is needed for Bernstein poly.
-                     p0_2 = RooRealVar(ch_red + "_p0_2", "p0", 1., 0., 1000.) # By giving n+1 coefficients in the constructor
-                     p0_3 = RooRealVar(ch_red + "_p0_3", "p0", 1., 0., 1000.) # this class constructs the n+1 polynomials of degree n
-                     p0_4 = RooRealVar(ch_red + "_p0_4", "p0", 1., 0., 1000.) # and sums them to form an element of the space of polynomials of degree n.
-                     p5_4 = RooRealVar(ch_red + "_p5_4", "p5", 1., 0., 1000.) # extra parameters needed for higher order Bernstein functions
-                     p6_4 = RooRealVar(ch_red + "_p6_4", "p6", 1., 0., 1000.)
-                     p7_4 = RooRealVar(ch_red + "_p7_4", "p7", 1., 0., 1000.)
-
-                     # these are for power & exponetial sum functiosn from AN-17-007 higgs paper
-                     f1_1 = RooRealVar(ch_red + "_f1_1", "f1", 1., 0., 1000.)
-                     f1_2 = RooRealVar(ch_red + "_f1_2", "f1", 1., 0., 1000.)
-                     f1_3 = RooRealVar(ch_red + "_f1_3", "f1", 1., 0., 1000.)
-                     f1_4 = RooRealVar(ch_red + "_f1_4", "f1", 1., 0., 1000.)
-                     f2_2 = RooRealVar(ch_red + "_f2_2", "f2", 1., 0., 1000.)
-                     f2_3 = RooRealVar(ch_red + "_f2_3", "f2", 1., 0., 1000.)
-                     f2_4 = RooRealVar(ch_red + "_f2_4", "f2", 1., 0., 1000.)
-                     f3_3 = RooRealVar(ch_red + "_f3_3", "f3", 1., 0., 1000.)
-                     f3_4 = RooRealVar(ch_red + "_f3_4", "f3", 1., 0., 1000.)
-                     f4_4 = RooRealVar(ch_red + "_f4_4", "f4", 1., 0., 1000.)
-
-
-                     #modelBkg1 = RooAbsPdf(modelName+"1", "pow(1 + mT/13000, p1_1)", RooArgSet(mT, p1_1))
-                     #modelBkg1 = RooGenericPdf(modelName+"1", "Bkg. fit (1 par.)", "pow(1 - @0/13000, abs(@1)) ", RooArgList(mT, p1_1))
-                     #modelBkg2 = RooGenericPdf(modelName+"2", "Bkg. fit (2 par.)", "pow(1 - @0/13000, abs(@1)) * pow(@0/13000, -abs(@2))", RooArgList(mT, p1_2, p2_2))
-                     #modelBkg3 = RooGenericPdf(modelName+"3", "Bkg. fit (3 par.)", "pow(1 - @0/13000, abs(@1)) * pow(@0/13000, -abs(@2)-abs(@3)*log(@0/13000))", RooArgList(mT, p1_3, p2_3, p3_3))
-                     #modelBkg4 = RooGenericPdf(modelName+"4", "Bkg. fit (4 par.)", "pow(1 - @0/13000, abs(@1)) * pow(@0/13000, -abs(@2)-log(@0/13000)*(abs(@3) + abs(@4)* log(@0/13000)))", RooArgList(mT, p1_4, p2_4, p3_4, p4_4))
-
-                     #Function from Theorists
-                     #modelBkg1 = RooGenericPdf(modelName+"1", "Thry. fit (1 par.)", "pow(1 - @0/13000, @1) ", RooArgList(mT, p1_1))
-                     #modelBkg2 = RooGenericPdf(modelName+"2", "Thry. fit (2 par.)", "pow(1 - @0/13000, @1+@2*log(@0/13000)) ", RooArgList(mT, p1_2, p2_2))
-                     #modelBkg3 = RooGenericPdf(modelName+"3", "Thry. fit (3 par.)", "pow(1 - @0/13000, @1+@2*log(@0/13000)) * pow(@0/13000, -@3)", RooArgList(mT, p1_3, p2_3, p3_3))
-                     #modelBkg4 = RooGenericPdf(modelName+"4", "Thry. fit (4 par.)", "pow(1 - @0/13000, @1+@2*log(@0/13000)) * pow(@0/13000, -@3-@4*log(@0/13000))", RooArgList(mT, p1_4, p2_4, p3_4, p4_4))
 
                      #Function from Theorists, combo testing, sequence E, 1, 11, 12, 22
                      # model NM has N params on 1-x and M params on x. exponents are (p_i + p_{i+1} * log(x))
-                     modelBkg1 = RooGenericPdf(modelName+"1", "Thry. fit (01)", "pow(@0/13000, -@1)", RooArgList(mT, p1_1))
-                     modelBkg2 = RooGenericPdf(modelName+"2", "Thry. fit (11)", "pow(1 - @0/13000, @2) *pow(@0/13000, -@1)", RooArgList(mT, p1_2, p2_2))
-                     modelBkg3 = RooGenericPdf(modelName+"3", "Thry. fit (12)", "pow(1 - @0/13000, @2) * pow(@0/13000, -@1-@3*log(@0/13000))", RooArgList(mT, p1_3, p2_3, p3_3))
-                     modelBkg4 = RooGenericPdf(modelName+"4", "Thry. fit (22)", "pow(1 - @0/13000, @2+@4*log(@0/13000)) * pow(@0/13000, -@1-@3*log(@0/13000))", RooArgList(mT, p1_4, p2_4, p3_4, p4_4))
+                     # these are the RooGenericPdf verisons, convert to RooParametricShapeBinPdf below
+                     modelBkg1_rgp = RooGenericPdf(modelName+"1_rgp", "Thry. fit (01)", "pow(@0/13000, -@1)", RooArgList(mT, p1_1))
+                     modelBkg2_rgp = RooGenericPdf(modelName+"2_rgp", "Thry. fit (11)", "pow(1 - @0/13000, @2) *pow(@0/13000, -@1)", RooArgList(mT, p1_2, p2_2))
+                     modelBkg3_rgp = RooGenericPdf(modelName+"3_rgp", "Thry. fit (12)", "pow(1 - @0/13000, @2) * pow(@0/13000, -@1-@3*log(@0/13000))", RooArgList(mT, p1_3, p2_3, p3_3))
+                     modelBkg4_rgp = RooGenericPdf(modelName+"4_rgp", "Thry. fit (22)", "pow(1 - @0/13000, @2+@4*log(@0/13000)) * pow(@0/13000, -@1-@3*log(@0/13000))", RooArgList(mT, p1_4, p2_4, p3_4, p4_4))
 
-                     # modified Theorists' Function, no x term
-                     #modelBkg1 = RooGenericPdf(modelName+"1", "Thry. fit (1 par.)", "pow(1 - @0/13000, @1) ", RooArgList(mT, p1_1))
-                     #modelBkg2 = RooGenericPdf(modelName+"2", "Thry. fit (2 par.)", "pow(1 - @0/13000, @1 + @2*log(@0/13000))", RooArgList(mT, p1_2, p2_2))
-                     #modelBkg3 = RooGenericPdf(modelName+"3", "Thry. fit (3 par.)", "pow(1 - @0/13000, @1 + @2*log(@0/13000) + @3*pow(log(@0/13000),2))", RooArgList(mT, p1_3, p2_3, p3_3))
-                     #modelBkg4 = RooGenericPdf(modelName+"4", "Thry. fit (4 par.)", "pow(1 - @0/13000, @1 + @2*log(@0/13000) + @3*pow(log(@0/13000),2) + @4*pow(log(@0/13000),3))", RooArgList(mT, p1_4, p2_4, p3_4, p4_4))
-
-                     #Function from Rob Harris's Dijet paper, eqn 46, PowMultExp
-                     #modelBkg1 = RooGenericPdf(modelName+"1", "Eqn.46 fit (1 par.)", "pow(@0,-@1)", RooArgList(mT, p1_1))
-                     #modelBkg2 = RooGenericPdf(modelName+"2", "Eqn.46 fit (2 par.)", "pow(@0,-@1) * exp(-@2*pow(@0/13000,1))", RooArgList(mT, p1_2, p2_2))
-                     #modelBkg3 = RooGenericPdf(modelName+"3", "Eqn.46 fit (3 par.)", "pow(@0,-@1) * exp(-@2*pow(@0/13000,1) - @3*pow(@0/13000,2))", RooArgList(mT, p1_3, p2_3, p3_3))
-                     #modelBkg4 = RooGenericPdf(modelName+"4", "Eqn.46 fit (4 par.)", "pow(@0,-@1) * exp(-@2*pow(@0/13000,1) - @3*pow(@0/13000,2) - @4*pow(@0/13000,3))", RooArgList(mT, p1_4, p2_4, p3_4, p4_4))
-
-                     # modified unction from Rob Harris's Dijet paper, eqn 46, no power, just Exp
-                     #modelBkg1 = RooGenericPdf(modelName+"1", "Eqn.46 fit (1 par.)", "exp(-@1*pow(@0/13000,2))", RooArgList(mT, p1_1))
-                     #modelBkg2 = RooGenericPdf(modelName+"2", "Eqn.46 fit (2 par.)", "exp(-@1*pow(@0/13000,2) - @2*pow(@0/13000,3))", RooArgList(mT, p1_2, p2_2))
-                     #modelBkg3 = RooGenericPdf(modelName+"3", "Eqn.46 fit (3 par.)", "exp(-@1*pow(@0/13000,2) - @2*pow(@0/13000,3) - @3*pow(@0/13000,4))", RooArgList(mT, p1_3, p2_3, p3_3))
-                     #modelBkg4 = RooGenericPdf(modelName+"4", "Eqn.46 fit (4 par.)", "exp(-@1*pow(@0/13000,2) - @2*pow(@0/13000,3) - @3*pow(@0/13000,4) - @4*pow(@0/13000,5))", RooArgList(mT, p1_4, p2_4, p3_4, p4_4))
-
-                     # modeified Function from Rob Harris's Dijet paper, eqn 46, Pow + pExp
-                     #modelBkg1 = RooGenericPdf(modelName+"1", "Eqn.46 fit (3 par.)", "pow(@0,-@1) + @2*exp(-@3*pow(@0/13000,1))", RooArgList(mT, p1_1, p2_1, p3_1))
-                     #modelBkg2 = RooGenericPdf(modelName+"2", "Eqn.46 fit (4 par.)", "pow(@0,-@1) + @2*exp(-@3*pow(@0/13000,1) - @4*pow(@0/13000,2))", RooArgList(mT, p1_2, p2_2, p3_2, p4_2))
-                     #modelBkg3 = RooGenericPdf(modelName+"3", "Eqn.46 fit (5 par.)", "pow(@0,-@1) + @2*exp(-@3*pow(@0/13000,1) - @4*pow(@0/13000,2) - @5*pow(@0/13000,3))", RooArgList(mT, p1_3, p2_3, p3_3, p4_3,p5_3))
-                     #modelBkg4 = RooGenericPdf(modelName+"4", "Eqn.46 fit (6 par.)", "pow(@0,-@1) + @2*exp(-@3*pow(@0/13000,1) - @4*pow(@0/13000,2) - @5*pow(@0/13000,3) - @6*pow(@0/13000,4))", RooArgList(mT, p1_4, p2_4, p3_4, p4_4, p5_4, p6_4))
-
-                     #bernstein functions, higgs paper AN-17-007
-                     #modelBkg1 = RooBernstein(modelName+"1", "Bern1 fit (2 par.)", mT, RooArgList(p0_1, p1_1))
-                     #modelBkg2 = RooBernstein(modelName+"2", "Bern2 fit (3 par.)", mT, RooArgList(p0_2, p1_2, p2_2))
-                     #modelBkg3 = RooBernstein(modelName+"3", "Bern3 fit (4 par.)", mT, RooArgList(p0_3, p1_3, p2_3, p3_3))
-                     #modelBkg4 = RooBernstein(modelName+"4", "Bern7 fit (8 par.)", mT, RooArgList(p0_4, p1_4, p2_4, p3_4, p4_4, p5_4, p6_4, p7_4))
-
-                     # sum of power functions, from higgs AN-17-007
-                     #modelBkg1 = RooGenericPdf(modelName+"1", "SumPow1 fit (2 par.)", "@1 * pow(@0,@2)", RooArgList(mT,f1_1, p1_1))
-                     #modelBkg2 = RooGenericPdf(modelName+"2", "SumPow2 fit (4 par.)", "@1 * pow(@0,@2) + @3 * pow(@0, @4)", RooArgList(mT,f1_2, p1_2, f2_2, p2_2))
-                     #modelBkg3 = RooGenericPdf(modelName+"3", "SumPow3 fit (6 par.)", "@1 * pow(@0,@2) + @3 * pow(@0, @4) + @5 * pow(@0, @6)", RooArgList(mT,f1_3, p1_3, f2_3, p2_3, f3_3, p3_3))
-                     #modelBkg4 = RooGenericPdf(modelName+"4", "SumPow4 fit (8 par.)", "@1 * pow(@0,@2) + @3 * pow(@0, @4) + @5 * pow(@0, @6) + @7 * pow(@0, @8)", RooArgList(mT,f1_4, p1_4, f2_4, p2_4, f3_4, p3_4, f4_4, p4_4))
-
-                     # sum of exp functions, from higgs AN-17-007
-                     #modelBkg1 = RooGenericPdf(modelName+"1", "SumExp1 fit (1 par.)", "exp(@0/13000*@1)", RooArgList(mT, p1_1))
-                     #modelBkg2 = RooGenericPdf(modelName+"2", "SumExp2 fit (3 par.)", "exp(@0/13000*@1) + @2 * exp(@0/13000*@3)", RooArgList(mT, p1_2, f2_2, p2_2))
-                     #modelBkg3 = RooGenericPdf(modelName+"3", "SumExp3 fit (5 par.)", "exp(@0/13000*@1) + @2 * exp(@0/13000*@3) + @4 * exp(@0/13000*@5)", RooArgList(mT, p1_3, f2_3, p2_3, f3_3, p3_3))
-                     #modelBkg4 = RooGenericPdf(modelName+"4", "SumExp4 fit (7 par.)", "exp(@0/13000*@1) + @2 * exp(@0/13000*@3) + @4 * exp(@0/13000*@5) + @6 * exp(@0/13000*@7)", RooArgList(mT, p1_4, f2_4, p2_4, f3_4, p3_4, f4_4, p4_4))
-
-                     # laurent series, from higgs AN-17-007
-                     #modelBkg1 = RooGenericPdf(modelName+"1", "Laurent_1tn4 fit (1 par.)", "@1*pow(@0,-4)", RooArgList(mT, p1_1))
-                     #modelBkg2 = RooGenericPdf(modelName+"2", "Laurent_2tn4 fit (2 par.)", "@1*pow(@0,-4) + @2*pow(@0,-5)", RooArgList(mT, p1_2, p2_2))
-                     #modelBkg3 = RooGenericPdf(modelName+"3", "Laurent_3tn3 fit (3 par.)", "@1*pow(@0,-3) + @2*pow(@0,-4) + @3*pow(@0,-5)", RooArgList(mT, p1_3, p2_3, p3_3))
-                     #modelBkg4 = RooGenericPdf(modelName+"4", "Laurent_4tn3 fit (4 par.)", "@1*pow(@0,-3) + @2*pow(@0,-4) + @3*pow(@0,-5) + @4*pow(@0,-6)", RooArgList(mT, p1_4, p2_4, p3_4, p4_4))
-
-                     # Sum of exp and Power
-                     #modelBkg1 = RooGenericPdf(modelName+"1", "Pow+Exp fit (1 par.)", "pow(@0,-@1)", RooArgList(mT, p1_1))
-                     #modelBkg2 = RooGenericPdf(modelName+"2", "Pow+Exp fit (2 par.)", "pow(@0,-@1) + exp(-@2*pow(@0/13000,1))", RooArgList(mT, p1_2, p2_2))
-                     #modelBkg3 = RooGenericPdf(modelName+"3", "Pow+Exp fit (3 par.)", "pow(@0,-@1) + exp(-@2*pow(@0/13000,1) - @3*pow(@0/13000,2))", RooArgList(mT, p1_3, p2_3, p3_3))
-                     #modelBkg4 = RooGenericPdf(modelName+"4", "Pow+Exp fit (4 par.)", "pow(@0,-@1) + exp(-@2*pow(@0/13000,1) - @3*pow(@0/13000,2) - @4*pow(@0/13000,3))", RooArgList(mT, p1_4, p2_4, p3_4, p4_4))
-                     
+                     modelBkg1 = RooParametricShapeBinPdf(modelName+"1", "Thry. Fit (01)", modelBkg1_rgp, mT, RooArgList(p1_1), histBkgData)
+                     modelBkg2 = RooParametricShapeBinPdf(modelName+"2", "Thry. Fit (11)", modelBkg2_rgp, mT, RooArgList(p1_2, p2_2), histBkgData)
+                     modelBkg3 = RooParametricShapeBinPdf(modelName+"3", "Thry. Fit (12)", modelBkg3_rgp, mT, RooArgList(p1_3, p2_3, p3_3), histBkgData)
+                     modelBkg4 = RooParametricShapeBinPdf(modelName+"4", "Thry. Fit (22)", modelBkg4_rgp, mT, RooArgList(p1_4, p2_4, p3_4, p4_4), histBkgData)
                      RSS = {}
                      fitrange = "Full"
                      #if (ch == "highSVJ1_2016"): fitrange = "Low,High"
@@ -688,23 +544,13 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                      fitRes3 = modelBkg3.fitTo(obsData, RooFit.Extended(True), RooFit.Save(1), RooFit.SumW2Error(True), RooFit.Strategy(2), RooFit.Minimizer("Minuit2"), RooFit.PrintLevel(2), RooFit.Range(fitrange))
                      fitRes4 = modelBkg4.fitTo(obsData, RooFit.Extended(True), RooFit.Save(1), RooFit.SumW2Error(True), RooFit.Strategy(2), RooFit.Minimizer("Minuit2"), RooFit.PrintLevel(2), RooFit.Range(fitrange))
                      orderBkg = [len(fitRes1.floatParsFinal()),len(fitRes2.floatParsFinal()),len(fitRes3.floatParsFinal()),len(fitRes4.floatParsFinal())]
-                     #r = RooFitResult(fitRes1)
-                     #r.Print()
-                     #chi2s_bkg1 = modelBkg1.createChi2(obsData).getVal()
-                     #chi2s_bkg2 = modelBkg2.createChi2(obsData).getVal()
-                     #chi2s_bkg3 = modelBkg3.createChi2(obsData).getVal()
-                     #chi2s_bkg4 = modelBkg4.createChi2(obsData).getVal()
-                     #print "ChiSquares:", chi2s_bkg1, " ", chi2s_bkg2, " ", chi2s_bkg3, " ", chi2s_bkg4
-
-                     #chi2s_bkg1 = frame->chiSquare(nFloatParam) ;
-
+                     
                      xframe = mT.frame(ROOT.RooFit.Title("extended ML fit example"))
 
                      c1 = ROOT.TCanvas()
                      c1.cd()
                      obsData.plotOn(xframe, RooFit.Name("obsData"))
 
-       #              modelBkg1.plotOn(xframe,ROOT.RooFit.LineColor(ROOT.kGreen))
                      modelBkg1.plotOn(xframe, RooFit.Name("modelBkg1"), ROOT.RooFit.LineColor(ROOT.kPink + 6), RooFit.Range("Full"))
                      modelBkg2.plotOn(xframe, RooFit.Name("modelBkg2"), ROOT.RooFit.LineColor(ROOT.kBlue -4), RooFit.Range("Full"))
                      modelBkg3.plotOn(xframe, RooFit.Name("modelBkg3"), ROOT.RooFit.LineColor(ROOT.kRed -4), RooFit.Range("Full"))
@@ -760,102 +606,40 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
 
                             # alternative function is Silvio's nominal function, but with +1 instead of -1
                             normAlt = RooRealVar("Bkg_"+ch+"alt_norm", "Number of background events", nBkgEvts, 0., 2.e4)
-                            normData = RooRealVar("Data_"+ch+"alt_norm", "Number of background events", nDataEvts, 0., 2.e4)              
-                            #p1_1_alt = RooRealVar(ch + "_p1_1_alt", "p1", 1., -1000., 1000.)
-                            #p1_2_alt = RooRealVar(ch + "_p1_2_alt", "p1", 1., -1000., 1000.)
-                            #p1_3_alt = RooRealVar(ch + "_p1_3_alt", "p1", 1., -1000., 1000.)
-                            #p1_4_alt = RooRealVar(ch + "_p1_4_alt", "p1", 1., -1000., 1000.)
-                            #p2_2_alt = RooRealVar(ch + "_p2_2_alt", "p2", 1., -1000., 1000.)
-                            #p2_3_alt = RooRealVar(ch + "_p2_3_alt", "p2", 1., -1000., 1000.)
-                            #p2_4_alt = RooRealVar(ch + "_p2_4_alt", "p2", 1., -1000., 1000.)
-                            #p3_3_alt = RooRealVar(ch + "_p3_3_alt", "p3", 1., -1000., 1000.) 
-                            #p3_4_alt = RooRealVar(ch + "_p3_4_alt", "p3", 1., -1000., 1000.) 
-                            #p4_4_alt = RooRealVar(ch + "_p4_4_alt", "p4", 1., -1000., 1000.) 
+                            normData = RooRealVar("Data_"+ch+"alt_norm", "Number of background events", nDataEvts, 0., 2.e4) 
 
-                            #p1_1_alt = RooRealVar(ch + "_p1_1_alt", "p1", 1., -3., 10.) #-100
-                            #p1_2_alt = RooRealVar(ch + "_p1_2_alt", "p1", 1., -3., 10.) #-100
-                            #p1_3_alt = RooRealVar(ch + "_p1_3_alt", "p1", 1., -3., 10.) #0.
-                            #p1_4_alt = RooRealVar(ch + "_p1_4_alt", "p1", 1., -3., 10.) #0.
-                            #if (ch == "highSVJ2_2016"  or ch == "highSVJ1_2018" or ch == "lowSVJ1_2018" or ch == "lowSVJ2_2018"):
-                            #       p2_2_alt = RooRealVar(ch + "_p2_2_alt", "p2", 1., -100., 100.)
-                            #else:
-                            #       p2_2_alt = RooRealVar(ch + "_p2_2_alt", "p2", 1., -100., 100.)
-                            #p2_3_alt = RooRealVar(ch + "_p2_3_alt", "p2", 1., -10., 10.)
-                            #p2_4_alt = RooRealVar(ch + "_p2_4_alt", "p2", 1., -10., 10.)
-                            #if ( ch == "highSVJ2_2016" or ch == "highSVJ1_2017" or ch == "lowSVJ1_2017" or ch == "lowSVJ2_2017" or ch == "highSVJ1_2018" or ch == "lowSVJ1_2018" or ch == "lowSVJ2_2018"): 
-                            #       p3_3_alt = RooRealVar(ch + "_p3_3_alt", "p3", 1., 0., 100.) 
-                            #else:
-                            #       p3_3_alt = RooRealVar(ch + "_p3_3_alt", "p3", 1., -10., 100.) 
-                            ##p3_4_alt = RooRealVar(ch + "_p3_4_alt", "p3", 1., 0., 100.) 
-                            #if (ch == "highSVJ1_2016" or ch == "highSVJ2_2016" or ch == "lowSVJ1_2017" or ch == "lowSVJ2_2017" or ch == "highSVJ2_2017" or ch == "highSVJ2_2018" or ch == "lowSVJ1_2018" or ch == "lowSVJ2_2018"): 
-                            #       p3_4_alt = RooRealVar(ch + "_p3_4_alt", "p3", 1., -10., 100.) 
-                            #else:
-                            #       p3_4_alt = RooRealVar(ch + "_p3_4_alt", "p3", 1., 0., 100.) 
-                            #if (ch == "highSVJ1_2016" or ch == "highSVJ2_2016" or ch == "highSVJ2_2017" or ch == "lowSVJ1_2017" or ch == "lowSVJ2_2017" or ch == "highSVJ2_2018" or ch == "lowSVJ1_2018" or ch == "lowSVJ2_2018"): 
-                            #       p4_4_alt = RooRealVar(ch + "_p4_4_alt", "p4", 1., 0., 100.)  
-                            #else:
-                            #       p4_4_alt = RooRealVar(ch + "_p4_4_alt", "p4", 1., -10., 100.) 
+                            p1_1_alt = RooRealVar(ch_red + "_p1_1_alt", "p1", 1., -50., 50.)
+                            p1_2_alt = RooRealVar(ch_red + "_p1_2_alt", "p1", 1., -50., 50.)
+                            p1_3_alt = RooRealVar(ch_red + "_p1_3_alt", "p1", 1., -50., 50.)
+                            p1_4_alt = RooRealVar(ch_red + "_p1_4_alt", "p1", 1., -50., 50.)
+
+                            p2_2_alt = RooRealVar(ch_red + "_p2_2_alt", "p2", 1., -50., 50.)
+                            p2_3_alt = RooRealVar(ch_red + "_p2_3_alt", "p2", 1., -50., 50.)
+                            p2_4_alt = RooRealVar(ch_red + "_p2_4_alt", "p2", 1., -50., 50.)
+
+                            p3_3_alt = RooRealVar(ch_red + "_p3_3_alt", "p3", 1., -50., 50.)
+                            p3_4_alt = RooRealVar(ch_red + "_p3_4_alt", "p3", 1., -50., 50.)
+
+                            p4_4_alt = RooRealVar(ch_red + "_p4_4_alt", "p4", 1., -50., 50.)  
 
 
-                            p1_1_alt = RooRealVar(ch_red + "_p1_1_alt", "p1", 1., 0., 50.)
-                            p1_2_alt = RooRealVar(ch_red + "_p1_2_alt", "p1", 1., 0., 50.)
-                            if(ch == "lowSVJ2_2017" or ch == "highSVJ2_2017"):
-                                   #p1_3_alt = RooRealVar(ch_red + "_p1_3_alt", "p1", 1., 0., 10.)
-                                   p1_3_alt = RooRealVar(ch_red + "_p1_3_alt", "p1", 1., -1000., 1000.)
-                            else:
-                                   p1_3_alt = RooRealVar(ch_red + "_p1_3_alt", "p1", 1., -1000., 1000.)
-                            p1_4_alt = RooRealVar(ch_red + "_p1_4_alt", "p1", 1., 0., 1000.)
-                            p2_2_alt = RooRealVar(ch_red + "_p2_2_alt", "p2", 1., 0., 20.)
-                            if(ch == "highSVJ2_2016" or ch == "highSVJ2_2017" or ch == "highSVJ2_2018" or ch == "lowSVJ2_2017" or ch == "highSVJ"):
-                                   #p2_3_alt = RooRealVar(ch_red + "_p2_3_alt", "p2", 1., 0., 10.)
-                                   p2_3_alt = RooRealVar(ch_red + "_p2_3_alt", "p2", 1., -1000., 1000.)
-                            else:
-                                   p2_3_alt = RooRealVar(ch_red + "_p2_3_alt", "p2", 1., -1000., 1000.)
-                            p2_4_alt = RooRealVar(ch_red + "_p2_4_alt", "p2", 1., 0., 1000.)
-                            if(ch == "highSVJ2_2016" or ch == "highSVJ2_2017" or ch == "highSVJ2_2018" or ch == "lowSVJ2_2017" or ch == "highSVJ2"):
-                                   #p3_3_alt = RooRealVar(ch_red + "_p3_3_alt", "p3", 1., 0., 10.)
-                                   p3_3_alt = RooRealVar(ch_red + "_p3_3_alt", "p3", 1., -1000., 1000.)
-                            else:
-                                   p3_3_alt = RooRealVar(ch_red + "_p3_3_alt", "p3", 1., 0., 1000.)
-                            p3_4_alt = RooRealVar(ch_red + "_p3_4_alt", "p3", 1., 0., 1000.)
-                            p4_4_alt = RooRealVar(ch_red + "_p4_4_alt", "p4", 1., 0., 1000.) 
-
-
-
-                            #modelAlt1 = RooGenericPdf(modelAltName+"1", "Bkg. fit (1 par.)", "(exp(log(@1*(@0/13000) + 1)))", RooArgList(mT, p1_1_alt))
-                            #modelAlt2 = RooGenericPdf(modelAltName+"2", "Bkg. fit (2 par.)", "(exp(log(@1*(@0/13000) + 1))) / pow((@0/13000),@2)", RooArgList(mT, p1_2_alt, p2_2_alt))
-              #              modelAlt3 = RooGenericPdf(modelAltName+"3", "Bkg. fit (3 par.)", "(exp(log(@1*(@0/13000) + 1)) + @3 * (@0/13000)) / pow((@0/13000),@2)", RooArgList(mT, p1_3_alt, p2_3_alt, p3_3_alt))
-                            #modelAlt3 = RooGenericPdf(modelAltName+"3", "Bkg. fit (3 par.)", "(exp(-(log(@1*(@0/13000) + 1) + @3 * (@0/13000)))) / pow((@0/13000),@2)", RooArgList(mT, p1_3_alt, p2_3_alt, p3_3_alt))
-                            #modelAlt4 = RooGenericPdf(modelAltName+"4", "Bkg. fit (4 par.)", "(exp(-(log(@1*(@0/13000) + 1) + @3 * (@0/13000) + @4 * pow(@0/13000,2)))) / pow((@0/13000),@2) ", RooArgList(mT, p1_4_alt, p2_4_alt, p3_4_alt, p4_4_alt))
-                            #modelAlt1 = RooGenericPdf(modelAltName+"1", "Bkg. fit (1 par.)", "pow(@0/13000, -@1)", RooArgList(mT, p1_1_alt))
-                            #modelAlt2 = RooGenericPdf(modelAltName+"2", "Bkg. fit (2 par.)", "pow(@0/13000, -@1-log(@0/13000)*@2)", RooArgList(mT, p1_2_alt, p2_2_alt))
-                            #modelAlt3 = RooGenericPdf(modelAltName+"3", "Bkg. fit (3 par.)", "pow(@0/13000, -@1-log(@0/13000)*@2-pow(log(@0/13000),2)*@3)", RooArgList(mT, p1_3_alt, p2_3_alt, p3_3_alt))
-                            #modelAlt4 = RooGenericPdf(modelAltName+"4", "Bkg. fit (4 par.)", "pow(@0/13000, -@1-log(@0/13000)*@2-pow(log(@0/13000),2)*@3-pow(log(@0/13000),3)*@4)", RooArgList(mT, p1_4_alt, p2_4_alt, p3_4_alt, p4_4_alt))
 
                             # Dijet Function Alt
-                            modelAlt1 = RooGenericPdf(modelAltName+"1", "Dij. fit (1 par.)", "pow(1 - @0/13000, abs(@1)) ", RooArgList(mT, p1_1_alt))
-                            modelAlt2 = RooGenericPdf(modelAltName+"2", "Dij. fit (2 par.)", "pow(1 - @0/13000, abs(@1)) * pow(@0/13000, -abs(@2))", RooArgList(mT, p1_2_alt, p2_2_alt))
-                            modelAlt3 = RooGenericPdf(modelAltName+"3", "Dij. fit (3 par.)", "pow(1 - @0/13000, abs(@1)) * pow(@0/13000, -abs(@2)-abs(@3)*log(@0/13000))", RooArgList(mT, p1_3_alt, p2_3_alt, p3_3_alt))
-                            modelAlt4 = RooGenericPdf(modelAltName+"4", "Dij. fit (4 par.)", "pow(1 - @0/13000, abs(@1)) * pow(@0/13000, -abs(@2)-log(@0/13000)*(abs(@3) + abs(@4)* log(@0/13000)))", RooArgList(mT, p1_4_alt, p2_4_alt, p3_4_alt, p4_4_alt))
+                            #modelAlt1_rgp = RooGenericPdf(modelAltName+"1_rgp", "Dij. fit (1 par.)", "pow(1 - @0/13000, abs(@1)) ", RooArgList(mT, p1_1_alt))
+                            #modelAlt2_rgp = RooGenericPdf(modelAltName+"2_rgp", "Dij. fit (2 par.)", "pow(1 - @0/13000, abs(@1)) * pow(@0/13000, -abs(@2))", RooArgList(mT, p1_2_alt, p2_2_alt))
+                            #modelAlt3_rgp = RooGenericPdf(modelAltName+"3_rgp", "Dij. fit (3 par.)", "pow(1 - @0/13000, abs(@1)) * pow(@0/13000, -abs(@2)-abs(@3)*log(@0/13000))", RooArgList(mT, p1_3_alt, p2_3_alt, p3_3_alt))
+                            #modelAlt4_rgp = RooGenericPdf(modelAltName+"4_rgp", "Dij. fit (4 par.)", "pow(1 - @0/13000, abs(@1)) * pow(@0/13000, -abs(@2)-log(@0/13000)*(abs(@3) + abs(@4)* log(@0/13000)))", RooArgList(mT, p1_4_alt, p2_4_alt, p3_4_alt, p4_4_alt))
 
-                            # function from Rob Harris's dijet paper, eqn 47/48
-                            #modelAlt1 = RooGenericPdf(modelAltName+"1", "Eqn.47 fit (1 par.)", "pow(@0,-@1)", RooArgList(mT, p1_1_alt))
-                            #modelAlt2 = RooGenericPdf(modelAltName+"2", "Eqn.47 fit (2 par.)", "pow(@0,-@1) * pow(1-@0/13000,@2)", RooArgList(mT, p1_2_alt, p2_2_alt))
-                            #modelAlt3 = RooGenericPdf(modelAltName+"3", "Eqn.47 fit (3 par.)", "pow(@0,-@1) * pow(1-@0/13000 + @3*pow(@0/13000,2),@2)", RooArgList(mT, p1_3_alt, p2_3_alt, p3_3_alt))
-                            #modelAlt4 = RooGenericPdf(modelAltName+"4", "Eqn.47 fit (4 par.)", "pow(@0,-@1) * pow(1-@0/13000 + @3*pow(@0/13000,2) + @4*pow(@0/13000,3) ,@2)", RooArgList(mT, p1_4_alt, p2_4_alt, p3_4_alt, p4_4_alt))
+                            # New Alt Function
+                            modelAlt1_rgp = RooGenericPdf(modelAltName+"1_rgp", "Alt. fit (1 par.)", "exp(@1*(@0/13000))", RooArgList(mT, p1_1_alt))
+                            modelAlt2_rgp = RooGenericPdf(modelAltName+"2_rgp", "Alt. fit (2 par.)", "exp(@1*(@0/13000)+@2*log(@0/13000))", RooArgList(mT, p1_2_alt, p2_2_alt))
+                            modelAlt3_rgp = RooGenericPdf(modelAltName+"3_rgp", "Alt. fit (3 par.)", "exp(@1*(@0/13000)+@2*log(@0/13000)+@3*pow(log(@0/13000),2))", RooArgList(mT, p1_3_alt, p2_3_alt, p3_3_alt))
+                            modelAlt4_rgp = RooGenericPdf(modelAltName+"4_rgp", "Alt. fit (4 par.)", "exp(@1*(@0/13000)+@2*log(@0/13000)+@3*pow(log(@0/13000),2)+@4*pow(log(@0/13000),3))", RooArgList(mT, p1_4_alt, p2_4_alt, p3_4_alt, p4_4_alt))
 
-                            # UA2 Function Alt
-                            #modelAlt1 = RooGenericPdf(modelAltName+"1", "UA2 fit (1 par.)", "1/pow(@0/13000,@1)", RooArgList(mT, p1_1))
-                            #modelAlt2 = RooGenericPdf(modelAltName+"2", "UA2 fit (2 par.)", "1/pow(@0/13000,@1) * log(@2/(@0/13000))", RooArgList(mT, p1_2, p2_2))
-                            #modelAlt3 = RooGenericPdf(modelAltName+"3", "UA2 fit (3 par.)", "1/pow(@0/13000,@1) * log(@2/(@0/13000)) * log(@3/pow(@0/13000,2))", RooArgList(mT, p1_3, p2_3, p3_3))
-                            #modelAlt4 = RooGenericPdf(modelAltName+"4", "UA2 fit (4 par.)", "1/pow(@0/13000,@1) * log(@2/(@0/13000)) * log(@3/pow(@0/13000,2)) * log(@4/pow(@0/13000,3))", RooArgList(mT, p1_4, p2_4, p3_4, p4_4))
-
-                            # Diphoton Function Alt
-                            #modelAlt1 = RooGenericPdf(modelAltName+"1", "Dipht. fit (1 par.)", "pow(1 - pow(@0/13000,1/3), abs(@1)) ", RooArgList(mT, p1_1))
-                            #modelAlt2 = RooGenericPdf(modelAltName+"2", "Dipht. fit (2 par.)", "pow(1 - pow(@0/13000,1/3), abs(@1)) * pow(@0/13000, -abs(@2))", RooArgList(mT, p1_2, p2_2))
-                            #modelAlt3 = RooGenericPdf(modelAltName+"3", "Dipht. fit (3 par.)", "pow(1 - pow(@0/13000,1/3), abs(@1)) * pow(@0/13000, -abs(@2)-abs(@3)*log(@0/13000))", RooArgList(mT, p1_3, p2_3, p3_3))
-                            #modelAlt4 = RooGenericPdf(modelAltName+"4", "Dipht. fit (4 par.)", "pow(1 - pow(@0/13000,1/3), abs(@1)) * pow(@0/13000, -abs(@2)-log(@0/13000)*(abs(@3) + abs(@4)* log(@0/13000)))", RooArgList(mT, p1_4, p2_4, p3_4, p4_4))
-
+                            modelAlt1 = RooParametricShapeBinPdf(modelAltName+"1", "Alt. Fit 1par", modelAlt1_rgp, mT, RooArgList(p1_1_alt), histBkgData)
+                            modelAlt2 = RooParametricShapeBinPdf(modelAltName+"2", "Alt. Fit 2par", modelAlt2_rgp, mT, RooArgList(p1_2_alt, p2_2_alt), histBkgData)
+                            modelAlt3 = RooParametricShapeBinPdf(modelAltName+"3", "Alt. Fit 3par", modelAlt3_rgp, mT, RooArgList(p1_3_alt, p2_3_alt, p3_3_alt), histBkgData)
+                            modelAlt4 = RooParametricShapeBinPdf(modelAltName+"4", "Alt. Fit 4par", modelAlt4_rgp, mT, RooArgList(p1_4_alt, p2_4_alt, p3_4_alt, p4_4_alt), histBkgData)
 
                             RSS_alt = {}
                             fitrange = "Full"
@@ -917,22 +701,56 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                      print "-"*25
                      print "function & $\\chi^2$ & RSS & ndof & F-test & result \\\\"
                      print "\\hline"
+                     # BEGIN NEW WAY, tests in a 'single elimination' bracket
+                     # begin with 1v2, test the `winner' vs 3, then test that winner vs 4. 
+                     # which ever function wins the vs 4 test, is the function we use.
+                     aCrit = 0.05
+                     RTDict = {"1v2":-1,"1v3":-1,"1v4":-1,"2v3":-1,"2v4":-1,"3v4":-1}
+                     FDict = {"1v2":-1,"1v3":-1,"1v4":-1,"2v3":-1,"2v4":-1,"3v4":-1}
                      for o1 in xrange(1, len(RSS)):
-                            o2 = o1+1
+                            for o2 in xrange(o1+1,len(RSS)+1):
+                                   RTDict[str(o1)+"v"+str(o2)], FDict[str(o1)+"v"+str(o2)] = fisherTest(RSS[o1]['rss'], RSS[o2]['rss'], RSS[o1]['npar'], RSS[o2]['npar'], RSS[o2]["nbins"])
+                                   report += "%d par vs %d par: CL=%.5f F_t=%.5f\n" % (RSS[o1]['npar'], RSS[o2]['npar'], RTDict[str(o1)+"v"+str(o2)], FDict[str(o1)+"v"+str(o2)])
 
-                            CL = fisherTest(RSS[o1]['rss'], RSS[o2]['rss'], RSS[o1]['npar'], RSS[o2]['npar'], RSS[o2]["nbins"])
-
-                            print "%d par vs %d par CL=%.2f  \n" % (RSS[o1]['npar'], RSS[o2]['npar'], CL),
-                            report += "%d par vs %d par: CL=%.2f \n" % (RSS[o1]['npar'], RSS[o2]['npar'], CL)
-                            if CL > 0.10: # The function with less parameters is enough
-                                   if not order:
-                                          order = o1
-                                          print "%d par are sufficient" % (RSS[o1]['npar'])
-                                          #report += "%d par are sufficient \n" % (o1)
+                     if RTDict["1v2"] > aCrit:
+                            if RTDict["1v3"] > aCrit:
+                                   if RTDict["1v4"] > aCrit:
+                                          order = 1
+                                   else:
+                                          order = 4
                             else:
-                                   print "%d par are needed" % (RSS[o2]['npar']),
-
-                            print "\\\\"
+                                   if RTDict["3v4"] > aCrit:
+                                          order = 3
+                                   else:
+                                          order = 4
+                     else:
+                            if RTDict["2v3"] > aCrit:
+                                   if RTDict["2v4"] > aCrit:
+                                          order = 2
+                                   else:
+                                          order = 4
+                            else:
+                                   if RTDict["3v4"] > aCrit:
+                                          order = 3
+                                   else:
+                                          order = 4
+                     #OLD WAY OF DOING IT, only does n vs n+1
+                     #for o1 in xrange(1, len(RSS)):
+                     #       o2 = o1+1
+                     #
+                     #       CL = fisherTest(RSS[o1]['rss'], RSS[o2]['rss'], RSS[o1]['npar'], RSS[o2]['npar'], RSS[o2]["nbins"])
+                     #
+                     #       print "%d par vs %d par CL=%.2f  \n" % (RSS[o1]['npar'], RSS[o2]['npar'], CL),
+                     #       report += "%d par vs %d par: CL=%.2f \n" % (RSS[o1]['npar'], RSS[o2]['npar'], CL)
+                     #       if CL > 0.10: # The function with less parameters is enough
+                     #              if not order:
+                     #                     order = o1
+                     #                     print "%d par are sufficient" % (RSS[o1]['npar'])
+                     #                     #report += "%d par are sufficient \n" % (o1)
+                     #       else:
+                     #              print "%d par are needed" % (RSS[o2]['npar']),
+                     #
+                     #       print "\\\\"
                      moreParFlag = 0
                      if order == 0:
                             order = 4
@@ -941,7 +759,10 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                      print "-"*25   
                      print "Order is", order, "("+ch+")"
                      report += "Order is %d (%s)\n" % (order, ch)
-                     report += ("Parameter values are: " + ", ".join(['%.2f']*len(RSS[order]["parVals"])) + "\n") % tuple(RSS[order]["parVals"])
+                     report += ("1 param: " + ", ".join(['%.2f']*len(RSS[1]["parVals"])) + "\n") % tuple(RSS[1]["parVals"])
+                     report += ("2 param: " + ", ".join(['%.2f']*len(RSS[2]["parVals"])) + "\n") % tuple(RSS[2]["parVals"])
+                     report += ("3 param: " + ", ".join(['%.2f']*len(RSS[3]["parVals"])) + "\n") % tuple(RSS[3]["parVals"])
+                     report += ("4 param: " + ", ".join(['%.2f']*len(RSS[4]["parVals"])) + "\n") % tuple(RSS[4]["parVals"])
                      report += "%d par are sufficient\n" % (RSS[order]['npar'])
                      if moreParFlag: report += "BUT really, more Pars are needed!"
                      for i in range(1,len(RSS)+1):
@@ -967,31 +788,70 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                             print "-"*25
                             print "function & $\\chi^2$ & RSS & ndof & F-test & result \\\\"
                             print "\\hline"
-                            for o1 in xrange(1, 4):
-                                   o2 = o1+1
+                            # BEGIN NEW WAY, tests in a 'single elimination' bracket
+                            # begin with 1v2, test the `winner' vs 3, then test that winner vs 4. 
+                            # which ever function wins the vs 4 test, is the function we use.
+                            RTDict_alt = {"1v2":-1,"1v3":-1,"1v4":-1,"2v3":-1,"2v4":-1,"3v4":-1}
+                            FDict = {"1v2":-1,"1v3":-1,"1v4":-1,"2v3":-1,"2v4":-1,"3v4":-1}
+                            for o1 in xrange(1, len(RSS_alt)):
+                                   for o2 in xrange(o1+1,len(RSS_alt)+1):
+                                          RTDict_alt[str(o1)+"v"+str(o2)], FDict[str(o1)+"v"+str(o2)] = fisherTest(RSS_alt[o1]['rss'], RSS_alt[o2]['rss'], RSS_alt[o1]['npar'], RSS_alt[o2]['npar'], RSS_alt[o2]["nbins"])
+                                          report += "%d par vs %d par: CL=%.5f F_t=%.5f\n" % (RSS_alt[o1]['npar'], RSS_alt[o2]['npar'], RTDict_alt[str(o1)+"v"+str(o2)], FDict[str(o1)+"v"+str(o2)])
 
-                                   CL = fisherTest(RSS_alt[o1]['rss'], RSS_alt[o2]['rss'], RSS_alt[o1]['npar'], RSS_alt[o2]['npar'], RSS_alt[o2]["nbins"])
-
-                                   print "%d par vs %d par CL=%.2f  \n" % (RSS_alt[o1]['npar'], RSS_alt[o2]['npar'], CL),
-                                   report += "%d par vs %d par: CL=%.2f \n" % (RSS_alt[o1]['npar'], RSS_alt[o2]['npar'], CL)
-                                   if CL > 0.10: # The function with less parameters is enough
-                                          if not order_alt:
-                                                 order_alt = o1
-                                                 print "%d par are sufficient" % (RSS_alt[o1]['npar'])
-                                                 #report += "%d par are sufficient \n" % (o1)
+                            if RTDict_alt["1v2"] > aCrit:
+                                   if RTDict_alt["1v3"] > aCrit:
+                                          if RTDict_alt["1v4"] > aCrit:
+                                                 order_alt = 1
+                                          else:
+                                                 order_alt = 4
                                    else:
-                                          print "%d par are needed" % (RSS_alt[o2]['npar']),
+                                          if RTDict_alt["3v4"] > aCrit:
+                                                 order_alt = 3
+                                          else:
+                                                 order_alt = 4
+                            else:
+                                   if RTDict_alt["2v3"] > aCrit:
+                                          if RTDict_alt["2v4"] > aCrit:
+                                                 order_alt = 2
+                                          else:
+                                                 order_alt = 4
+                                   else:
+                                          if RTDict_alt["3v4"] > aCrit:
+                                                 order_alt = 3
+                                          else:
+                                                 order_alt = 4
 
-                                   print "\\\\"
+                            #OLD WAY OF DOING IT, only does n vs n+1
+                            #for o1 in xrange(1, len(RSS)):
+                            #       #o2 = o1+1
+                            #       for o2 in xrange(o1+1,len(RSS)+1):
+                            #
+                            #              CL = fisherTest(RSS_alt[o1]['rss'], RSS_alt[o2]['rss'], RSS_alt[o1]['npar'], RSS_alt[o2]['npar'], RSS_alt[o2]["nbins"])
+                            #
+                            #              print "%d par vs %d par CL=%.5f  \n" % (RSS_alt[o1]['npar'], RSS_alt[o2]['npar'], CL),
+                            #              report += "%d par vs %d par: CL=%.5f \n" % (RSS_alt[o1]['npar'], RSS_alt[o2]['npar'], CL)
+                            #              if CL > 0.1: # The function with less parameters is enough
+                            #                     if not order_alt:
+                            #                            order_alt = o1
+                            #                            print "%d par are sufficient" % (RSS_alt[o1]['npar'])
+                            #                            #report += "%d par are sufficient \n" % (o1)
+                            #              else:
+                            #                     print "%d par are needed" % (RSS_alt[o2]['npar']),
+                            #
+                            #              print "\\\\"
+                            #END OLD WAY OF DOING IT
                             moreParFlag_alt = 0
                             if order_alt == 0:
                                    order_alt = 4
-                            moreParFlag_alt = 1
+                                   moreParFlag_alt = 1
                             print "\\hline"
                             print "-"*25   
                             print "Order is", order_alt, "("+ch+")"
                             report += "Order is %d (%s)\n" % (order_alt, ch)
-                            report += ("Parameter values are: " + ", ".join(['%.2f']*len(RSS_alt[order_alt]["parVals"])) + "\n") % tuple(RSS_alt[order_alt]["parVals"])
+                            report += ("alt 1: " + ", ".join(['%.2f']*len(RSS_alt[1]["parVals"])) + "\n") % tuple(RSS_alt[1]["parVals"])
+                            report += ("alt 2: " + ", ".join(['%.2f']*len(RSS_alt[2]["parVals"])) + "\n") % tuple(RSS_alt[2]["parVals"])
+                            report += ("alt 3: " + ", ".join(['%.2f']*len(RSS_alt[3]["parVals"])) + "\n") % tuple(RSS_alt[3]["parVals"])
+                            report += ("alt 4: " + ", ".join(['%.2f']*len(RSS_alt[4]["parVals"])) + "\n") % tuple(RSS_alt[4]["parVals"])
                             report += "%d par are sufficient\n" % (RSS_alt[order_alt]['npar'])
                             if moreParFlag_alt: report += "BUT really, more Pars are needed!"
                             for i in range(1,min(len(RSS),len(RSS_alt))+1):
@@ -1023,7 +883,7 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
 
                      modelBkg.SetName(modelName)
                      normData.SetName(modelName+"_norm")
-                     wsfilename = "%s/ws.root" % (WORKDIR)
+                     wsfilename = "ws.root"
                      wfile_ = ROOT.TFile(wsfilename)
                      w_ = wfile_.FindObjectAny("BackgroundWS")
                      if not w_.__nonzero__() :  w_ = RooWorkspace("BackgroundWS", "workspace")
@@ -1068,7 +928,7 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
 
 
 
-              wfile = ROOT.TFile("%s/ws.root" % (WORKDIR))
+              wfile = ROOT.TFile("ws.root")
               wBkg =  wfile.Get("BackgroundWS")
               print "workspace ", wBkg.Print()
               print "Model name: ", modelName
@@ -1109,7 +969,7 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                      pdfs.add(modelBkg)
                      pdfs.add(modelAlt)
                      roomultipdf = RooMultiPdf("roomultipdf", "All Pdfs", cat, pdfs)
-                     normulti = RooRealVar("roomultipdf_norm", "Number of background events", nDataEvts, 0., 1.e6)
+                     normulti = RooRealVar("roomultipdf_norm", "Number of background events", 1.0, 0., 1.e6)
 
               # create workspace
               w = RooWorkspace("SVJ", "workspace")
@@ -1159,11 +1019,11 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
               if bias:
                      getattr(w, "import")(modelAlt, (modelAltName))
               #getattr(w, "import")(normzBkg, RooFit.Rename(normzBkg.GetName()))
-              wstatus = w.writeToFile("%sws_%s_%s_%s.root" % (carddir, sig, ch, mode), True)
+              wstatus = w.writeToFile("ws_%s_%s_%s.root" % (sig, ch, mode), True)
 
-              if wstatus == False : print "Workspace", "%sws_%s_%s_%s.root" % (carddir, sig, ch, mode) , "saved successfully"
-              else: print "Workspace", "%sws_%s_%s_%s.root" % (carddir, sig, ch, mode) , "not saved successfully"
-              workfile = "./ws_%s_%s_%s.root" % ( sig, ch, mode)
+              if wstatus == False : print "Workspace", "ws_%s_%s_%s.root" % (sig, ch, mode) , "saved successfully"
+              else: print "Workspace", "ws_%s_%s_%s.root" % (sig, ch, mode) , "not saved successfully"
+              workfile = "ws_%s_%s_%s.root" % ( sig, ch, mode)
               # ======   END MODEL GENERATION   ======       
               if(verbose):w.Print()
 
@@ -1311,7 +1171,6 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
 
               card += "\n"
        
-
        for par in parNames: card += "%-20s%-20s\n" % (par, "flatParam")
 
        #card += "SF            extArg     1 [0.75,1.25]\n"

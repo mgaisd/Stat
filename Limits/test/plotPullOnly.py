@@ -4,11 +4,8 @@ rt.gSystem.Load("libHiggsAnalysisCombinedLimit.so")
 rt.gStyle.SetOptStat(111111)
 rt.gStyle.SetOptFit(1011)
 
-# plot:
-# snapshot with Toys
-# snapshot with Fits
-# toys with Fits
-eosArea = "root://cmsxrootd.fnal.gov//store/user/cfallon/biasStudies_ThreeSteps/"
+# runover each SR to fit all 100 toys to the main function
+eosArea = "root://cmsxrootd.fnal.gov//store/user/cfallon/biasStudies_july15/"
 
 
 listOfParams1 = [
@@ -86,77 +83,53 @@ regions = ["lowCut","lowSVJ2","highCut","highSVJ2"]
 for sigPars in baseline:
 	SVJNAME = "SVJ_mZprime{}_mDark{}_rinv{}_alpha{}".format(sigPars[0],sigPars[1],sigPars[2],sigPars[3])
 	print("************************",SVJNAME,"************************")
+	print("files to be opened from: " + eosArea + SVJNAME)
 	for region in regions:
 		for expSig in ["Sig0GenMainFitMain","Sig1GenMainFitMain","Sig0GenAltFitMain","Sig1GenAltFitMain"]:
-			for combineOpts in ["OptS","OptD"]:
-				nameNoFit = region+combineOpts+expSig[:-7]
+			for combineOpts in ["OptD"]:#["OptS","OptD"]:
 				bigName = region+combineOpts+expSig
 				n = int(expSig[3])
-				# files: 
-				# bigName : fitDiag, hC.FD
-				# nameNoFit : hC.GO, hC.MDF
+				print("/fitDiagnostics"+bigName+".root")
+				print("/higgsCombine"+bigName+".FitDiagnostics.mH120.123456.root")
 				fitDiagFile = rt.TFile.Open(eosArea + SVJNAME + "/fitDiagnostics"+bigName+".root","read")
 				fitOnlyFile = rt.TFile.Open(eosArea + SVJNAME + "/higgsCombine"+bigName+".FitDiagnostics.mH120.123456.root","read")
-				genOnlyFile = rt.TFile.Open(eosArea + SVJNAME + "/higgsCombine"+nameNoFit+".GenerateOnly.mH120.123456.root","read")
-				multiDFFile = rt.TFile.Open(eosArea + SVJNAME + "/higgsCombine"+nameNoFit+".MultiDimFit.mH120.root","read")
 				#dataObsFile = rt.TFile.Open(eosArea + SVJNAME + "/ws_"+SVJNAME+"_"+region+"_2018_template.root","read")
 				#if (type(fitDiagFile) == type(rt.TFile())) or (type(fitOnlyFile) == type(rt.TFile())) or(type(dataObsFile) == type(rt.TFile())):
-				if (type(fitDiagFile) == type(rt.TFile())) or (type(fitOnlyFile) == type(rt.TFile()) or (type(genOnlyFile) == type(rt.TFile()) or (type(multiDFFile) == type(rt.TFile())):
+				if (type(fitDiagFile) == type(rt.TFile())) or (type(fitOnlyFile) == type(rt.TFile())):
 					continue
 				#svjWs = dataObsFile.Get("SVJ")
-				mdfWS = multiDFFile.Get("w")
-				mdfWS.loadSnapshot("MultiDimFit") # load the snapshot parameters from the fit to bkg MC only, non-Gen parameters are 0
-				
 				#data = rt.RooDataHist()
 				#data = svjWs.data("data_obs")
 				#genPdf = svjWs.pdf("Bkg_"+region+"_2018")
 				tree = fitDiagFile.Get("tree_fit_sb")
 				limit = fitOnlyFile.Get("limit")
 				
+				chi2Div = 1.55
+
+				downLimitRMU = -5
+				upLimitRMU = 5
+				chi2LimitDown = 0
+				chi2LimitUp = 500
+
+				
+				nBins = 50
+				rmuHist = rt.TH1F("rmuHist","(r-{})/rErr, all Events".format(n),nBins,downLimitRMU,upLimitRMU)
+				rmuHistChi2Up = rt.TH1F("rmuHistChi2Up","(r-{})/rErr, chi2 > {}".format(n,chi2Div),nBins,downLimitRMU,upLimitRMU)
+				rmuHistChi2Down = rt.TH1F("rmuHistChi2Down","(r-{})/rErr, chi2 < {}".format(n,chi2Div),nBins,downLimitRMU,upLimitRMU)
+
+				rmuHist.SetLineColor(rt.kBlack)
+				rmuHistChi2Up.SetLineColor(rt.kBlue)
+				rmuHistChi2Down.SetLineColor(rt.kRed)
+				rmuHist.SetLineWidth(2)
+				rmuHistChi2Up.SetLineWidth(2)
+				rmuHistChi2Down.SetLineWidth(2)
+
 				if "low" in region:
 					nPar = 2
-					nParGen = 2
-				elif "highCut" == region:
+				elif "Cut" in region:
 					nPar = 3
-					nParGen = (2 if ("GenAlt" in expSig) else 3 )
-				elif "highSVJ2" == region:
+				else:
 					nPar = 1
-					nParGen = 1
-				if "GenAlt" in expSig:
-					genExtra = "_alt"
-				else:
-					genExtra = ""
-
-				if nGenPar == 1:
-					p1Gen = getattr(limit,"trackedParam_"+region+"_p1_1"+genExtra)
-					if genExtra = "_alt"
-						genFunc = rt.TF1("GenFuncAlt","[0] * exp(@1*(@0/13000))",1500,6000))
-					else:
-						genFunc = rt.TF1("GenFuncMain","[0] * pow(x/13000, -[1])",1500,6000))
-				elif nGenPar == 2:
-					p1Gen = getattr(limit,"trackedParam_"+region+"_p1_2"+genExtra)
-					p2Gen = getattr(limit,"trackedParam_"+region+"_p2_2"+genExtra)
-					if genExtra = "_alt"
-						genFunc = rt.TF1("GenFuncAlt","[0] * exp(@1*(@0/13000)+@2*log(@0/13000))",1500,6000))
-					else:
-						genFunc = rt.TF1("GenFuncMain","[0] * pow(1 - x/13000, [2]) * pow(x/13000, -[1])",1500,6000))
-				elif nGenPar == 3:
-					p1Gen = getattr(limit,"trackedParam_"+region+"_p1_3"+genExtra)
-					p2Gen = getattr(limit,"trackedParam_"+region+"_p2_3"+genExtra)
-					p3Gen = getattr(limit,"trackedParam_"+region+"_p3_3"+genExtra)
-					if genExtra = "_alt"
-						genFunc = rt.TF1("GenFuncAlt","[0] * exp(@1*(@0/13000)+@2*log(@0/13000)+@3*pow(log(@0/13000),2))",1500,6000))
-					else:
-						genFunc = rt.TF1("GenFuncMain","[0] * pow(1 - x/13000, [2]) * pow(x/13000, -[1]-[3]*log(x/13000))",1500,6000))
-				else:
-					print("nPar is not 1, 2, nor 3!")
-					exit(0)
-				genFunc.SetParameter(0, 
-				genFunc.SetParameter(1,p1Gen)
-				if nParGen >= 2:
-					genFunc[-1].SetParameter(2,p2Gen)
-				if nParGen >= 3:
-					genFunc[-1].SetParameter(3,p3Gen)
 				
 				listOfFuncs = []
 				for iEvt in range(limit.GetEntries()):
@@ -176,16 +149,16 @@ for sigPars in baseline:
 					rmuHistVal = (tree.r-int(n))/tree.rErr
 					if nPar == 1:
 						p1 = getattr(limit,"trackedParam_"+region+"_p1_1")
-						listOfFuncs.append(rt.TF1("iToy_"+str(iEvt),"[0] * pow(x/13000, -[1])",1500,6000))
+						listOfFuncs.append(rt.TF1("iToy_"+str(iEvt),"[0] * pow(x/13000, -[1])",1500,8000))
 					elif nPar == 2:
 						p1 = getattr(limit,"trackedParam_"+region+"_p1_2")
 						p2 = getattr(limit,"trackedParam_"+region+"_p2_2")
-						listOfFuncs.append(rt.TF1("iToy_"+str(iEvt),"[0] * pow(1 - x/13000, [2]) * pow(x/13000, -[1])",1500,6000))
+						listOfFuncs.append(rt.TF1("iToy_"+str(iEvt),"[0] * pow(1 - x/13000, [2]) * pow(x/13000, -[1])",1500,8000))
 					elif nPar == 3:
 						p1 = getattr(limit,"trackedParam_"+region+"_p1_3")
 						p2 = getattr(limit,"trackedParam_"+region+"_p2_3")
 						p3 = getattr(limit,"trackedParam_"+region+"_p3_3")
-						listOfFuncs.append(rt.TF1("iToy_"+str(iEvt),"[0] * pow(1 - x/13000, [2]) * pow(x/13000, -[1]-[3]*log(x/13000))",1500,6000))
+						listOfFuncs.append(rt.TF1("iToy_"+str(iEvt),"[0] * pow(1 - x/13000, [2]) * pow(x/13000, -[1]-[3]*log(x/13000))",1500,8000))
 					else:
 						print("nPar is not 1, 2, nor 3!")
 						exit(0)
@@ -203,21 +176,42 @@ for sigPars in baseline:
 					# factor of 50 is becaue our bins are 50 GeV wide
 					norm = 1
 					listOfFuncs[-1].SetParameter(0,norm)
-					denom = listOfFuncs[-1].Integral(1500,6000) 
+					denom = listOfFuncs[-1].Integral(1500,8000) 
 					if denom > 0:
-						norm = toyExp/listOfFuncs[-1].Integral(1500,6000)*50
+						norm = toyExp/listOfFuncs[-1].Integral(1500,8000)*50
 					else:
 						continue
 					listOfFuncs[-1].SetParameter(0,norm)
+					chi2 = 0
+					for iBin in range(toy.numEntries()):
+						toy.get(iBin)
+						x = toy.get(iBin).getRealValue("mH")
+						Oi = toy.weight()
+						Ei = listOfFuncs[-1].Eval(x)
+						#print(x, Oi, Ei)
+						try:
+							chi2 += ((Oi-Ei)**2)/Ei
+						except ZeroDivisionError:
+							chi2 += 0
+					ndf = 130 - nPar
+					#print(chi2, ndf, chi2/ndf)
+					chi2Func = rt.TF1("chi2Func","{}*({}/{}) * ROOT::Math::chisquared_pdf(x,{},0)/{}".format(50,10,nBins,ndf,ndf),chi2LimitDown,chi2LimitUp)
+					chi2Func.SetLineColor(rt.kGreen)
 
+					rmuHist.Fill(rmuHistVal)
 
-				c1 = rt.TCanvas("c1","c1",1500,500)
-				c1.Divide(3,1)
-				c1.cd(1) # snapshot func with toys
-				c1.cd(2) # snapshot Func with fitFuncs
-				c1.cd(3) # toys with fit funcs
-				
-				c1.SaveAs("../condor_ThreeSteps/"+SVJNAME+"_"+bigName+".png")
+					varCheck = (rt.Math.chisquared_cdf_c(chi2, ndf) > 0.05) # pass means chi2 is lower than crit value of alpha = 0.05
+					#varCheck = (chi2/ndf < chi2Div)
+
+					rmuHistChi2Up.Fill(rmuHistVal, varCheck)
+					rmuHistChi2Down.Fill(rmuHistVal, not varCheck)
+					rmuHistChi2Up.Fit("gaus",'','',-5,5)
+
+				c1 = rt.TCanvas("c1","c1",1500,1500)
+				rmuHist.Draw("hist")
+				rmuHistChi2Up.Draw("same")
+				rmuHistChi2Down.Draw("hist same")
+				c1.SaveAs("../condor_july15/"+SVJNAME+"_"+bigName+"_pullOnly.png")
 
 				fitDiagFile.Close()
 				fitOnlyFile.Close()

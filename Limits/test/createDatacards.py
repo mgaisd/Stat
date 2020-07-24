@@ -6,7 +6,7 @@ from Stat.Limits.datacards import *
 
 print "====> CHANNELS: ", channels
 
-path = "/uscms_data/d3/cfallon/SVJ/biasStudies/CMSSW_10_2_13/src/Stat/Limits/test"
+path = "/uscms_data/d3/cfallon/SVJ/biasStudies2/CMSSW_10_2_13/src/Stat/Limits/test"
 
 usage = 'usage: %prog -p histosPath -o outputFile'
 parser = optparse.OptionParser(usage)

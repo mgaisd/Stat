@@ -1,0 +1,54 @@
+universe = vanilla
+Executable = combine_FourStepBias.sh
+Should_Transfer_Files = YES
+WhenToTransferOutput = ON_EXIT
+Transfer_Input_Files = combine_FourStepBias.sh
+Output = SVJ_mZprime$(mZ)_mDark$(mD)_rinv$(rI)_alpha$(aD)_$(region)_nToys$(nToys)_expSig$(expSig)_gen$(genFunc)fit$(fitFunc)opts$(svjOpts)_combineFourStep.stdout
+Error = SVJ_mZprime$(mZ)_mDark$(mD)_rinv$(rI)_alpha$(aD)_$(region)_nToys$(nToys)_expSig$(expSig)_gen$(genFunc)fit$(fitFunc)opts$(svjOpts)_combineFourStep.stderr
+Log = SVJ_mZprime$(mZ)_mDark$(mD)_rinv$(rI)_alpha$(aD)_$(region)_nToys$(nToys)_expSig$(expSig)_gen$(genFunc)fit$(fitFunc)opts$(svjOpts)_combineFourStep.log
+x509userproxy = $ENV(X509_USER_PROXY)
+mZ = 3000
+mD = 20
+rI = 03
+aD = peak
+region = highCut
+nToys = 300
+expSig = 0
+genFunc = 0
+fitFunc = 0
+svjOpts = 0
+Arguments = $(mZ) $(mD) $(rI) $(aD) $(region) $(nToys) $(expSig) $(genFunc) $(fitFunc)
+Queue mZ, mD, rI, aD, region, expSig, genFunc, fitFunc from (
+3000, 20, 03, peak, highCut, 0, 0, 0
+3000, 20, 03, peak, highCut, 1, 0, 0
+3000, 20, 03, peak, highCut, 0, 1, 0
+3000, 20, 03, peak, highCut, 1, 1, 0
+3000, 20, 03, peak, highSVJ2, 0, 0, 0
+3000, 20, 03, peak, highSVJ2, 1, 0, 0
+3000, 20, 03, peak, highSVJ2, 0, 1, 0
+3000, 20, 03, peak, highSVJ2, 1, 1, 0
+3000, 20, 03, peak, lowCut, 0, 0, 0
+3000, 20, 03, peak, lowCut, 1, 0, 0
+3000, 20, 03, peak, lowCut, 0, 1, 0
+3000, 20, 03, peak, lowCut, 1, 1, 0
+3000, 20, 03, peak, lowSVJ2, 0, 0, 0
+3000, 20, 03, peak, lowSVJ2, 1, 0, 0
+3000, 20, 03, peak, lowSVJ2, 0, 1, 0
+3000, 20, 03, peak, lowSVJ2, 1, 1, 0
+3000, 20, 03, peak, highCut, 0, 0, 1
+3000, 20, 03, peak, highCut, 1, 0, 1
+3000, 20, 03, peak, highCut, 0, 1, 1
+3000, 20, 03, peak, highCut, 1, 1, 1
+3000, 20, 03, peak, highSVJ2, 0, 0, 1
+3000, 20, 03, peak, highSVJ2, 1, 0, 1
+3000, 20, 03, peak, highSVJ2, 0, 1, 1
+3000, 20, 03, peak, highSVJ2, 1, 1, 1
+3000, 20, 03, peak, lowCut, 0, 0, 1
+3000, 20, 03, peak, lowCut, 1, 0, 1
+3000, 20, 03, peak, lowCut, 0, 1, 1
+3000, 20, 03, peak, lowCut, 1, 1, 1
+3000, 20, 03, peak, lowSVJ2, 0, 0, 1
+3000, 20, 03, peak, lowSVJ2, 1, 0, 1
+3000, 20, 03, peak, lowSVJ2, 0, 1, 1
+3000, 20, 03, peak, lowSVJ2, 1, 1, 1
+)

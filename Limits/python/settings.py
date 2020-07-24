@@ -17,6 +17,7 @@ histos = {"lowSVJ0":"h_Mt_lowSVJ0","lowSVJ1" :"h_Mt_lowSVJ1","lowSVJ2": "h_Mt_lo
 ### List of regions for which creating the datacards
 #channels = [ "lowSVJ1", "lowSVJ2", "highSVJ1", "highSVJ2", "lowCut", "highCut"]
 channels = ["lowSVJ2", "highSVJ2", "highCut", "lowCut"]
+#channels = ["highCut", "lowCut"]
 
 #channels = [ "BDT0"]
 
@@ -27,7 +28,8 @@ channels = ["lowSVJ2", "highSVJ2", "highCut", "lowCut"]
 #*********************************
 
 syst = collections.OrderedDict()
-syst["lumi"] = ("lnN", "all", 1.10)
+syst["lumi"] = ("lnN", "Bkg", 1.10) # lumi should only apply to 'Bkg', not 'all'
+#syst["lumi"] = ("lnN", "all", 1.10)
 #syst["trigger"] = ("lnN", "all", 1.02)
 #syst["BkgRate"] = ("lnU", "Bkg", 4.)
 #syst["mcstat"] = ("shape", ["sig"])
