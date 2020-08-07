@@ -89,8 +89,8 @@ os.system(cmd)
 
 effs = {}
 
-
-ch_eff = ["lowSVJ0", "lowSVJ1", "lowSVJ2", "highSVJ0", "highSVJ1", "highSVJ2"]
+ch_eff = ["lowSVJ2", "highSVJ2","highCut","lowCut"]
+#ch_eff = ["lowSVJ0", "lowSVJ1", "lowSVJ2", "highSVJ0", "highSVJ1", "highSVJ2"]
 ch_eff_year = []
 for y in years:
     ch_eff_years = [ch + '_' + y for ch in ch_eff ]

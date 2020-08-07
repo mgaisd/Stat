@@ -6,74 +6,31 @@ rt.gStyle.SetOptFit(1011)
 rt.gStyle.SetPalette(rt.kRainBow)
 
 # runover each SR to fit all 100 toys to the main function
-eosArea = "root://cmsxrootd.fnal.gov//store/user/cfallon/biasStudies_FourStepBias_jul21/"
+eosArea = "root://cmsxrootd.fnal.gov//store/user/cfallon/biasStudies_july24/"
 
 
 listOfParams1 = [
-['3000', '20', '03', 'peak'],
 ['1500', '20', '03', 'peak'],
-['1600', '20', '03', 'peak'],
 ['1700', '20', '03', 'peak'],
-['1800', '20', '03', 'peak'],
 ['1900', '20', '03', 'peak'],
-['2000', '20', '03', 'peak'],
 ['2100', '20', '03', 'peak'],
-['2200', '20', '03', 'peak'],
 ['2300', '20', '03', 'peak'],
-['2400', '20', '03', 'peak'],
 ['2500', '20', '03', 'peak'],
-['2600', '20', '03', 'peak'],
 ['2700', '20', '03', 'peak'],
-['2800', '20', '03', 'peak'],
-['2900', '20', '03', 'peak']]
+['2900', '20', '03', 'peak'],
+['3100', '20', '03', 'peak']]
 
 listOfParams2 = [
-['3100', '20', '03', 'peak'],
-['3200', '20', '03', 'peak'],
 ['3300', '20', '03', 'peak'],
-['3400', '20', '03', 'peak'],
 ['3500', '20', '03', 'peak'],
-['3600', '20', '03', 'peak'],
 ['3700', '20', '03', 'peak'],
-['3800', '20', '03', 'peak'],
 ['3900', '20', '03', 'peak'],
-['4000', '20', '03', 'peak'],
 ['4100', '20', '03', 'peak'],
-['4200', '20', '03', 'peak'],
 ['4300', '20', '03', 'peak'],
-['4400', '20', '03', 'peak'],
 ['4500', '20', '03', 'peak'],
-['3000', '1', '03', 'peak']]
-
-listOfParams3 = [
-['3000', '5', '03', 'peak'],
-['3000', '10', '03', 'peak'],
-['3000', '30', '03', 'peak'],
-['3000', '40', '03', 'peak'],
-['3000', '50', '03', 'peak'],
-['3000', '60', '03', 'peak'],
-['3000', '70', '03', 'peak'],
-['3000', '80', '03', 'peak'],
-['3000', '90', '03', 'peak'],
-['3000', '100', '03', 'peak'],
-['3000', '20', '0', 'peak'],
-['3000', '20', '01', 'peak'],
-['3000', '20', '02', 'peak'],
-['3000', '20', '04', 'peak'],
-['3000', '20', '05', 'peak'],
-['3000', '20', '06', 'peak']]
-
-listOfParams4 = [
-['3000', '20', '07', 'peak'],
-['3000', '20', '08', 'peak'],
-['3000', '20', '09', 'peak'],
-['3000', '20', '1', 'peak'],
-['3000', '20', '03', 'low'],
-['3000', '20', '03', 'high']]
-
-listOfParams5 = [
-['2200', '20', '03', 'peak'],
-['2400', '20', '03', 'peak']]
+['4700', '20', '03', 'peak'],
+['4900', '20', '03', 'peak'],
+['5100', '20', '03', 'peak']]
 
 baseline = [['3000', '20', '03', 'peak']]
 
@@ -82,23 +39,54 @@ regions = ["lowCut","lowSVJ2","highCut","highSVJ2"]
 #expSig = ""# "" for excpSig = 0, "_expSig1" for expSig = 1, add "_extra" for SVJ options, or nothing for Dijet options
 #n = 0 if expSig == "" else int(expSig.split("_")[1][-1:])
 
+
 pae = ""
 pae2 = ""
-for sigPars in baseline:
+
+i = 0
+# make histograms for each Signal Injection (0,1) and each genFunc (Main, Alt) combo
+# that are distributed in mZ
+
+makeNew = False
+if makeNew:
+	outputROOTFile = rt.TFile.TFile("massScan.root","recreate")
+	hist_0M_lc = rt.TH1F("hist_0M_lc","Gaussian Mean for lowCut, r_{inj} = 0, genMain", 19, 1500,5200)
+	hist_1M_lc = rt.TH1F("hist_1M_lc","Gaussian Mean for lowCut, r_{inj} = 1, genMain", 19, 1500,5200)
+	hist_0A_lc = rt.TH1F("hist_0A_lc","Gaussian Mean for lowCut, r_{inj} = 0, genAlt", 19, 1500,5200)
+	hist_1A_lc = rt.TH1F("hist_1A_lc","Gaussian Mean for lowCut, r_{inj} = 1, genAlt", 19, 1500,5200)
+	hist_0M_l2 = rt.TH1F("hist_0M_l2","Gaussian Mean for lowSVJ2, r_{inj} = 0, genMain", 19, 1500,5200)
+	hist_1M_l2 = rt.TH1F("hist_1M_l2","Gaussian Mean for lowSVJ2, r_{inj} = 1, genMain", 19, 1500,5200)
+	hist_0A_l2 = rt.TH1F("hist_0A_l2","Gaussian Mean for lowSVJ2, r_{inj} = 0, genAlt", 19, 1500,5200)
+	hist_1A_l2 = rt.TH1F("hist_1A_l2","Gaussian Mean for lowSVJ2, r_{inj} = 1, genAlt", 19, 1500,5200)
+	hist_0M_hc = rt.TH1F("hist_0M_hc","Gaussian Mean for highCut, r_{inj} = 0, genMain", 19, 1500,5200)
+	hist_1M_hc = rt.TH1F("hist_1M_hc","Gaussian Mean for highCut, r_{inj} = 1, genMain", 19, 1500,5200)
+	hist_0A_hc = rt.TH1F("hist_0A_hc","Gaussian Mean for highCut, r_{inj} = 0, genAlt", 19, 1500,5200)
+	hist_1A_hc = rt.TH1F("hist_1A_hc","Gaussian Mean for highCut, r_{inj} = 1, genAlt", 19, 1500,5200)
+	hist_0M_h2 = rt.TH1F("hist_0M_h2","Gaussian Mean for highSVJ2, r_{inj} = 0, genMain", 19, 1500,5200)
+	hist_1M_h2 = rt.TH1F("hist_1M_h2","Gaussian Mean for highSVJ2, r_{inj} = 1, genMain", 19, 1500,5200)
+	hist_0A_h2 = rt.TH1F("hist_0A_h2","Gaussian Mean for highSVJ2, r_{inj} = 0, genAlt", 19, 1500,5200)
+	hist_1A_h2 = rt.TH1F("hist_1A_h2","Gaussian Mean for highSVJ2, r_{inj} = 1, genAlt", 19, 1500,5200)
+	listOfParams = listOfParams1
+else:
+	outputROOTFile = rt.TFile.TFile("massScan.root","update")
+	listOfParams = listOfParams2
+for sigPars in listOfParams:
+	#continue
 	SVJNAME = "SVJ_mZprime{}_mDark{}_rinv{}_alpha{}".format(sigPars[0],sigPars[1],sigPars[2],sigPars[3])
 	print("************************",SVJNAME,"************************")
 	print("files to be opened from: " + eosArea + SVJNAME)
 	for region in regions:
-		print("/ws_SVJ_mZprime3000_mDark20_rinv03_alphapeak_{}_2018_template.root".format(region))
-		wsFile = rt.TFile.Open(eosArea+SVJNAME+"/ws_SVJ_mZprime3000_mDark20_rinv03_alphapeak_{}_2018_template.root".format(region),"read")
+		print("/ws_"+SVJNAME+"_{}_2018_template.root".format(region))
+		wsFile = rt.TFile.Open(eosArea+SVJNAME+"/ws_"+SVJNAME+"_{}_2018_template.root".format(region),"read")
 		# signal is a RooDataHist within SVJ RooWorkspace
 		svjWS = wsFile.Get("SVJ")
 		sigDataSet = rt.RooDataHist()
-		sigDataSet = svjWS.data("SVJ_mZprime3000_mDark20_rinv03_alphapeak")
+		sigDataSet = svjWS.data(SVJNAME)
 		sigHist = sigDataSet.createHistogram("mH")
-		for expSig in ["Sig0GenMainFitMain","Sig1GenMainFitMain","Sig0GenAltFitMain","Sig1GenAltFitMain","Sig0GenMainFitAlt","Sig1GenMainFitAlt","Sig0GenAltFitAlt","Sig1GenAltFitAlt"]:
+		for expSig in ["Sig0GenMainFitAlt","Sig1GenMainFitAlt","Sig0GenAltFitMain","Sig1GenAltFitMain"]:#["Sig0GenMainFitMain","Sig1GenMainFitMain","Sig0GenAltFitMain","Sig1GenAltFitMain","Sig0GenMainFitAlt","Sig1GenMainFitAlt","Sig0GenAltFitAlt","Sig1GenAltFitAlt"]:
 			for combineOpts in [""]:#["OptS","OptD"]:
 				bigName = region+combineOpts+expSig
+				rGenCode = expSig[3]+expSig[7]
 				n = int(expSig[3])
 				print("/fitDiagnostics"+bigName+".root")
 				print("/higgsCombine"+bigName+".FitDiagnostics.mH120.123456.root")
@@ -137,22 +125,31 @@ for sigPars in baseline:
 				parLimUp4 = 50
 				chi2LimitDown = 0
 				chi2LimitUp = 500
+				# updated nPar and nParAlt 24jul20
+				#
+				#      | lC | l2 | hC | h2 
+				# main |  2 |  2 |  3 |  1
+				# alt  |  3 |  2 |  3 |  2
 				if region == "highCut":
+					regCode = "hc"
 					nPar = 3
-					nParAlt = 4
+					nParAlt = 3
 					eitLimitUp = 12000 # events in toy
 					eitLimitDown = 10000
 				elif region == "highSVJ2":
+					regCode = "h2"
 					nPar = 1
-					nParAlt = 1
+					nParAlt = 2
 					eitLimitUp = 1000 # events in toy
 					eitLimitDown = 0
 				elif region == "lowCut":
+					regCode = "lc"
 					nPar = 2
 					nParAlt = 3
 					eitLimitUp = 80000 # events in toy
 					eitLimitDown = 70000
 				elif region == "lowSVJ2":
+					regCode = "l2"
 					nPar = 2
 					nParAlt = 2
 					eitLimitUp = 2000 # events in toy
@@ -264,7 +261,7 @@ for sigPars in baseline:
 					if i <= nParAlt:
 						mdfParListAlt[i-1] = snapshotArgList.getRealValue(region+"_p"+str(i)+"_"+str(nParAlt)+"_alt")
 
-				pae+="{} {} {} {} {} {} {} {} {} {}\n".format(region, expSig,mdfParList[0],mdfParList[1],mdfParList[2],mdfParList[3],mdfParListAlt[0],mdfParListAlt[1],mdfParListAlt[2],mdfParListAlt[3] )
+				pae+="{} {} {} {} {} {} {} {} {} {} {}\n".format(sigPars, region, expSig,mdfParList[0],mdfParList[1],mdfParList[2],mdfParList[3],mdfParListAlt[0],mdfParListAlt[1],mdfParListAlt[2],mdfParListAlt[3] )
 					
 
 				listOfFuncs = []
@@ -336,29 +333,28 @@ for sigPars in baseline:
 					# first, set norm to 1, and we know the number of events in the toy)
 					# then scale the function by numEvents divided by intergral of function without a normialztion
 					# i.e., first normalize to 1 (divide by integral), then scale to numEvents
-					# factor of 50 is becaue our bins are 50 GeV wide
+					# factor of 100 is becaue our bins are 100 GeV wide
 					norm = 1
 					listOfFuncs[-1].SetParameter(0,norm)
 					denom = listOfFuncs[-1].Integral(1500,8000) 
 					if denom > 0:
-						norm = toyExp/listOfFuncs[-1].Integral(1500,8000)*50
+						norm = toyExp/listOfFuncs[-1].Integral(1500,8000)*100
 					else:
 						continue
 					listOfFuncs[-1].SetParameter(0,norm)
 					chi2 = 0
+					#ndf = -nPar - 2
 					for iBin in range(toy.numEntries()):
 						toy.get(iBin)
 						x = toy.get(iBin).getRealValue("mH")
 						Ei = listOfFuncs[-1].Eval(x) + rHistVal*sigHist.GetBinContent(iBin)
 						#Ei = listOfFuncs[-1].Eval(x)
 						Oi = toy.weight()
-						
-						#print(x, Oi, Ei)
-						try:
+						if (Ei != 0):
 							chi2 += ((Oi-Ei)**2)/Ei
-						except ZeroDivisionError:
-							chi2 += 0
-					ndf = 130 - nPar - 2 # bins in mT histo, minus nPar, minus 2 (for normalization and r_ext)
+					ndf = 65 - nPar - 2
+					#print(ndf, toy.numEntries())
+
 					chi2Hist.Fill(chi2)
 					#print(chi2, ndf, chi2/ndf)
 
@@ -406,7 +402,8 @@ for sigPars in baseline:
 					eitHistChi2Down.Fill(toyExp, not varCheck)
 
 				#pae += "\n {} {} {} {} {}".format(sigPars, region, expSig, nTotal, nPass)
-				c1 = rt.TCanvas("c1","c1",1500,1500)
+				c1 = rt.TCanvas("c{}".format(i),"c{}".format(i),1500,1500)
+				i+=1
 				c1.Divide(3,3)
 
 				if nPar < 4:
@@ -477,31 +474,54 @@ for sigPars in baseline:
 					leg.AddEntry(chi2Func, "Ideal #chi^2 Distribtuion","l")
 					leg.Draw()
 				#c1.SaveAs("../condorTests/chi2Dist/"+SVJNAME+"_"+region+expSig+".png")
-				c1.SaveAs("../FourStepBias_jul21/plots/"+SVJNAME+"_"+bigName+".png")
+				c1.SaveAs("../july24/plots/"+SVJNAME+"_"+bigName+".png")
 				
-				c2 = rt.TCanvas("c2","c2",1500,1500)
+				c2 = rt.TCanvas("c{}".format(i),"c{}".format(i),1500,1500)
+				i += 1
 				rmuHist.Draw("hist")
 				if rmuHist.GetEntries() > 0:
 					rmuHist.Fit("gaus",'','PLC',-5,5)
-					rmuHist.GetFunction("gaus").SetLineColor(rt.kBlue-5)
+					rmuHist.GetFunction("gaus").SetLineColor(rt.kBlack)
+					rmuHist.GetFunction("gaus").SetLineStyle(9)
 					rmuHist.GetFunction("gaus").SetLineWidth(8)
-					pae2 += "{} {} {} {} {}\n".format(region, expSig, rmuHist.GetFunction("gaus").GetParameter(0),rmuHist.GetFunction("gaus").GetParameter(1),rmuHist.GetFunction("gaus").GetParameter(2) )
+					outputROOTFile.Get("hist_"+rGenCode+"_"+regCode).Fill(sigPars[0],rmuHist.GetFunction("gaus").GetParameter(1))
+					pae2 += "{} {} {} {} {} {} {} {} {}\n".format(region, sigPars[0],sigPars[1],sigPars[2],sigPars[3],expSig, rmuHist.GetFunction("gaus").GetParameter(0),rmuHist.GetFunction("gaus").GetParameter(1),rmuHist.GetFunction("gaus").GetParameter(2) )
 				rmuHist.Draw("func same")
 				rmuHistChi2Up.Draw("hist same")
 				rmuHistChi2Down.Draw("hist same")
-				c2.SaveAs("../FourStepBias_jul21/plots/"+SVJNAME+"_"+bigName+"_pullOnly.png")
+				c2.SaveAs("../july24/plots/"+SVJNAME+"_"+bigName+"_pullOnly.png")
 
 				fitDiagFile.Close()
 				fitOnlyFile.Close()
+				mdfFile.Close()
 				#dataObsFile.Close()
+		wsFile.Close()
+if makeNew:
+	outputROOTFile.cd()
+	hist_0M_lc.Write()
+	hist_1M_lc.Write()
+	hist_0A_lc.Write()
+	hist_1A_lc.Write()
+	hist_0M_l2.Write()
+	hist_1M_l2.Write()
+	hist_0A_l2.Write()
+	hist_1A_l2.Write()
+	hist_0M_hc.Write()
+	hist_1M_hc.Write()
+	hist_0A_hc.Write()
+	hist_1A_hc.Write()
+	hist_0M_h2.Write()
+	hist_1M_h2.Write()
+	hist_0A_h2.Write()
+	hist_1A_h2.Write()
+
+outputROOTFile.Write()
+outputROOTFile.Close()
 
 
 
-
-
-
-print(pae) 
-print(pae2)
+#print(pae) 
+#print(pae2)
 
 
 

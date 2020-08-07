@@ -16,8 +16,8 @@ histos = {"lowSVJ0":"h_Mt_lowSVJ0","lowSVJ1" :"h_Mt_lowSVJ1","lowSVJ2": "h_Mt_lo
 
 ### List of regions for which creating the datacards
 #channels = [ "lowSVJ1", "lowSVJ2", "highSVJ1", "highSVJ2", "lowCut", "highCut"]
-channels = ["lowSVJ2", "highSVJ2", "highCut", "lowCut"]
-#channels = ["highCut", "lowCut"]
+#channels = ["lowSVJ2", "highSVJ2", "highCut", "lowCut"]
+channels = ["lowCut", "highSVJ2"]
 
 #channels = [ "BDT0"]
 
@@ -28,7 +28,7 @@ channels = ["lowSVJ2", "highSVJ2", "highCut", "lowCut"]
 #*********************************
 
 syst = collections.OrderedDict()
-syst["lumi"] = ("lnN", "Bkg", 1.10) # lumi should only apply to 'Bkg', not 'all'
+syst["lumi"] = ("lnN", "sig", 1.10) # lumi should only apply to 'sig', not 'all'
 #syst["lumi"] = ("lnN", "all", 1.10)
 #syst["trigger"] = ("lnN", "all", 1.02)
 #syst["BkgRate"] = ("lnU", "Bkg", 4.)
@@ -118,7 +118,7 @@ vec41 = ("3000", "20", "0", "peak")
 #sigpoints = [vec1, vec2, vec3, vec4, vec5, vec6, vec7, vec8, vec9, vec10, vec11, vec12, vec13, vec14, vec15, vec16, vec17, vec18, vec19, vec20, vec21, vec22, vec23, vec24, vec25, vec26, vec27, vec28, vec29, vec30, vec31, vec32, vec33, vec34, vec35, vec36, vec37, vec38, vec39, vec40]
 
 #sigpoints = [ vec11, vec12, vec13, vec14, vec15, vec16, vec17, vec18, vec19, vec20, vec21, vec22, vec23, vec24, vec25, vec26, vec27, vec28, vec29, vec30, vec31, vec32, vec33, vec34, vec35, vec36, vec37, vec38, vec39, vec40]
-sigpoints = [vec26]
+sigpoints = [vec27]
 
 
 

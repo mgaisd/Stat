@@ -1,7 +1,7 @@
 import ROOT
 import os, sys
 import optparse
-from Stat.Limits.datacardsCondor import *
+from Stat.Limits.datacardsUnified import *
 #changed to no longer need the settings.py file
 # -signal parameters are now command-line input
 # -Fisher testing is only done on the baseline (3000, 20, 03, peak) signal
@@ -15,7 +15,7 @@ path = "/uscms_data/d3/cfallon/SVJ/biasStudies2/CMSSW_10_2_13/src/Stat/Limits/te
 
 usage = 'usage: %prog -p histosPath -o outputFile'
 parser = optparse.OptionParser(usage)
-parser.add_option('-i', '--input', dest='ifile', type='string', default= "root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Datacards/trig2x/sigfull/datacard.root",help='Where can I find input histos? Default is new (21 May 2020) files created by Kevin')
+parser.add_option('-i', '--input', dest='ifile', type='string', default= "root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Datacards/trig3/sigfull/",help='Where can I find input histos? Default is new (24 July 2020) files created by Kevin')
 parser.add_option("-d","--outdir",dest="outdir",type="string",default="outdir",help="Name of the output directory where to store datacards. Default is outdir")
 parser.add_option("-m","--mode",dest="mode",type="string",default="hist",help="Kind of shape analysis: parametric fit or fit to histos?. Default is hist")
 parser.add_option("-Z", "--zMass", dest="mZ", type='str',help="str: Mass [GeV] of the Z' in MC signal. Default = '3000', range: [500, 4400] in steps of 100, inclusive", default='3000')
@@ -28,8 +28,10 @@ parser.add_option("-u","--unblind",dest="unblind",action='store_true', default=F
 (opt, args) = parser.parse_args()
 sys.argv.append('-b')
 
-
-ifilename = opt.ifile
+if len(opt.rI) > 1:
+	ifilename = opt.ifile + "datacard_final_SVJ_"+opt.mZ+"_"+opt.mD+"_"+opt.rI[0]+"."+opt.rI[1]+"_"+opt.aD+".root"
+else:
+	ifilename = opt.ifile + "datacard_final_SVJ_"+opt.mZ+"_"+opt.mD+"_"+opt.rI+"_"+opt.aD+".root"
 outdir = opt.outdir
 mode = opt.mode
 unblind = opt.unblind

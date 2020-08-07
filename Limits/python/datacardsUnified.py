@@ -138,8 +138,8 @@ def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label
        residuals = frame.residHist(dataset.GetName(), model.GetName(), False, True) # this is y_i - f(x_i)
     
        roochi2 = frame.chiSquare(model.GetName(), dataset.GetName(),npar)#dataset.GetName(), model.GetName()) #model.GetName(), dataset.GetName()
-       print "forcing bins: 130"
-       nbins = 130
+       print "forcing bins: 65"
+       nbins = 65
        chi = roochi2 * ( nbins - npar)
        print "pls: ", chi,  nbins
        roopro = ROOT.TMath.Prob(chi, nbins - npar)
@@ -227,7 +227,7 @@ def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label
               line.SetLineWidth(2)
               line.Draw("same")
                             
-              c.SaveAs("Residuals_"+ch+"_"+name+"_log.pdf")              
+              c.SaveAs(carddir+"Residuals/Residuals_"+ch+"_"+name+"_log.pdf")              
               '''             
               c2 = ROOT.TCanvas("c2_"+ch+model.GetName(), ch, 800, 800)
               c2.cd()
@@ -422,7 +422,7 @@ def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label
               line2.Draw("same")
               frame.SetTitle("")
 
-              c2.SaveAs("Residuals_"+ch+"_"+name + "_ratio_log.pdf")
+              c2.SaveAs(carddir+"Residuals/Residuals_"+ch+"_"+name + "_ratio_log.pdf")
 
        return out
 
@@ -469,11 +469,11 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
        #workdir_ = ifilename.split("/")[:-1]
        #WORKDIR = "/".join(workdir_) + "/"
        carddir = outdir+  sig + "/"
-       #if not os.path.isdir(outdir): os.system('mkdir ' +outdir)
-       #if not os.path.isdir(outdir + "/" + sig): os.system('mkdir ' +carddir) 
-       #if not os.path.isdir(outdir + carddir + "plots/"): os.system('mkdir ' +carddir + "plots/") 
-       #if not os.path.isdir(outdir + carddir + "Fisher/"): os.system('mkdir ' +carddir + "Fisher/") 
-       #if not os.path.isdir(outdir + carddir + "Residuals/"): os.system('mkdir ' + carddir + "Residuals/") 
+       if not os.path.isdir(outdir): os.system('mkdir ' +outdir)
+       if not os.path.isdir(outdir + "/" + sig): os.system('mkdir ' +carddir)
+       if not os.path.isdir(outdir + carddir + "plots/"): os.system('mkdir ' +carddir + "plots/")
+       if not os.path.isdir(outdir + carddir + "Fisher/"): os.system('mkdir ' +carddir + "Fisher/")
+       if not os.path.isdir(outdir + carddir + "Residuals/"): os.system('mkdir ' + carddir + "Residuals/") 
 
        hist_filename = os.getcwd()+"/"+ifilename
        hist = getHist(ch, sig, ifile)
@@ -528,33 +528,48 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                      print "channel: ", ch_red
 
 
-                     p1_1 = RooRealVar(ch_red + "_p1_1", "p1", 1., -50., 50.)
-                     p1_2 = RooRealVar(ch_red + "_p1_2", "p1", 1., -50., 50.)
-                     p1_3 = RooRealVar(ch_red + "_p1_3", "p1", 1., -50., 50.)
-                     p1_4 = RooRealVar(ch_red + "_p1_4", "p1", 1., -50., 50.)
+                     p1_1 = RooRealVar(ch_red + "_p1_1", "p1", 1., -100., 100.)
+                     p1_2 = RooRealVar(ch_red + "_p1_2", "p1", 1., -100., 100.)
+                     p1_3 = RooRealVar(ch_red + "_p1_3", "p1", 1., -100., 100.)
+                     p1_4 = RooRealVar(ch_red + "_p1_4", "p1", 1., -100., 100.)
 
-                     p2_2 = RooRealVar(ch_red + "_p2_2", "p2", 1., -50., 50.)
-                     p2_3 = RooRealVar(ch_red + "_p2_3", "p2", 1., -50., 50.)
-                     p2_4 = RooRealVar(ch_red + "_p2_4", "p2", 1., -50., 50.)
+                     p2_2 = RooRealVar(ch_red + "_p2_2", "p2", 1., -100., 100.)
+                     p2_3 = RooRealVar(ch_red + "_p2_3", "p2", 1., -100., 100.)
+                     p2_4 = RooRealVar(ch_red + "_p2_4", "p2", 1., -100., 100.)
 
-                     p3_3 = RooRealVar(ch_red + "_p3_3", "p3", 1., -50., 50.)
-                     p3_4 = RooRealVar(ch_red + "_p3_4", "p3", 1., -50., 50.)
+                     p3_3 = RooRealVar(ch_red + "_p3_3", "p3", 1., -100., 100.)
+                     p3_4 = RooRealVar(ch_red + "_p3_4", "p3", 1., -100., 100.)
 
-                     p4_4 = RooRealVar(ch_red + "_p4_4", "p4", 1., -50., 50.)
+                     p4_4 = RooRealVar(ch_red + "_p4_4", "p4", 1., -100., 100.)
+
+                     p2_1 = RooRealVar(ch_red + "_p2_1", "p2", 1., -100., 100.)
+                     p3_2 = RooRealVar(ch_red + "_p3_2", "p3", 1., -100., 100.)
+                     p4_3 = RooRealVar(ch_red + "_p4_3", "p4", 1., -100., 100.)
+                     p5_4 = RooRealVar(ch_red + "_p5_4", "p5", 1., -100., 100.)
 
 
                      #Function from Theorists, combo testing, sequence E, 1, 11, 12, 22
                      # model NM has N params on 1-x and M params on x. exponents are (p_i + p_{i+1} * log(x))
                      # these are the RooGenericPdf verisons, convert to RooParametricShapeBinPdf below
-                     modelBkg1_rgp = RooGenericPdf(modelName+"1_rgp", "Thry. fit (01)", "pow(@0/13000, -@1)", RooArgList(mT, p1_1))
-                     modelBkg2_rgp = RooGenericPdf(modelName+"2_rgp", "Thry. fit (11)", "pow(1 - @0/13000, @2) * pow(@0/13000, -@1)", RooArgList(mT, p1_2, p2_2))
-                     modelBkg3_rgp = RooGenericPdf(modelName+"3_rgp", "Thry. fit (12)", "pow(1 - @0/13000, @2) * pow(@0/13000, -@1-@3*log(@0/13000))", RooArgList(mT, p1_3, p2_3, p3_3))
-                     modelBkg4_rgp = RooGenericPdf(modelName+"4_rgp", "Thry. fit (22)", "pow(1 - @0/13000, @2+@4*log(@0/13000)) * pow(@0/13000, -@1-@3*log(@0/13000))", RooArgList(mT, p1_4, p2_4, p3_4, p4_4))
+                     #modelBkg1_rgp = RooGenericPdf(modelName+"1_rgp", "Thry. fit (01)", "pow(@0/13000, -@1)", RooArgList(mT, p1_1))
+                     #modelBkg2_rgp = RooGenericPdf(modelName+"2_rgp", "Thry. fit (11)", "pow(1 - @0/13000, @2) * pow(@0/13000, -@1)", RooArgList(mT, p1_2, p2_2))
+                     #modelBkg3_rgp = RooGenericPdf(modelName+"3_rgp", "Thry. fit (12)", "pow(1 - @0/13000, @2) * pow(@0/13000, -@1-@3*log(@0/13000))", RooArgList(mT, p1_3, p2_3, p3_3))
+                     #modelBkg4_rgp = RooGenericPdf(modelName+"4_rgp", "Thry. fit (22)", "pow(1 - @0/13000, @2+@4*log(@0/13000)) * pow(@0/13000, -@1-@3*log(@0/13000))", RooArgList(mT, p1_4, p2_4, p3_4, p4_4))
 
-                     modelBkg1 = RooParametricShapeBinPdf(modelName+"1", "Thry. Fit (01)", modelBkg1_rgp, mT, RooArgList(p1_1), histBkgData)
-                     modelBkg2 = RooParametricShapeBinPdf(modelName+"2", "Thry. Fit (11)", modelBkg2_rgp, mT, RooArgList(p1_2, p2_2), histBkgData)
-                     modelBkg3 = RooParametricShapeBinPdf(modelName+"3", "Thry. Fit (12)", modelBkg3_rgp, mT, RooArgList(p1_3, p2_3, p3_3), histBkgData)
-                     modelBkg4 = RooParametricShapeBinPdf(modelName+"4", "Thry. Fit (22)", modelBkg4_rgp, mT, RooArgList(p1_4, p2_4, p3_4, p4_4), histBkgData)
+                     #modelBkg1 = RooParametricShapeBinPdf(modelName+"1", "Thry. Fit (01)", modelBkg1_rgp, mT, RooArgList(p1_1), histBkgData)
+                     #modelBkg2 = RooParametricShapeBinPdf(modelName+"2", "Thry. Fit (11)", modelBkg2_rgp, mT, RooArgList(p1_2, p2_2), histBkgData)
+                     #modelBkg3 = RooParametricShapeBinPdf(modelName+"3", "Thry. Fit (12)", modelBkg3_rgp, mT, RooArgList(p1_3, p2_3, p3_3), histBkgData)
+                     #modelBkg4 = RooParametricShapeBinPdf(modelName+"4", "Thry. Fit (22)", modelBkg4_rgp, mT, RooArgList(p1_4, p2_4, p3_4, p4_4), histBkgData)
+                     
+                     modelBkg1_rgp = RooGenericPdf(modelName+"1_rgp", "Thry. (expandNumer2)", "pow(@0/13000, -@1) * pow(1 - @0/13000, @2)", RooArgList(mT, p1_1, p2_1))
+                     modelBkg2_rgp = RooGenericPdf(modelName+"2_rgp", "Thry. (expandNumer3)", "pow(@0/13000, -@1) * pow(1 - @0/13000, @2 + @3*log(@0/13000) )", RooArgList(mT, p1_2, p2_2, p3_2))
+                     modelBkg3_rgp = RooGenericPdf(modelName+"3_rgp", "Thry. (expandNumer4)", "pow(@0/13000, -@1) * pow(1 - @0/13000, @2 + @3*log(@0/13000) + @4*pow(log(@0/13000),2) )", RooArgList(mT, p1_3, p2_3, p3_3, p4_3))
+                     modelBkg4_rgp = RooGenericPdf(modelName+"4_rgp", "Thry. (expandNumer5)", "pow(@0/13000, -@1) * pow(1 - @0/13000, @2 + @3*log(@0/13000) + @4*pow(log(@0/13000),2) + @5*pow(log(@0/13000),3) )", RooArgList(mT, p1_4, p2_4, p3_4, p4_4, p5_4))
+                     modelBkg1 = RooParametricShapeBinPdf(modelName+"1", "Thry. (expandNumer2)", modelBkg1_rgp, mT, RooArgList(p1_1, p2_1), histBkgData)
+                     modelBkg2 = RooParametricShapeBinPdf(modelName+"2", "Thry. (expandNumer3)", modelBkg2_rgp, mT, RooArgList(p1_2, p2_2, p3_2), histBkgData)
+                     modelBkg3 = RooParametricShapeBinPdf(modelName+"3", "Thry. (expandNumer4)", modelBkg3_rgp, mT, RooArgList(p1_3, p2_3, p3_3, p4_3), histBkgData)
+                     modelBkg4 = RooParametricShapeBinPdf(modelName+"4", "Thry. (expandNumer5)", modelBkg4_rgp, mT, RooArgList(p1_4, p2_4, p3_4, p4_4, p5_4), histBkgData)
+                     
                      RSS = {}
                      fitrange = "Full"
                      #if (ch == "highSVJ1_2016"): fitrange = "Low,High"
@@ -610,12 +625,12 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                      txt4.Draw()
 
                      c1.SetLogy()
-                     c1.SaveAs("TestAfterFit_"+ch+".pdf")
+                     c1.SaveAs("plots/TestAfterFit_"+ch+".pdf")
 
-                     RSS[1] = getRSS(sig, ch, mT, modelBkg1, obsData,  [fitRes1], carddir, nDataEvts)
-                     RSS[2] = getRSS(sig, ch, mT, modelBkg2, obsData,  [fitRes2], carddir, nDataEvts)
-                     RSS[3] = getRSS(sig, ch, mT, modelBkg3, obsData,  [fitRes3], carddir, nDataEvts)
-                     RSS[4] = getRSS(sig, ch, mT, modelBkg4, obsData,  [fitRes4], carddir, nDataEvts)
+                     RSS[fitRes1.floatParsFinal().getSize()] = getRSS(sig, ch, mT, modelBkg1, obsData,  [fitRes1], carddir, nDataEvts)
+                     RSS[fitRes2.floatParsFinal().getSize()] = getRSS(sig, ch, mT, modelBkg2, obsData,  [fitRes2], carddir, nDataEvts)
+                     RSS[fitRes3.floatParsFinal().getSize()] = getRSS(sig, ch, mT, modelBkg3, obsData,  [fitRes3], carddir, nDataEvts)
+                     RSS[fitRes4.floatParsFinal().getSize()] = getRSS(sig, ch, mT, modelBkg4, obsData,  [fitRes4], carddir, nDataEvts)
 
                      print RSS[2]
 
@@ -628,19 +643,24 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                             normAlt = RooRealVar("Bkg_"+ch+"alt_norm", "Number of background events", nBkgEvts, 0., 2.e4)
                             normData = RooRealVar("Data_"+ch+"alt_norm", "Number of background events", nDataEvts, 0., 2.e4) 
 
-                            p1_1_alt = RooRealVar(ch_red + "_p1_1_alt", "p1", 1., -50., 50.)
-                            p1_2_alt = RooRealVar(ch_red + "_p1_2_alt", "p1", 1., -50., 50.)
-                            p1_3_alt = RooRealVar(ch_red + "_p1_3_alt", "p1", 1., -50., 50.)
-                            p1_4_alt = RooRealVar(ch_red + "_p1_4_alt", "p1", 1., -50., 50.)
+                            p1_1_alt = RooRealVar(ch_red + "_p1_1_alt", "p1", 1., -100., 100.)
+                            p1_2_alt = RooRealVar(ch_red + "_p1_2_alt", "p1", 1., -100., 100.)
+                            p1_3_alt = RooRealVar(ch_red + "_p1_3_alt", "p1", 1., -100., 100.)
+                            p1_4_alt = RooRealVar(ch_red + "_p1_4_alt", "p1", 1., -100., 100.)
 
-                            p2_2_alt = RooRealVar(ch_red + "_p2_2_alt", "p2", 1., -50., 50.)
-                            p2_3_alt = RooRealVar(ch_red + "_p2_3_alt", "p2", 1., -50., 50.)
-                            p2_4_alt = RooRealVar(ch_red + "_p2_4_alt", "p2", 1., -50., 50.)
+                            p2_2_alt = RooRealVar(ch_red + "_p2_2_alt", "p2", 1., -100., 100.)
+                            p2_3_alt = RooRealVar(ch_red + "_p2_3_alt", "p2", 1., -100., 100.)
+                            p2_4_alt = RooRealVar(ch_red + "_p2_4_alt", "p2", 1., -100., 100.)
 
-                            p3_3_alt = RooRealVar(ch_red + "_p3_3_alt", "p3", 1., -50., 50.)
-                            p3_4_alt = RooRealVar(ch_red + "_p3_4_alt", "p3", 1., -50., 50.)
+                            p3_3_alt = RooRealVar(ch_red + "_p3_3_alt", "p3", 1., -100., 100.)
+                            p3_4_alt = RooRealVar(ch_red + "_p3_4_alt", "p3", 1., -100., 100.)
 
-                            p4_4_alt = RooRealVar(ch_red + "_p4_4_alt", "p4", 1., -50., 50.) 
+                            p4_4_alt = RooRealVar(ch_red + "_p4_4_alt", "p4", 1., -100., 100.) 
+
+                            p2_1_alt = RooRealVar(ch_red + "_p2_1_alt", "p2", 1., -100., 100.)
+                            p3_2_alt = RooRealVar(ch_red + "_p3_2_alt", "p3", 1., -100., 100.)
+                            p4_3_alt = RooRealVar(ch_red + "_p4_3_alt", "p4", 1., -100., 100.)
+                            p5_4_alt = RooRealVar(ch_red + "_p5_4_alt", "p5", 1., -100., 100.)
 
 
 
@@ -651,28 +671,37 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                             #modelAlt4_rgp = RooGenericPdf(modelAltName+"4_rgp", "Dij. fit (4 par.)", "pow(1 - @0/13000, abs(@1)) * pow(@0/13000, -abs(@2)-log(@0/13000)*(abs(@3) + abs(@4)* log(@0/13000)))", RooArgList(mT, p1_4_alt, p2_4_alt, p3_4_alt, p4_4_alt))
 
                             # New Alt Function
-                            modelAlt1_rgp = RooGenericPdf(modelAltName+"1_rgp", "Alt. fit (1 par.)", "exp(@1*(@0/13000))", RooArgList(mT, p1_1_alt))
-                            modelAlt2_rgp = RooGenericPdf(modelAltName+"2_rgp", "Alt. fit (2 par.)", "exp(@1*(@0/13000)+@2*log(@0/13000))", RooArgList(mT, p1_2_alt, p2_2_alt))
-                            modelAlt3_rgp = RooGenericPdf(modelAltName+"3_rgp", "Alt. fit (3 par.)", "exp(@1*(@0/13000)+@2*log(@0/13000)+@3*pow(log(@0/13000),2))", RooArgList(mT, p1_3_alt, p2_3_alt, p3_3_alt))
-                            modelAlt4_rgp = RooGenericPdf(modelAltName+"4_rgp", "Alt. fit (4 par.)", "exp(@1*(@0/13000)+@2*log(@0/13000)+@3*pow(log(@0/13000),2)+@4*pow(log(@0/13000),3))", RooArgList(mT, p1_4_alt, p2_4_alt, p3_4_alt, p4_4_alt))
+                            #modelAlt1_rgp = RooGenericPdf(modelAltName+"1_rgp", "Alt. fit (1 par.)", "exp(@1*(@0/13000))", RooArgList(mT, p1_1_alt))
+                            #modelAlt2_rgp = RooGenericPdf(modelAltName+"2_rgp", "Alt. fit (2 par.)", "exp(@1*(@0/13000)+@2*log(@0/13000))", RooArgList(mT, p1_2_alt, p2_2_alt))
+                            #modelAlt3_rgp = RooGenericPdf(modelAltName+"3_rgp", "Alt. fit (3 par.)", "exp(@1*(@0/13000)+@2*log(@0/13000)+@3*pow(log(@0/13000),2))", RooArgList(mT, p1_3_alt, p2_3_alt, p3_3_alt))
+                            #modelAlt4_rgp = RooGenericPdf(modelAltName+"4_rgp", "Alt. fit (4 par.)", "exp(@1*(@0/13000)+@2*log(@0/13000)+@3*pow(log(@0/13000),2)+@4*pow(log(@0/13000),3))", RooArgList(mT, p1_4_alt, p2_4_alt, p3_4_alt, p4_4_alt))
 
-                            modelAlt1 = RooParametricShapeBinPdf(modelAltName+"1", "Alt. Fit 1par", modelAlt1_rgp, mT, RooArgList(p1_1_alt), histBkgData)
-                            modelAlt2 = RooParametricShapeBinPdf(modelAltName+"2", "Alt. Fit 2par", modelAlt2_rgp, mT, RooArgList(p1_2_alt, p2_2_alt), histBkgData)
-                            modelAlt3 = RooParametricShapeBinPdf(modelAltName+"3", "Alt. Fit 3par", modelAlt3_rgp, mT, RooArgList(p1_3_alt, p2_3_alt, p3_3_alt), histBkgData)
-                            modelAlt4 = RooParametricShapeBinPdf(modelAltName+"4", "Alt. Fit 4par", modelAlt4_rgp, mT, RooArgList(p1_4_alt, p2_4_alt, p3_4_alt, p4_4_alt), histBkgData)
+                            #modelAlt1 = RooParametricShapeBinPdf(modelAltName+"1", "Alt. Fit 1par", modelAlt1_rgp, mT, RooArgList(p1_1_alt), histBkgData)
+                            #modelAlt2 = RooParametricShapeBinPdf(modelAltName+"2", "Alt. Fit 2par", modelAlt2_rgp, mT, RooArgList(p1_2_alt, p2_2_alt), histBkgData)
+                            #modelAlt3 = RooParametricShapeBinPdf(modelAltName+"3", "Alt. Fit 3par", modelAlt3_rgp, mT, RooArgList(p1_3_alt, p2_3_alt, p3_3_alt), histBkgData)
+                            #modelAlt4 = RooParametricShapeBinPdf(modelAltName+"4", "Alt. Fit 4par", modelAlt4_rgp, mT, RooArgList(p1_4_alt, p2_4_alt, p3_4_alt, p4_4_alt), histBkgData)
 
+                            modelAlt1_rgp = RooGenericPdf(modelAltName+"1_rgp", "Thry. (expandDenom2)", "pow(@0/13000, -@1) * pow(1 - @0/13000, @2)", RooArgList(mT, p1_1_alt, p2_1_alt))
+                            modelAlt2_rgp = RooGenericPdf(modelAltName+"2_rgp", "Thry. (expandDenom3)", "pow(@0/13000, -@1 - @3*log(@0/13000) ) * pow(1 - @0/13000, @2)", RooArgList(mT, p1_2_alt, p2_2_alt, p3_2_alt))
+                            modelAlt3_rgp = RooGenericPdf(modelAltName+"3_rgp", "Thry. (expandDenom4)", "pow(@0/13000, -@1 - @3*log(@0/13000) - @4*pow(log(@0/13000),2) ) * pow(1 - @0/13000, @2)", RooArgList(mT, p1_3_alt, p2_3_alt, p3_3_alt, p4_3_alt))
+                            modelAlt4_rgp = RooGenericPdf(modelAltName+"4_rgp", "Thry. (expandDenom5)", "pow(@0/13000, -@1 - @3*log(@0/13000) - @4*pow(log(@0/13000),2) - @5*pow(log(@0/13000),3) ) * pow(1 - @0/13000, @2)", RooArgList(mT, p1_4_alt, p2_4_alt, p3_4_alt, p4_4_alt, p5_4_alt))
+                            modelAlt1 = RooParametricShapeBinPdf(modelAltName+"1", "Thry. (expandDenom2)", modelBkg1_rgp, mT, RooArgList(p1_1_alt, p2_1_alt), histBkgData)
+                            modelAlt2 = RooParametricShapeBinPdf(modelAltName+"2", "Thry. (expandDenom3)", modelBkg2_rgp, mT, RooArgList(p1_2_alt, p2_2_alt, p3_2_alt), histBkgData)
+                            modelAlt3 = RooParametricShapeBinPdf(modelAltName+"3", "Thry. (expandDenom4)", modelBkg3_rgp, mT, RooArgList(p1_3_alt, p2_3_alt, p3_3_alt, p4_3_alt), histBkgData)
+                            modelAlt4 = RooParametricShapeBinPdf(modelAltName+"4", "Thry. (expandDenom5)", modelBkg4_rgp, mT, RooArgList(p1_4_alt, p2_4_alt, p3_4_alt, p4_4_alt, p5_4_alt), histBkgData)
+                     
                             RSS_alt = {}
                             fitrange = "Full"
                             #if (ch == "highSVJ1_2016"): fitrange = "Low,High"
-                            fitRes1_alt = modelAlt1.fitTo(obsData, RooFit.Extended(True), RooFit.Save(1), RooFit.SumW2Error(True), RooFit.Strategy(2), RooFit.Minimizer("Minuit2"), RooFit.PrintLevel(2), RooFit.Range(fitrange))
-                            fitRes2_alt = modelAlt2.fitTo(obsData, RooFit.Extended(True), RooFit.Save(1), RooFit.SumW2Error(True), RooFit.Strategy(2), RooFit.Minimizer("Minuit2"), RooFit.PrintLevel(2), RooFit.Range(fitrange))
-                            fitRes3_alt = modelAlt3.fitTo(obsData, RooFit.Extended(True), RooFit.Save(1), RooFit.SumW2Error(True), RooFit.Strategy(2), RooFit.Minimizer("Minuit2"), RooFit.PrintLevel(2), RooFit.Range(fitrange))
-                            fitRes4_alt = modelAlt4.fitTo(obsData, RooFit.Extended(True), RooFit.Save(1), RooFit.SumW2Error(True), RooFit.Strategy(2), RooFit.Minimizer("Minuit2"), RooFit.PrintLevel(2), RooFit.Range(fitrange))
+                            fitRes1_alt = modelAlt1.fitTo(obsData, RooFit.Extended(True), RooFit.Save(1), RooFit.SumW2Error(True), RooFit.Strategy(2), RooFit.Minimizer("Minuit"), RooFit.PrintLevel(2), RooFit.Range(fitrange))
+                            fitRes2_alt = modelAlt2.fitTo(obsData, RooFit.Extended(True), RooFit.Save(1), RooFit.SumW2Error(True), RooFit.Strategy(2), RooFit.Minimizer("Minuit"), RooFit.PrintLevel(2), RooFit.Range(fitrange))
+                            fitRes3_alt = modelAlt3.fitTo(obsData, RooFit.Extended(True), RooFit.Save(1), RooFit.SumW2Error(True), RooFit.Strategy(2), RooFit.Minimizer("Minuit"), RooFit.PrintLevel(2), RooFit.Range(fitrange))
+                            fitRes4_alt = modelAlt4.fitTo(obsData, RooFit.Extended(True), RooFit.Save(1), RooFit.SumW2Error(True), RooFit.Strategy(2), RooFit.Minimizer("Minuit"), RooFit.PrintLevel(2), RooFit.Range(fitrange))
 
-                            RSS_alt[1] = getRSS(sig, ch, mT, modelAlt1, obsData,  [fitRes1_alt], carddir,  nDataEvts, label = "alt")
-                            RSS_alt[2] = getRSS(sig, ch, mT, modelAlt2, obsData,  [fitRes2_alt], carddir,  nDataEvts, label = "alt")
-                            RSS_alt[3] = getRSS(sig, ch, mT, modelAlt3, obsData,  [fitRes3_alt], carddir,  nDataEvts, label = "alt")
-                            RSS_alt[4] = getRSS(sig, ch, mT, modelAlt4, obsData,  [fitRes4_alt], carddir,  nDataEvts, label = "alt")
+                            RSS_alt[fitRes1_alt.floatParsFinal().getSize()] = getRSS(sig, ch, mT, modelAlt1, obsData,  [fitRes1_alt], carddir,  nDataEvts, label = "alt")
+                            RSS_alt[fitRes2_alt.floatParsFinal().getSize()] = getRSS(sig, ch, mT, modelAlt2, obsData,  [fitRes2_alt], carddir,  nDataEvts, label = "alt")
+                            RSS_alt[fitRes3_alt.floatParsFinal().getSize()] = getRSS(sig, ch, mT, modelAlt3, obsData,  [fitRes3_alt], carddir,  nDataEvts, label = "alt")
+                            RSS_alt[fitRes4_alt.floatParsFinal().getSize()] = getRSS(sig, ch, mT, modelAlt4, obsData,  [fitRes4_alt], carddir,  nDataEvts, label = "alt")
                             length = 1
                             if(length<2):
                                    xframeAlt = mT.frame(ROOT.RooFit.Title("extended ML fit example"))
@@ -695,7 +724,7 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                                    xframeAlt.Draw()
 
                                    c2.SetLogy()
-                                   c2.SaveAs("TestAfterFit_"+ch+"_Alt.pdf")
+                                   c2.SaveAs("plots/TestAfterFit_"+ch+"_Alt.pdf")
 
 
 
@@ -706,11 +735,12 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                      #*******************************************************#
 
 
-                     ofile = open("FisherTest_%s.txt"%(ch),"w")
+                     ofile = open(carddir +"Fisher/FisherTest_%s.txt"%(ch),"w")
                      report = "Results from Fisher Test for category %s \n" % (ch)
                      #{"chiSquared":roochi2,"chi2" : chi2, "chi1" : chi1, "rss" : rss, "res" : res, "nbins" : hist.GetN(), "npar" : npar}
                      report += "func\tchi2\trss\tnBins\tnPar \n"
-                     for i in range(1,len(RSS)+1):
+                     nParMin = RSS[fitRes1.floatParsFinal().getSize()]['npar']
+                     for i in xrange(nParMin, nParMin+len(RSS)):
                             report += "   %i\t%.2f\t%.2f\t%i\t%i\n" % (i, RSS[i]['chiSquared'],RSS[i]['rss'],RSS[i]['nbins'],RSS[i]['npar'])
                      report += "*******************************************************\n"
                      report += "fTest = ((RSS1-RSS2)/(npar2-npar1))/(RSS2/(nBins-npar2))\n"
@@ -725,35 +755,36 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                      # begin with 1v2, test the `winner' vs 3, then test that winner vs 4. 
                      # which ever function wins the vs 4 test, is the function we use.
                      aCrit = 0.05
-                     RTDict = {"1v2":-1,"1v3":-1,"1v4":-1,"2v3":-1,"2v4":-1,"3v4":-1}
-                     FDict = {"1v2":-1,"1v3":-1,"1v4":-1,"2v3":-1,"2v4":-1,"3v4":-1}
-                     for o1 in xrange(1, len(RSS)):
-                            for o2 in xrange(o1+1,len(RSS)+1):
+                     RTDict = {}
+                     FDict = {}
+                     for o1 in xrange(nParMin, nParMin+len(RSS)-1):
+                            for o2 in xrange(o1+1,nParMin+len(RSS)):
+                                   print(o1, o2)
                                    RTDict[str(o1)+"v"+str(o2)], FDict[str(o1)+"v"+str(o2)] = fisherTest(RSS[o1]['rss'], RSS[o2]['rss'], RSS[o1]['npar'], RSS[o2]['npar'], RSS[o2]["nbins"])
                                    report += "%d par vs %d par: CL=%.5f F_t=%.5f\n" % (RSS[o1]['npar'], RSS[o2]['npar'], RTDict[str(o1)+"v"+str(o2)], FDict[str(o1)+"v"+str(o2)])
 
-                     if RTDict["1v2"] > aCrit:
-                            if RTDict["1v3"] > aCrit:
-                                   if RTDict["1v4"] > aCrit:
-                                          order = 1
+                     if RTDict["{}v{}".format(RSS[nParMin]['npar'],RSS[nParMin+1]['npar'])] > aCrit:
+                            if RTDict["{}v{}".format(RSS[nParMin]['npar'],RSS[nParMin+2]['npar'])] > aCrit:
+                                   if RTDict["{}v{}".format(RSS[nParMin]['npar'],RSS[nParMin+3]['npar'])] > aCrit:
+                                          order = RSS[RSS[nParMin]['npar']]['npar']
                                    else:
-                                          order = 4
+                                          order = RSS[RSS[nParMin]['npar']+3]['npar']
                             else:
-                                   if RTDict["3v4"] > aCrit:
-                                          order = 3
+                                   if RTDict["{}v{}".format(RSS[nParMin]['npar']+2,RSS[nParMin+3]['npar'])] > aCrit:
+                                          order = RSS[RSS[nParMin]['npar']+2]['npar']
                                    else:
-                                          order = 4
+                                          order = RSS[RSS[nParMin]['npar']+3]['npar']
                      else:
-                            if RTDict["2v3"] > aCrit:
-                                   if RTDict["2v4"] > aCrit:
-                                          order = 2
+                            if RTDict["{}v{}".format(RSS[nParMin]['npar']+1,RSS[nParMin+2]['npar'])] > aCrit:
+                                   if RTDict["{}v{}".format(RSS[nParMin]['npar']+1,RSS[nParMin+3]['npar'])] > aCrit:
+                                          order = RSS[RSS[nParMin]['npar']+1]['npar']
                                    else:
-                                          order = 4
+                                          order = RSS[RSS[nParMin]['npar']+3]['npar']
                             else:
-                                   if RTDict["3v4"] > aCrit:
-                                          order = 3
+                                   if RTDict["{}v{}".format(RSS[nParMin]['npar']+2,RSS[nParMin+3]['npar'])] > aCrit:
+                                          order = RSS[RSS[nParMin]['npar']+2]['npar']
                                    else:
-                                          order = 4
+                                          order = RSS[RSS[nParMin]['npar']+3]['npar']
                      #OLD WAY OF DOING IT, only does n vs n+1
                      #for o1 in xrange(1, len(RSS)):
                      #       o2 = o1+1
@@ -773,19 +804,19 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                      #       print "\\\\"
                      moreParFlag = 0
                      if order == 0:
-                            order = 4
+                            order = RSS[4]["npar"]
                             moreParFlag = 1
                      print "\\hline"
                      print "-"*25   
                      print "Order is", order, "("+ch+")"
                      report += "Order is %d (%s)\n" % (order, ch)
-                     report += ("1 param: " + ", ".join(['%.2f']*len(RSS[1]["parVals"])) + "\n") % tuple(RSS[1]["parVals"])
-                     report += ("2 param: " + ", ".join(['%.2f']*len(RSS[2]["parVals"])) + "\n") % tuple(RSS[2]["parVals"])
-                     report += ("3 param: " + ", ".join(['%.2f']*len(RSS[3]["parVals"])) + "\n") % tuple(RSS[3]["parVals"])
-                     report += ("4 param: " + ", ".join(['%.2f']*len(RSS[4]["parVals"])) + "\n") % tuple(RSS[4]["parVals"])
+                     report += ("1 param: " + ", ".join(['%.2f']*len(RSS[nParMin]["parVals"])) + "\n") % tuple(RSS[nParMin]["parVals"])
+                     report += ("2 param: " + ", ".join(['%.2f']*len(RSS[nParMin+1]["parVals"])) + "\n") % tuple(RSS[nParMin+1]["parVals"])
+                     report += ("3 param: " + ", ".join(['%.2f']*len(RSS[nParMin+2]["parVals"])) + "\n") % tuple(RSS[nParMin+2]["parVals"])
+                     report += ("4 param: " + ", ".join(['%.2f']*len(RSS[nParMin+3]["parVals"])) + "\n") % tuple(RSS[nParMin+3]["parVals"])
                      report += "%d par are sufficient\n" % (RSS[order]['npar'])
                      if moreParFlag: report += "BUT really, more Pars are needed!"
-                     for i in range(1,len(RSS)+1):
+                     for i in range(nParMin, nParMin+4):
                             report += "model%i chi2: %.2f\n" % (i, RSS[i]['chiSquared'])
 
                      ofile.write(report)
@@ -794,10 +825,11 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                      if bias: 
                             print "Running in BIAS mode"
 
-                            ofile_alt = open("FisherTest_alt_%s.txt"%(ch),"w")
+                            ofile_alt = open(carddir +"Fisher/FisherTest_alt_%s.txt"%(ch),"w")
                             report = "Results from Fisher Test on the alternative function for category %s \n" % (ch)
                             report += "func\tchi2\trss\tnBins\tnPar \n"
-                            for i in range(1,len(RSS)+1):
+                            nParMin_alt = RSS_alt[fitRes1_alt.floatParsFinal().getSize()]['npar']
+                            for i in xrange(nParMin_alt, nParMin_alt+len(RSS_alt)):
                                    report += "   %i\t%.2f\t%.2f\t%i\t%i\n" % (i, RSS_alt[i]['chiSquared'],RSS_alt[i]['rss'],RSS_alt[i]['nbins'],RSS_alt[i]['npar'])
                             report += "*******************************************************\n"
                             report += "fTest = ((RSS1-RSS2)/(npar2-npar1))/(RSS2/(nBins-npar2))\n"
@@ -811,35 +843,35 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                             # BEGIN NEW WAY, tests in a 'single elimination' bracket
                             # begin with 1v2, test the `winner' vs 3, then test that winner vs 4. 
                             # which ever function wins the vs 4 test, is the function we use.
-                            RTDict_alt = {"1v2":-1,"1v3":-1,"1v4":-1,"2v3":-1,"2v4":-1,"3v4":-1}
-                            FDict = {"1v2":-1,"1v3":-1,"1v4":-1,"2v3":-1,"2v4":-1,"3v4":-1}
-                            for o1 in xrange(1, len(RSS_alt)):
-                                   for o2 in xrange(o1+1,len(RSS_alt)+1):
-                                          RTDict_alt[str(o1)+"v"+str(o2)], FDict[str(o1)+"v"+str(o2)] = fisherTest(RSS_alt[o1]['rss'], RSS_alt[o2]['rss'], RSS_alt[o1]['npar'], RSS_alt[o2]['npar'], RSS_alt[o2]["nbins"])
-                                          report += "%d par vs %d par: CL=%.5f F_t=%.5f\n" % (RSS_alt[o1]['npar'], RSS_alt[o2]['npar'], RTDict_alt[str(o1)+"v"+str(o2)], FDict[str(o1)+"v"+str(o2)])
+                            RTDict_alt = {}
+                            FDict_alt = {}
+                            for o1 in xrange(nParMin_alt, nParMin_alt+len(RSS_alt)-1):
+                                   for o2 in xrange(o1+1,nParMin_alt+len(RSS_alt)):
+                                          RTDict_alt[str(o1)+"v"+str(o2)], FDict_alt[str(o1)+"v"+str(o2)] = fisherTest(RSS_alt[o1]['rss'], RSS_alt[o2]['rss'], RSS_alt[o1]['npar'], RSS_alt[o2]['npar'], RSS_alt[o2]["nbins"])
+                                          report += "%d par vs %d par: CL=%.5f F_t=%.5f\n" % (RSS_alt[o1]['npar'], RSS_alt[o2]['npar'], RTDict_alt[str(o1)+"v"+str(o2)], FDict_alt[str(o1)+"v"+str(o2)])
 
-                            if RTDict_alt["1v2"] > aCrit:
-                                   if RTDict_alt["1v3"] > aCrit:
-                                          if RTDict_alt["1v4"] > aCrit:
-                                                 order_alt = 1
+                            if RTDict_alt["{}v{}".format(RSS_alt[nParMin_alt]['npar'],RSS_alt[nParMin_alt+1]['npar'])] > aCrit:
+                                   if RTDict_alt["{}v{}".format(RSS_alt[nParMin_alt]['npar'],RSS_alt[nParMin_alt+2]['npar'])] > aCrit:
+                                          if RTDict_alt["{}v{}".format(RSS_alt[nParMin_alt]['npar'],RSS_alt[nParMin_alt+3]['npar'])] > aCrit:
+                                                 order_alt = RSS_alt[RSS_alt[nParMin_alt]['npar']]['npar']
                                           else:
-                                                 order_alt = 4
+                                                 order_alt = RSS_alt[RSS_alt[nParMin_alt]['npar']+3]['npar']
                                    else:
-                                          if RTDict_alt["3v4"] > aCrit:
-                                                 order_alt = 3
+                                          if RTDict_alt["{}v{}".format(RSS_alt[nParMin_alt]['npar']+2,RSS_alt[nParMin_alt+3]['npar'])] > aCrit:
+                                                 order_alt = RSS_alt[RSS_alt[nParMin_alt]['npar']+2]['npar']
                                           else:
-                                                 order_alt = 4
+                                                 order_alt = RSS_alt[RSS_alt[nParMin_alt]['npar']+3]['npar']
                             else:
-                                   if RTDict_alt["2v3"] > aCrit:
-                                          if RTDict_alt["2v4"] > aCrit:
-                                                 order_alt = 2
+                                   if RTDict_alt["{}v{}".format(RSS_alt[nParMin_alt]['npar']+1,RSS_alt[nParMin_alt+2]['npar'])] > aCrit:
+                                          if RTDict_alt["{}v{}".format(RSS_alt[nParMin_alt]['npar']+1,RSS_alt[nParMin_alt+3]['npar'])] > aCrit:
+                                                 order_alt = RSS_alt[RSS_alt[nParMin_alt]['npar']+1]['npar']
                                           else:
-                                                 order_alt = 4
+                                                 order_alt = RSS_alt[RSS_alt[nParMin_alt]['npar']+3]['npar']
                                    else:
-                                          if RTDict_alt["3v4"] > aCrit:
-                                                 order_alt = 3
+                                          if RTDict_alt["{}v{}".format(RSS_alt[nParMin_alt]['npar']+2,RSS_alt[nParMin_alt+3]['npar'])] > aCrit:
+                                                 order_alt = RSS_alt[RSS_alt[nParMin_alt]['npar']+2]['npar']
                                           else:
-                                                 order_alt = 4
+                                                 order_alt = RSS_alt[RSS_alt[nParMin_alt]['npar']+3]['npar']
 
                             #OLD WAY OF DOING IT, only does n vs n+1
                             #for o1 in xrange(1, len(RSS)):
@@ -868,14 +900,17 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                             print "-"*25   
                             print "Order is", order_alt, "("+ch+")"
                             report += "Order is %d (%s)\n" % (order_alt, ch)
-                            report += ("alt 1: " + ", ".join(['%.2f']*len(RSS_alt[1]["parVals"])) + "\n") % tuple(RSS_alt[1]["parVals"])
-                            report += ("alt 2: " + ", ".join(['%.2f']*len(RSS_alt[2]["parVals"])) + "\n") % tuple(RSS_alt[2]["parVals"])
-                            report += ("alt 3: " + ", ".join(['%.2f']*len(RSS_alt[3]["parVals"])) + "\n") % tuple(RSS_alt[3]["parVals"])
-                            report += ("alt 4: " + ", ".join(['%.2f']*len(RSS_alt[4]["parVals"])) + "\n") % tuple(RSS_alt[4]["parVals"])
+                            report += ("alt 1: " + ", ".join(['%.2f']*len(RSS_alt[nParMin_alt]["parVals"])) + "\n") % tuple(RSS_alt[nParMin_alt]["parVals"])
+                            report += ("alt 2: " + ", ".join(['%.2f']*len(RSS_alt[nParMin_alt+1]["parVals"])) + "\n") % tuple(RSS_alt[nParMin_alt+1]["parVals"])
+                            report += ("alt 3: " + ", ".join(['%.2f']*len(RSS_alt[nParMin_alt+2]["parVals"])) + "\n") % tuple(RSS_alt[nParMin_alt+2]["parVals"])
+                            report += ("alt 4: " + ", ".join(['%.2f']*len(RSS_alt[nParMin_alt+3]["parVals"])) + "\n") % tuple(RSS_alt[nParMin_alt+3]["parVals"])
                             report += "%d par are sufficient\n" % (RSS_alt[order_alt]['npar'])
                             if moreParFlag_alt: report += "BUT really, more Pars are needed!"
-                            for i in range(1,min(len(RSS),len(RSS_alt))+1):
-                                   report += "model%i chi2, chi2_alt: %.2f %.2f\n" % (i, RSS[i]['chiSquared'],RSS_alt[i]['chiSquared'])
+                            iPar, iPar_alt = nParMin, nParMin_alt
+                            for i in range(1,5):
+                                   report += "model%i chi2, chi2_alt: %.2f %.2f\n" % (i, RSS[iPar]['chiSquared'],RSS_alt[iPar_alt]['chiSquared'])
+                                   iPar+=1
+                                   iPar_alt+=1
 
                             ofile_alt.write(report)
                             ofile_alt.close()
@@ -885,24 +920,24 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                      else:
                             order_alt = order
 
-                     if order==1:
+                     if order==RSS[nParMin]['npar']:
                             modelBkg = modelBkg1#.Clone("Bkg")
                             #normzBkg = normzBkg2#.Clone("Bkg_norm")
                             fitRes = fitRes1
-                     elif order==2:
+                     elif order==RSS[nParMin+1]['npar']:
                             modelBkg = modelBkg2#.Clone("Bkg")
                             #normzBkg = normzBkg2#.Clone("Bkg_norm")
                             fitRes = fitRes2
-                     elif order==3:
+                     elif order==RSS[nParMin+2]['npar']:
                             modelBkg = modelBkg3#.Clone("Bkg")
                             #normzBkg = normzBkg3#.Clone("Bkg_norm")
                             fitRes = fitRes3
-                     elif order==4:
+                     elif order==RSS[nParMin+3]['npar']:
                             modelBkg = modelBkg4#.Clone("Bkg")
                             #normzBkg = normzBkg4#.Clone("Bkg_norm")
                             fitRes = fitRes4
                      else:
-                            print "Functions with", order+1, "or more parameters are needed to fit the background"
+                            print "Functions with", RSS[nParMin+3]['npar']+1, "or more parameters are needed to fit the background"
                             exit()
 
                      modelBkg.SetName(modelName)
@@ -921,24 +956,24 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                      if bias:
                             #temporarily change to force order 2
                             #order_alt = 3
-                            if order_alt==1:
+                            if order_alt==RSS_alt[nParMin_alt]['npar']:
                                    print "Alt Model is modelAlt1"
                                    modelAlt = modelAlt1#.Clone("Alt")
                                    fitRes = fitRes1_alt
-                            elif order_alt==2:
+                            elif order_alt==RSS_alt[nParMin_alt+1]['npar']:
                                    print "Alt Model is modelAlt2"
                                    modelAlt = modelAlt2#.Clone("Alt")
                                    fitRes = fitRes2_alt
-                            elif order_alt==3:
+                            elif order_alt==RSS_alt[nParMin_alt+2]['npar']:
                                    print "Alt Model is modelAlt3"
                                    modelAlt = modelAlt3#.Clone("Alt")
                                    fitRes = fitRes3_alt
-                            elif order_alt==4:
+                            elif order_alt==RSS_alt[nParMin_alt+3]['npar']:
                                    print "Alt Model is modelAlt4"
                                    modelAlt = modelAlt4#.Clone("Alt")
                                    fitRes = fitRes4_alt
                             else:
-                                   print "Functions with", order_alt+1, "or more parameters are needed to fit the background"
+                                   print "Functions with", RSS_alt[nParMin_alt+3]['npar']+1, "or more parameters are needed to fit the background"
                                    exit()
                             modelAlt.SetName(modelAltName)
                             normAlt.SetName(modelAltName+"_norm")
@@ -1212,7 +1247,7 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
       # card += "\n"
 
        outname =  "%s_%s_%s.txt" % (sig, ch, mode)
-       cardfile = open(outname, 'w')
+       cardfile = open(carddir+outname, 'w')
        cardfile.write(card)
        cardfile.close()
 
@@ -1222,7 +1257,7 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
               card.replace("rate                                    %-20.6f%-20.6f\n" % (1, 1), "rate                                    %-20.6f%-20.6f\n" % (10, 1))
               card += "%-35s     discrete\n" % (pdf_index_string)
               outname = "%s_%s_%s_bias.txt" % (sig, ch, mode)
-              cardfile = open(outname, 'w')
+              cardfile = open(carddir+outname, 'w')
               cardfile.write(card)
               cardfile.close()
     

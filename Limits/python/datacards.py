@@ -38,6 +38,7 @@ ROOT.gStyle.SetPadColor(0)
 isData = True
 
 def getRate(ch, process, ifile):
+       #print(ch, process, ifile)
        hName = ch + "/"+ process
        h = ifile.Get(hName)
        #return h.Integral()
@@ -120,8 +121,8 @@ def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label
        residuals = frame.residHist(dataset.GetName(), model.GetName(), False, True) # this is y_i - f(x_i)
     
        roochi2 = frame.chiSquare(model.GetName(), dataset.GetName(),npar)#dataset.GetName(), model.GetName()) #model.GetName(), dataset.GetName()
-       print "forcing bins: 90"
-       nbins = 90
+       print "forcing bins: 65"
+       nbins = 65
        chi = roochi2 * ( nbins - npar)
        print "pls: ", chi,  nbins
        roopro = ROOT.TMath.Prob(chi, nbins - npar)
@@ -480,7 +481,7 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
               print "histSigData: ", histSig.Integral()
               #print "histBkgData: ", histBkgData.Integral()
               xvarmin = 1500.
-              xvarmax = 6000.
+              xvarmax = 8000.
               mT = RooRealVar(  "mH",    "m_{T}", xvarmin, xvarmax, "GeV")
               binMax = histData.FindBin(xvarmax)
               bkgData = RooDataHist("bkgdata", "MC Bkg",  RooArgList(mT), histBkgData, 1.)
@@ -1110,7 +1111,8 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                             hsysNameDown = "_" + sysName + "DOWN" 
                                                         #print "Applying syst on ", sysValue[1]
                             if("sig" in sysValue[1]):
-                                   if(getRate(ch, sig, ifile) != 0.): sigSys = abs((getRate(ch, sig+hsysNameUp, ifile) - getRate(ch, sig+hsysNameDown, ifile))/ (2* getRate(ch, sig, ifile)))
+                                   if len(sysValue) == 3: sigSys = sysValue[2]
+                                   elif(getRate(ch, sig, ifile) != 0.): sigSys = abs((getRate(ch, sig+hsysNameUp, ifile) - getRate(ch, sig+hsysNameDown, ifile))/ (2* getRate(ch, sig, ifile)))
                                    else: sigSys = 1
                                    if(sigSys<1.and sigSys >0.): sigSys = sigSys + 1
                                    card += "%-20s" % (sigSys)
