@@ -25,7 +25,32 @@ ROOT.gStyle.SetPadColor(0)
 
 
 syst = collections.OrderedDict()
-syst["lumi"] = ("lnN", "sig", 1.10) # lumi should only apply to 'sig', not 'all'
+# flat uncertainties apply to signal
+syst["lumi"] = ("lnN", "sig", 2.6)
+syst["trig"] = ("lnN", "sig", 2.0)
+syst["scale"] = ("lnN", "sig", 15.0)
+
+syst["mcstat"] = ("shape", ("QCD", "TT", "WJets", "ZJets", "sig"))
+
+syst["MC2016JEC"] = ("shape",["QCD", "TT", "WJets", "ZJets","sig"])
+syst["MC2016JER"] = ("shape",["sig"])
+syst["MC2016puunc"] = ("shape",["sig"])
+syst["MC2016trigfnunc"] = ("shape",["sig"])
+
+syst["MC2017JEC"] = ("shape",["sig"])
+syst["MC2017JER"] = ("shape",["sig"])
+syst["MC2017puunc"] = ("shape",["sig"])
+syst["MC2017trigfnunc"] = ("shape",["sig"])
+
+syst["MC2018JEC"] = ("shape",["sig"])
+syst["MC2018JER"] = ("shape",["sig"])
+syst["MC2018puunc"] = ("shape",["sig"])
+syst["MC2018trigfnunc"] = ("shape",["sig"])
+
+syst["MCRun2JES"] = ("shape",["sig"])
+syst["MCRun2pdfallunc"] = ("shape",["sig"])
+syst["MCRun2psfsrunc"] = ("shape",["sig"])
+syst["MCRun2psisrunc"] = ("shape",["sig"])
 
 rateParams = {}
 rateParams["lowSVJ1_2018"] = "TMath::Power(TMath::Range(0.01,0.99,@0),1)*TMath::Power(1-TMath::Range(0.01,0.99,@0*%s),1)/(TMath::Power(1-%s,1))"
@@ -528,47 +553,39 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                      print "channel: ", ch_red
 
 
-                     p1_1 = RooRealVar(ch_red + "_p1_1", "p1", 1., -100., 100.)
-                     p1_2 = RooRealVar(ch_red + "_p1_2", "p1", 1., -100., 100.)
-                     p1_3 = RooRealVar(ch_red + "_p1_3", "p1", 1., -100., 100.)
-                     p1_4 = RooRealVar(ch_red + "_p1_4", "p1", 1., -100., 100.)
+                     p1_1 = RooRealVar(ch_red + "_p1_1", "p1", 1., -30., 30.)
+                     p1_2 = RooRealVar(ch_red + "_p1_2", "p1", 1., -30., 30.)
+                     p1_3 = RooRealVar(ch_red + "_p1_3", "p1", 1., -30., 30.)
+                     p1_4 = RooRealVar(ch_red + "_p1_4", "p1", 1., -30., 30.)
 
-                     p2_2 = RooRealVar(ch_red + "_p2_2", "p2", 1., -100., 100.)
-                     p2_3 = RooRealVar(ch_red + "_p2_3", "p2", 1., -100., 100.)
-                     p2_4 = RooRealVar(ch_red + "_p2_4", "p2", 1., -100., 100.)
+                     p2_2 = RooRealVar(ch_red + "_p2_2", "p2", 1., -30., 30.)
+                     p2_3 = RooRealVar(ch_red + "_p2_3", "p2", 1., -30., 30.)
+                     p2_4 = RooRealVar(ch_red + "_p2_4", "p2", 1., -30., 30.)
 
-                     p3_3 = RooRealVar(ch_red + "_p3_3", "p3", 1., -100., 100.)
-                     p3_4 = RooRealVar(ch_red + "_p3_4", "p3", 1., -100., 100.)
+                     p3_3 = RooRealVar(ch_red + "_p3_3", "p3", 1., -30., 30.)
+                     p3_4 = RooRealVar(ch_red + "_p3_4", "p3", 1., -30., 30.)
 
-                     p4_4 = RooRealVar(ch_red + "_p4_4", "p4", 1., -100., 100.)
+                     p4_4 = RooRealVar(ch_red + "_p4_4", "p4", 1., -30., 30.)
 
-                     p2_1 = RooRealVar(ch_red + "_p2_1", "p2", 1., -100., 100.)
-                     p3_2 = RooRealVar(ch_red + "_p3_2", "p3", 1., -100., 100.)
-                     p4_3 = RooRealVar(ch_red + "_p4_3", "p4", 1., -100., 100.)
-                     p5_4 = RooRealVar(ch_red + "_p5_4", "p5", 1., -100., 100.)
+                     p2_1 = RooRealVar(ch_red + "_p2_1", "p2", 1., -30., 30.)
+                     p3_2 = RooRealVar(ch_red + "_p3_2", "p3", 1., -30., 30.)
+                     p4_3 = RooRealVar(ch_red + "_p4_3", "p4", 1., -30., 30.)
+                     p5_4 = RooRealVar(ch_red + "_p5_4", "p5", 1., -30., 30.)
 
 
                      #Function from Theorists, combo testing, sequence E, 1, 11, 12, 22
                      # model NM has N params on 1-x and M params on x. exponents are (p_i + p_{i+1} * log(x))
                      # these are the RooGenericPdf verisons, convert to RooParametricShapeBinPdf below
-                     #modelBkg1_rgp = RooGenericPdf(modelName+"1_rgp", "Thry. fit (01)", "pow(@0/13000, -@1)", RooArgList(mT, p1_1))
-                     #modelBkg2_rgp = RooGenericPdf(modelName+"2_rgp", "Thry. fit (11)", "pow(1 - @0/13000, @2) * pow(@0/13000, -@1)", RooArgList(mT, p1_2, p2_2))
-                     #modelBkg3_rgp = RooGenericPdf(modelName+"3_rgp", "Thry. fit (12)", "pow(1 - @0/13000, @2) * pow(@0/13000, -@1-@3*log(@0/13000))", RooArgList(mT, p1_3, p2_3, p3_3))
-                     #modelBkg4_rgp = RooGenericPdf(modelName+"4_rgp", "Thry. fit (22)", "pow(1 - @0/13000, @2+@4*log(@0/13000)) * pow(@0/13000, -@1-@3*log(@0/13000))", RooArgList(mT, p1_4, p2_4, p3_4, p4_4))
+                     modelBkg1_rgp = RooGenericPdf(modelName+"1_rgp", "Thry. fit (11)", "pow(1 - @0/13000, @1) * pow(@0/13000, -@2)", RooArgList(mT, p1_1, p2_1))
+                     modelBkg2_rgp = RooGenericPdf(modelName+"2_rgp", "Thry. fit (12)", "pow(1 - @0/13000, @1) * pow(@0/13000, -@2 - @3*log(@0/13000) )", RooArgList(mT, p1_2, p2_2, p3_2))
+                     modelBkg3_rgp = RooGenericPdf(modelName+"3_rgp", "Thry. fit (13)", "pow(1 - @0/13000, @1) * pow(@0/13000, -@2 - @3*log(@0/13000) - @4*pow(log(@0/13000),2) )", RooArgList(mT, p1_3, p2_3, p3_3, p4_3))
+                     modelBkg4_rgp = RooGenericPdf(modelName+"4_rgp", "Thry. fit (14)", "pow(1 - @0/13000, @1) * pow(@0/13000, -@2 - @3*log(@0/13000) - @4*pow(log(@0/13000),2) - @5*pow(log(@0/13000),3) )", RooArgList(mT, p1_4, p2_4, p3_4, p4_4, p5_4))
 
-                     #modelBkg1 = RooParametricShapeBinPdf(modelName+"1", "Thry. Fit (01)", modelBkg1_rgp, mT, RooArgList(p1_1), histBkgData)
-                     #modelBkg2 = RooParametricShapeBinPdf(modelName+"2", "Thry. Fit (11)", modelBkg2_rgp, mT, RooArgList(p1_2, p2_2), histBkgData)
-                     #modelBkg3 = RooParametricShapeBinPdf(modelName+"3", "Thry. Fit (12)", modelBkg3_rgp, mT, RooArgList(p1_3, p2_3, p3_3), histBkgData)
-                     #modelBkg4 = RooParametricShapeBinPdf(modelName+"4", "Thry. Fit (22)", modelBkg4_rgp, mT, RooArgList(p1_4, p2_4, p3_4, p4_4), histBkgData)
+                     modelBkg1 = RooParametricShapeBinPdf(modelName+"1", "Thry. Fit (11)", modelBkg1_rgp, mT, RooArgList(p1_1, p2_1), histBkgData)
+                     modelBkg2 = RooParametricShapeBinPdf(modelName+"2", "Thry. Fit (12)", modelBkg2_rgp, mT, RooArgList(p1_2, p2_2, p3_2), histBkgData)
+                     modelBkg3 = RooParametricShapeBinPdf(modelName+"3", "Thry. Fit (13)", modelBkg3_rgp, mT, RooArgList(p1_3, p2_3, p3_3, p4_3), histBkgData)
+                     modelBkg4 = RooParametricShapeBinPdf(modelName+"4", "Thry. Fit (14)", modelBkg4_rgp, mT, RooArgList(p1_4, p2_4, p3_4, p4_4, p5_4), histBkgData)
                      
-                     modelBkg1_rgp = RooGenericPdf(modelName+"1_rgp", "Thry. (expandNumer2)", "pow(@0/13000, -@1) * pow(1 - @0/13000, @2)", RooArgList(mT, p1_1, p2_1))
-                     modelBkg2_rgp = RooGenericPdf(modelName+"2_rgp", "Thry. (expandNumer3)", "pow(@0/13000, -@1) * pow(1 - @0/13000, @2 + @3*log(@0/13000) )", RooArgList(mT, p1_2, p2_2, p3_2))
-                     modelBkg3_rgp = RooGenericPdf(modelName+"3_rgp", "Thry. (expandNumer4)", "pow(@0/13000, -@1) * pow(1 - @0/13000, @2 + @3*log(@0/13000) + @4*pow(log(@0/13000),2) )", RooArgList(mT, p1_3, p2_3, p3_3, p4_3))
-                     modelBkg4_rgp = RooGenericPdf(modelName+"4_rgp", "Thry. (expandNumer5)", "pow(@0/13000, -@1) * pow(1 - @0/13000, @2 + @3*log(@0/13000) + @4*pow(log(@0/13000),2) + @5*pow(log(@0/13000),3) )", RooArgList(mT, p1_4, p2_4, p3_4, p4_4, p5_4))
-                     modelBkg1 = RooParametricShapeBinPdf(modelName+"1", "Thry. (expandNumer2)", modelBkg1_rgp, mT, RooArgList(p1_1, p2_1), histBkgData)
-                     modelBkg2 = RooParametricShapeBinPdf(modelName+"2", "Thry. (expandNumer3)", modelBkg2_rgp, mT, RooArgList(p1_2, p2_2, p3_2), histBkgData)
-                     modelBkg3 = RooParametricShapeBinPdf(modelName+"3", "Thry. (expandNumer4)", modelBkg3_rgp, mT, RooArgList(p1_3, p2_3, p3_3, p4_3), histBkgData)
-                     modelBkg4 = RooParametricShapeBinPdf(modelName+"4", "Thry. (expandNumer5)", modelBkg4_rgp, mT, RooArgList(p1_4, p2_4, p3_4, p4_4, p5_4), histBkgData)
                      
                      RSS = {}
                      fitrange = "Full"
@@ -643,24 +660,24 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                             normAlt = RooRealVar("Bkg_"+ch+"alt_norm", "Number of background events", nBkgEvts, 0., 2.e4)
                             normData = RooRealVar("Data_"+ch+"alt_norm", "Number of background events", nDataEvts, 0., 2.e4) 
 
-                            p1_1_alt = RooRealVar(ch_red + "_p1_1_alt", "p1", 1., -100., 100.)
-                            p1_2_alt = RooRealVar(ch_red + "_p1_2_alt", "p1", 1., -100., 100.)
-                            p1_3_alt = RooRealVar(ch_red + "_p1_3_alt", "p1", 1., -100., 100.)
-                            p1_4_alt = RooRealVar(ch_red + "_p1_4_alt", "p1", 1., -100., 100.)
+                            p1_1_alt = RooRealVar(ch_red + "_p1_1_alt", "p1", 1., -50., 50.)
+                            p1_2_alt = RooRealVar(ch_red + "_p1_2_alt", "p1", 1., -50., 50.)
+                            p1_3_alt = RooRealVar(ch_red + "_p1_3_alt", "p1", 1., -50., 50.)
+                            p1_4_alt = RooRealVar(ch_red + "_p1_4_alt", "p1", 1., -50., 50.)
 
-                            p2_2_alt = RooRealVar(ch_red + "_p2_2_alt", "p2", 1., -100., 100.)
-                            p2_3_alt = RooRealVar(ch_red + "_p2_3_alt", "p2", 1., -100., 100.)
-                            p2_4_alt = RooRealVar(ch_red + "_p2_4_alt", "p2", 1., -100., 100.)
+                            p2_2_alt = RooRealVar(ch_red + "_p2_2_alt", "p2", 1., -50., 50.)
+                            p2_3_alt = RooRealVar(ch_red + "_p2_3_alt", "p2", 1., -50., 50.)
+                            p2_4_alt = RooRealVar(ch_red + "_p2_4_alt", "p2", 1., -50., 50.)
 
-                            p3_3_alt = RooRealVar(ch_red + "_p3_3_alt", "p3", 1., -100., 100.)
-                            p3_4_alt = RooRealVar(ch_red + "_p3_4_alt", "p3", 1., -100., 100.)
+                            p3_3_alt = RooRealVar(ch_red + "_p3_3_alt", "p3", 1., -50., 50.)
+                            p3_4_alt = RooRealVar(ch_red + "_p3_4_alt", "p3", 1., -50., 50.)
 
-                            p4_4_alt = RooRealVar(ch_red + "_p4_4_alt", "p4", 1., -100., 100.) 
+                            p4_4_alt = RooRealVar(ch_red + "_p4_4_alt", "p4", 1., -50., 50.) 
 
-                            p2_1_alt = RooRealVar(ch_red + "_p2_1_alt", "p2", 1., -100., 100.)
-                            p3_2_alt = RooRealVar(ch_red + "_p3_2_alt", "p3", 1., -100., 100.)
-                            p4_3_alt = RooRealVar(ch_red + "_p4_3_alt", "p4", 1., -100., 100.)
-                            p5_4_alt = RooRealVar(ch_red + "_p5_4_alt", "p5", 1., -100., 100.)
+                            p2_1_alt = RooRealVar(ch_red + "_p2_1_alt", "p2", 1., -50., 50.)
+                            p3_2_alt = RooRealVar(ch_red + "_p3_2_alt", "p3", 1., -50., 50.)
+                            p4_3_alt = RooRealVar(ch_red + "_p4_3_alt", "p4", 1., -50., 50.)
+                            p5_4_alt = RooRealVar(ch_red + "_p5_4_alt", "p5", 1., -50., 50.)
 
 
 
@@ -671,24 +688,24 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                             #modelAlt4_rgp = RooGenericPdf(modelAltName+"4_rgp", "Dij. fit (4 par.)", "pow(1 - @0/13000, abs(@1)) * pow(@0/13000, -abs(@2)-log(@0/13000)*(abs(@3) + abs(@4)* log(@0/13000)))", RooArgList(mT, p1_4_alt, p2_4_alt, p3_4_alt, p4_4_alt))
 
                             # New Alt Function
-                            #modelAlt1_rgp = RooGenericPdf(modelAltName+"1_rgp", "Alt. fit (1 par.)", "exp(@1*(@0/13000))", RooArgList(mT, p1_1_alt))
-                            #modelAlt2_rgp = RooGenericPdf(modelAltName+"2_rgp", "Alt. fit (2 par.)", "exp(@1*(@0/13000)+@2*log(@0/13000))", RooArgList(mT, p1_2_alt, p2_2_alt))
-                            #modelAlt3_rgp = RooGenericPdf(modelAltName+"3_rgp", "Alt. fit (3 par.)", "exp(@1*(@0/13000)+@2*log(@0/13000)+@3*pow(log(@0/13000),2))", RooArgList(mT, p1_3_alt, p2_3_alt, p3_3_alt))
-                            #modelAlt4_rgp = RooGenericPdf(modelAltName+"4_rgp", "Alt. fit (4 par.)", "exp(@1*(@0/13000)+@2*log(@0/13000)+@3*pow(log(@0/13000),2)+@4*pow(log(@0/13000),3))", RooArgList(mT, p1_4_alt, p2_4_alt, p3_4_alt, p4_4_alt))
+                            modelAlt1_rgp = RooGenericPdf(modelAltName+"1_rgp", "Alt. fit (1 par.)", "exp(@1*(@0/13000))", RooArgList(mT, p1_1_alt))
+                            modelAlt2_rgp = RooGenericPdf(modelAltName+"2_rgp", "Alt. fit (2 par.)", "exp(@1*(@0/13000)+@2*log(@0/13000))", RooArgList(mT, p1_2_alt, p2_2_alt))
+                            modelAlt3_rgp = RooGenericPdf(modelAltName+"3_rgp", "Alt. fit (3 par.)", "exp(@1*(@0/13000)+@2*log(@0/13000)+@3*pow(log(@0/13000),2))", RooArgList(mT, p1_3_alt, p2_3_alt, p3_3_alt))
+                            modelAlt4_rgp = RooGenericPdf(modelAltName+"4_rgp", "Alt. fit (4 par.)", "exp(@1*(@0/13000)+@2*log(@0/13000)+@3*pow(log(@0/13000),2)+@4*pow(log(@0/13000),3))", RooArgList(mT, p1_4_alt, p2_4_alt, p3_4_alt, p4_4_alt))
 
-                            #modelAlt1 = RooParametricShapeBinPdf(modelAltName+"1", "Alt. Fit 1par", modelAlt1_rgp, mT, RooArgList(p1_1_alt), histBkgData)
-                            #modelAlt2 = RooParametricShapeBinPdf(modelAltName+"2", "Alt. Fit 2par", modelAlt2_rgp, mT, RooArgList(p1_2_alt, p2_2_alt), histBkgData)
-                            #modelAlt3 = RooParametricShapeBinPdf(modelAltName+"3", "Alt. Fit 3par", modelAlt3_rgp, mT, RooArgList(p1_3_alt, p2_3_alt, p3_3_alt), histBkgData)
-                            #modelAlt4 = RooParametricShapeBinPdf(modelAltName+"4", "Alt. Fit 4par", modelAlt4_rgp, mT, RooArgList(p1_4_alt, p2_4_alt, p3_4_alt, p4_4_alt), histBkgData)
+                            modelAlt1 = RooParametricShapeBinPdf(modelAltName+"1", "Alt. Fit 1par", modelAlt1_rgp, mT, RooArgList(p1_1_alt), histBkgData)
+                            modelAlt2 = RooParametricShapeBinPdf(modelAltName+"2", "Alt. Fit 2par", modelAlt2_rgp, mT, RooArgList(p1_2_alt, p2_2_alt), histBkgData)
+                            modelAlt3 = RooParametricShapeBinPdf(modelAltName+"3", "Alt. Fit 3par", modelAlt3_rgp, mT, RooArgList(p1_3_alt, p2_3_alt, p3_3_alt), histBkgData)
+                            modelAlt4 = RooParametricShapeBinPdf(modelAltName+"4", "Alt. Fit 4par", modelAlt4_rgp, mT, RooArgList(p1_4_alt, p2_4_alt, p3_4_alt, p4_4_alt), histBkgData)
 
-                            modelAlt1_rgp = RooGenericPdf(modelAltName+"1_rgp", "Thry. (expandDenom2)", "pow(@0/13000, -@1) * pow(1 - @0/13000, @2)", RooArgList(mT, p1_1_alt, p2_1_alt))
-                            modelAlt2_rgp = RooGenericPdf(modelAltName+"2_rgp", "Thry. (expandDenom3)", "pow(@0/13000, -@1 - @3*log(@0/13000) ) * pow(1 - @0/13000, @2)", RooArgList(mT, p1_2_alt, p2_2_alt, p3_2_alt))
-                            modelAlt3_rgp = RooGenericPdf(modelAltName+"3_rgp", "Thry. (expandDenom4)", "pow(@0/13000, -@1 - @3*log(@0/13000) - @4*pow(log(@0/13000),2) ) * pow(1 - @0/13000, @2)", RooArgList(mT, p1_3_alt, p2_3_alt, p3_3_alt, p4_3_alt))
-                            modelAlt4_rgp = RooGenericPdf(modelAltName+"4_rgp", "Thry. (expandDenom5)", "pow(@0/13000, -@1 - @3*log(@0/13000) - @4*pow(log(@0/13000),2) - @5*pow(log(@0/13000),3) ) * pow(1 - @0/13000, @2)", RooArgList(mT, p1_4_alt, p2_4_alt, p3_4_alt, p4_4_alt, p5_4_alt))
-                            modelAlt1 = RooParametricShapeBinPdf(modelAltName+"1", "Thry. (expandDenom2)", modelBkg1_rgp, mT, RooArgList(p1_1_alt, p2_1_alt), histBkgData)
-                            modelAlt2 = RooParametricShapeBinPdf(modelAltName+"2", "Thry. (expandDenom3)", modelBkg2_rgp, mT, RooArgList(p1_2_alt, p2_2_alt, p3_2_alt), histBkgData)
-                            modelAlt3 = RooParametricShapeBinPdf(modelAltName+"3", "Thry. (expandDenom4)", modelBkg3_rgp, mT, RooArgList(p1_3_alt, p2_3_alt, p3_3_alt, p4_3_alt), histBkgData)
-                            modelAlt4 = RooParametricShapeBinPdf(modelAltName+"4", "Thry. (expandDenom5)", modelBkg4_rgp, mT, RooArgList(p1_4_alt, p2_4_alt, p3_4_alt, p4_4_alt, p5_4_alt), histBkgData)
+                            #modelAlt1_rgp = RooGenericPdf(modelAltName+"1_rgp", "Thry. (expandDenom2)", "pow(@0/13000, -@1) * pow(1 - @0/13000, @2)", RooArgList(mT, p1_1_alt, p2_1_alt))
+                            #modelAlt2_rgp = RooGenericPdf(modelAltName+"2_rgp", "Thry. (expandDenom3)", "pow(@0/13000, -@1 - @3*log(@0/13000) ) * pow(1 - @0/13000, @2)", RooArgList(mT, p1_2_alt, p2_2_alt, p3_2_alt))
+                            #modelAlt3_rgp = RooGenericPdf(modelAltName+"3_rgp", "Thry. (expandDenom4)", "pow(@0/13000, -@1 - @3*log(@0/13000) - @4*pow(log(@0/13000),2) ) * pow(1 - @0/13000, @2)", RooArgList(mT, p1_3_alt, p2_3_alt, p3_3_alt, p4_3_alt))
+                            #modelAlt4_rgp = RooGenericPdf(modelAltName+"4_rgp", "Thry. (expandDenom5)", "pow(@0/13000, -@1 - @3*log(@0/13000) - @4*pow(log(@0/13000),2) - @5*pow(log(@0/13000),3) ) * pow(1 - @0/13000, @2)", RooArgList(mT, p1_4_alt, p2_4_alt, p3_4_alt, p4_4_alt, p5_4_alt))
+                            #modelAlt1 = RooParametricShapeBinPdf(modelAltName+"1", "Thry. (expandDenom2)", modelBkg1_rgp, mT, RooArgList(p1_1_alt, p2_1_alt), histBkgData)
+                            #modelAlt2 = RooParametricShapeBinPdf(modelAltName+"2", "Thry. (expandDenom3)", modelBkg2_rgp, mT, RooArgList(p1_2_alt, p2_2_alt, p3_2_alt), histBkgData)
+                            #modelAlt3 = RooParametricShapeBinPdf(modelAltName+"3", "Thry. (expandDenom4)", modelBkg3_rgp, mT, RooArgList(p1_3_alt, p2_3_alt, p3_3_alt, p4_3_alt), histBkgData)
+                            #modelAlt4 = RooParametricShapeBinPdf(modelAltName+"4", "Thry. (expandDenom5)", modelBkg4_rgp, mT, RooArgList(p1_4_alt, p2_4_alt, p3_4_alt, p4_4_alt, p5_4_alt), histBkgData)
                      
                             RSS_alt = {}
                             fitrange = "Full"
@@ -804,16 +821,16 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                      #       print "\\\\"
                      moreParFlag = 0
                      if order == 0:
-                            order = RSS[4]["npar"]
+                            order = RSS[nParMin+3]["npar"]
                             moreParFlag = 1
                      print "\\hline"
                      print "-"*25   
                      print "Order is", order, "("+ch+")"
                      report += "Order is %d (%s)\n" % (order, ch)
-                     report += ("1 param: " + ", ".join(['%.2f']*len(RSS[nParMin]["parVals"])) + "\n") % tuple(RSS[nParMin]["parVals"])
-                     report += ("2 param: " + ", ".join(['%.2f']*len(RSS[nParMin+1]["parVals"])) + "\n") % tuple(RSS[nParMin+1]["parVals"])
-                     report += ("3 param: " + ", ".join(['%.2f']*len(RSS[nParMin+2]["parVals"])) + "\n") % tuple(RSS[nParMin+2]["parVals"])
-                     report += ("4 param: " + ", ".join(['%.2f']*len(RSS[nParMin+3]["parVals"])) + "\n") % tuple(RSS[nParMin+3]["parVals"])
+                     report += ("11 param: " + ", ".join(['%.2f']*len(RSS[nParMin]["parVals"])) + "\n") % tuple(RSS[nParMin]["parVals"])
+                     report += ("12 param: " + ", ".join(['%.2f']*len(RSS[nParMin+1]["parVals"])) + "\n") % tuple(RSS[nParMin+1]["parVals"])
+                     report += ("13 param: " + ", ".join(['%.2f']*len(RSS[nParMin+2]["parVals"])) + "\n") % tuple(RSS[nParMin+2]["parVals"])
+                     report += ("14 param: " + ", ".join(['%.2f']*len(RSS[nParMin+3]["parVals"])) + "\n") % tuple(RSS[nParMin+3]["parVals"])
                      report += "%d par are sufficient\n" % (RSS[order]['npar'])
                      if moreParFlag: report += "BUT really, more Pars are needed!"
                      for i in range(nParMin, nParMin+4):
@@ -1130,8 +1147,8 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
        card += "-----------------------------------------------------------------------------------\n"
 
        if(mode == "template"):
-              #              card += "shapes   %s  %s    %s    %s    %s\n" % (sig, ch, ifilename, "$CHANNEL/$PROCESS", "$CHANNEL/$PROCESS_SYSTEMATIC")
-              #              card += "shapes            %-15s  %-5s    %s%s.root    %s\n" % (sig, ch, WORKDIR, ch, "SVJ:$PROCESS")
+              #card += "shapes   %s  %s    %s    %s    %s\n" % (sig, ch, ifilename, "$CHANNEL/$PROCESS", "$CHANNEL/$PROCESS_SYSTEMATIC")
+              #card += "shapes   %-15s %-5s %s%s.root  %s\n" % (sig, ch, WORKDIR, ch, "SVJ:$PROCESS")
               card += "shapes   %s  %s    %s    %s\n" % (modelBkg.GetName(), ch, workfile, "SVJ:$PROCESS")
               card += "shapes   %s  %s    %s    %s    %s\n" % (sig, ch, workfile, "SVJ:$PROCESS", "SVJ:$PROCESS_$SYSTEMATIC")
               card += "shapes   %s  %s    %s    %s\n" % ("data_obs", ch, workfile, "SVJ:$PROCESS")
@@ -1154,9 +1171,10 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
 
        for sysName,sysValue  in syst.iteritems():
               print(sysName, sysValue, "testSystematicValues")
-              if sysName == "lumi":
-                     card += "%-20s%-20s%-20s%-20s" % (sysName, sysValue[0], sysValue[2], "-")
-              elif(sysValue[0]=="lnN"): 
+              #if sysName == "lumi":
+              #       card += "%-20s%-20s%-20s%-20s" % (sysName, sysValue[0], sysValue[2], "-")
+              #elif(sysValue[0]=="lnN"): 
+              if(sysValue[0]=="lnN"): 
                      card += "%-20s%-20s" % (sysName, sysValue[0])
                      if(sysValue[1]=="all"and len(sysValue)>2):
                             if(mode == "template"): card += "%-20s" % (sysValue[2]) * (2)
@@ -1172,9 +1190,11 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                             hsysNameDown = "_" + sysName + "DOWN" 
                                                         #print "Applying syst on ", sysValue[1]
                             if("sig" in sysValue[1]):
-                                   if(getRate(ch, sig, ifile) != 0.): sigSys = abs((getRate(ch, sig+hsysNameUp, ifile) - getRate(ch, sig+hsysNameDown, ifile))/ (2* getRate(ch, sig, ifile)))
-                                   else: sigSys = 1
-                                   if(sigSys<1.and sigSys >0.): sigSys = sigSys + 1
+                                   try:
+                                          if(getRate(ch, sig, ifile) != 0.): sigSys = abs((getRate(ch, sig+hsysNameUp, ifile) - getRate(ch, sig+hsysNameDown, ifile))/ (2* getRate(ch, sig, ifile)))
+                                   except AttributeError:
+                                          sigSys = sysValue[2]
+                                   if(sigSys < 1. and sigSys > 0.): sigSys = sigSys + 1
                                    card += "%-20s" % (sigSys)
                             else:  card += "%-20s" % ("-")
                             for p in processes:
@@ -1229,8 +1249,7 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
 
                                           sysName = "mcstat_%s_%s_MC2018bin%d      "  % (ch, sampName, i+1)
                                           card += "%-20s   shape   " % (sysName)
-                                          card += line
-                                          card += "\n"        
+                                          card += line       
 
               card += "\n"
        
