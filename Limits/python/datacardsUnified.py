@@ -932,10 +932,10 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                             ofile_alt.write(report)
                             ofile_alt.close()
                      #temporarily change order based on which ever one is higher
-                     if (order_alt > order):
-                            order = order_alt
-                     else:
-                            order_alt = order
+                     #if (order_alt > order):
+                     #       order = order_alt
+                     #else:
+                     #       order_alt = order
 
                      if order==RSS[nParMin]['npar']:
                             modelBkg = modelBkg1#.Clone("Bkg")
