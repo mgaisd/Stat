@@ -6,7 +6,7 @@ rt.gStyle.SetOptFit(1011)
 rt.gStyle.SetPalette(rt.kRainBow)
 
 # runover each SR to fit all 100 toys to the main function
-eosArea = "root://cmsxrootd.fnal.gov//store/user/cfallon/biasStudies_july24/"
+eosArea = "root://cmsxrootd.fnal.gov//store/user/cfallon/biasStudies_sysUnc/"
 
 
 listOfParams1 = [
@@ -32,7 +32,7 @@ listOfParams2 = [
 ['4900', '20', '03', 'peak'],
 ['5100', '20', '03', 'peak']]
 
-baseline = [['3000', '20', '03', 'peak']]
+baseline = [['3100', '20', '03', 'peak']]
 
 #regions = ["lowSVJ2","highSVJ2"]
 regions = ["lowCut","lowSVJ2","highCut","highSVJ2"]
@@ -47,7 +47,7 @@ i = 0
 # make histograms for each Signal Injection (0,1) and each genFunc (Main, Alt) combo
 # that are distributed in mZ
 
-makeNew = False
+makeNew = True
 if makeNew:
 	outputROOTFile = rt.TFile.TFile("massScan.root","recreate")
 	hist_0M_lc = rt.TH1F("hist_0M_lc","Gaussian Mean for lowCut, r_{inj} = 0, genMain", 19, 1500,5200)
@@ -66,7 +66,8 @@ if makeNew:
 	hist_1M_h2 = rt.TH1F("hist_1M_h2","Gaussian Mean for highSVJ2, r_{inj} = 1, genMain", 19, 1500,5200)
 	hist_0A_h2 = rt.TH1F("hist_0A_h2","Gaussian Mean for highSVJ2, r_{inj} = 0, genAlt", 19, 1500,5200)
 	hist_1A_h2 = rt.TH1F("hist_1A_h2","Gaussian Mean for highSVJ2, r_{inj} = 1, genAlt", 19, 1500,5200)
-	listOfParams = listOfParams1
+	#listOfParams = listOfParams1
+	listOfParams = baseline
 else:
 	outputROOTFile = rt.TFile.TFile("massScan.root","update")
 	listOfParams = listOfParams2
@@ -124,7 +125,7 @@ for sigPars in listOfParams:
 				parLimDown4 = -50
 				parLimUp4 = 50
 				chi2LimitDown = 0
-				chi2LimitUp = 500
+				chi2LimitUp = 50000
 				# updated nPar and nParAlt 24jul20
 				#
 				#      | lC | l2 | hC | h2 
@@ -132,20 +133,20 @@ for sigPars in listOfParams:
 				# alt  |  3 |  2 |  3 |  2
 				if region == "highCut":
 					regCode = "hc"
-					nPar = 3
+					nPar = 5
 					nParAlt = 3
 					eitLimitUp = 12000 # events in toy
 					eitLimitDown = 10000
 				elif region == "highSVJ2":
 					regCode = "h2"
-					nPar = 1
-					nParAlt = 2
+					nPar = 2
+					nParAlt = 1
 					eitLimitUp = 1000 # events in toy
 					eitLimitDown = 0
 				elif region == "lowCut":
 					regCode = "lc"
-					nPar = 2
-					nParAlt = 3
+					nPar = 5
+					nParAlt = 4
 					eitLimitUp = 80000 # events in toy
 					eitLimitDown = 70000
 				elif region == "lowSVJ2":
@@ -268,6 +269,7 @@ for sigPars in listOfParams:
 				nPass = 0
 				nTotal = 0
 				for iEvt in range(limit.GetEntries()):
+					#print(iEvt)
 					limit.GetEvent(iEvt)
 					if limit.quantileExpected != -1:
 						continue
@@ -282,18 +284,17 @@ for sigPars in listOfParams:
 						continue
 					rmuHistVal = (tree.r-int(n))/tree.rErr
 					if bigName[-3:] != "Alt": #for fitting at Main func
-						if nPar == 1:
+						if nPar == 2:
 							p1 = getattr(limit,"trackedParam_"+region+"_p1_1")
-							listOfFuncs.append(rt.TF1("iToy_"+str(iEvt),"[0] * pow(x/13000, -[1])",1500,8000))
-						elif nPar == 2:
-							p1 = getattr(limit,"trackedParam_"+region+"_p1_2")
-							p2 = getattr(limit,"trackedParam_"+region+"_p2_2")
-							listOfFuncs.append(rt.TF1("iToy_"+str(iEvt),"[0] * pow(1 - x/13000, [2]) * pow(x/13000, -[1])",1500,8000))
-						elif nPar == 3:
-							p1 = getattr(limit,"trackedParam_"+region+"_p1_3")
-							p2 = getattr(limit,"trackedParam_"+region+"_p2_3")
-							p3 = getattr(limit,"trackedParam_"+region+"_p3_3")
-							listOfFuncs.append(rt.TF1("iToy_"+str(iEvt),"[0] * pow(1 - x/13000, [2]) * pow(x/13000, -[1]-[3]*log(x/13000))",1500,8000))
+							p2 = getattr(limit,"trackedParam_"+region+"_p2_1")
+							listOfFuncs.append(rt.TF1("iToy_"+str(iEvt),"[0] * pow(1 - x/13000, [1]) * pow(x/13000, -[2])",1500,8000))
+						elif nPar == 5:
+							p1 = getattr(limit,"trackedParam_"+region+"_p1_4")
+							p2 = getattr(limit,"trackedParam_"+region+"_p2_4")
+							p3 = getattr(limit,"trackedParam_"+region+"_p3_4")
+							p4 = getattr(limit,"trackedParam_"+region+"_p4_4")
+							p5 = getattr(limit,"trackedParam_"+region+"_p5_4")
+							listOfFuncs.append(rt.TF1("iToy_"+str(iEvt),"[0] * pow(1 - x/13000, [1]) * pow(x/13000, -[2]-[3]*log(x/13000)-[4]*pow(log(x/13000),2)-[5]*pow(log(x/13000),3))",1500,8000))
 						else:
 							print("nPar is not 1, 2, nor 3!")
 							exit(0)
@@ -328,6 +329,8 @@ for sigPars in listOfParams:
 						listOfFuncs[-1].SetParameter(3,p3)
 					if nPar >= 4:
 						listOfFuncs[-1].SetParameter(4,p4)
+					if nPar >= 4:
+						listOfFuncs[-1].SetParameter(4,p4)
 					# pdf's in RooFit do not have a normlization factor (i.e., Sum(allspace) of pdf = 1)
 					# so we need to scale it to our dataset.
 					# first, set norm to 1, and we know the number of events in the toy)
@@ -350,7 +353,7 @@ for sigPars in listOfParams:
 						Ei = listOfFuncs[-1].Eval(x) + rHistVal*sigHist.GetBinContent(iBin)
 						#Ei = listOfFuncs[-1].Eval(x)
 						Oi = toy.weight()
-						if (Ei != 0):
+						if (Ei > 0):
 							chi2 += ((Oi-Ei)**2)/Ei
 					ndf = 65 - nPar - 2
 					#print(ndf, toy.numEntries())
@@ -400,7 +403,7 @@ for sigPars in listOfParams:
 						p4HistChi2Down.Fill(p4, not varCheck)
 					chi2HistChi2Down.Fill(chi2, not varCheck)
 					eitHistChi2Down.Fill(toyExp, not varCheck)
-
+				ndf = 65 - nPar - 2
 				#pae += "\n {} {} {} {} {}".format(sigPars, region, expSig, nTotal, nPass)
 				c1 = rt.TCanvas("c{}".format(i),"c{}".format(i),1500,1500)
 				i+=1
@@ -474,7 +477,7 @@ for sigPars in listOfParams:
 					leg.AddEntry(chi2Func, "Ideal #chi^2 Distribtuion","l")
 					leg.Draw()
 				#c1.SaveAs("../condorTests/chi2Dist/"+SVJNAME+"_"+region+expSig+".png")
-				c1.SaveAs("../july24/plots/"+SVJNAME+"_"+bigName+".png")
+				c1.SaveAs("../sysUnc2/plots/"+SVJNAME+"_"+bigName+".png")
 				
 				c2 = rt.TCanvas("c{}".format(i),"c{}".format(i),1500,1500)
 				i += 1

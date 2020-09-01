@@ -1,7 +1,7 @@
 import ROOT
 import os, sys
 import optparse
-from Stat.Limits.datacardsUnified import *
+from Stat.Limits.datacardsQuickFisher import *
 #changed to no longer need the settings.py file
 # -signal parameters are now command-line input
 # -Fisher testing is only done on the baseline (3000, 20, 03, peak) signal
@@ -22,9 +22,8 @@ parser.add_option("-Z", "--zMass", dest="mZ", type='str',help="str: Mass [GeV] o
 parser.add_option("-D", "--dMass", dest="mD", type='str', help="str: Mass [GeV] of dark quarks in MC singal. Default = '20'", default = '20')
 parser.add_option("-R", "--rInv", dest="rI", type='str', help="str: Fraction of invisible particles in MC signal. Default = '03'", default = '03')
 parser.add_option("-A", "--aDark", dest="aD", type='str', help="str: alphaDark value in MC signal. Default = 'peak'. Options: 'low', 'peak', 'high'", default = "peak")
-parser.add_option("-t", "--test", dest="bias", action="store_true", default=False)
+parser.add_option("-t", "--test", action="store_true", default=False, dest="bias")
 parser.add_option("-u","--unblind",dest="unblind",action='store_true', default=False)
-parser.add_option("-s", "--doSys",dest="doSys",action='store_false', default=True)
 
 (opt, args) = parser.parse_args()
 sys.argv.append('-b')
@@ -127,6 +126,4 @@ for s in signals:
     # as an alternatative, we could set things up to F-test once, then save
     # those functions and import them to every submission, TODO?
     for ch in ch_year:
-        getCard(s, ch, ifilename, outdir, doModelling, mode, bias, True, opt.doSys)
-
-
+        getCard(s, ch, ifilename, outdir, doModelling, mode, bias, True)

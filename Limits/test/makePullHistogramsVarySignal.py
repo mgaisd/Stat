@@ -4,7 +4,7 @@ rt.gStyle.SetOptStat(0)
 rt.gStyle.SetOptFit(1011)
 
 # runover each SR to fit all 100 toys to the main function
-eosArea = "root://cmsxrootd.fnal.gov//store/user/cfallon/biasStudies_nParEqual/"
+eosArea = "root://cmsxrootd.fnal.gov//store/user/cfallon/biasStudies_biasNew/"
 
 listOfParams = [
 ['1500', '20', '03', 'peak'],
@@ -28,9 +28,11 @@ listOfParams = [
 ['5100', '20', '03', 'peak']]
 
 regions = ["lowCut","lowSVJ2","highCut","highSVJ2"]
-
+regions = ["lowCut"]
 for expSig in ["Sig0","Sig1"]:
 	for funcs in ["GenMainFitMain","GenMainFitAlt","GenAltFitMain","GenAltFitAlt"]:
+		if not (expSig + funcs in ["Sig0GenMainFitMain","Sig0GenAltFitMain","Sig1GenAltFitMain"]):
+			continue
 		#setup four TGraphErrors, one for each varying-variable
 		vZ_m = {"lowCut":[[],[],[]],"lowSVJ2":[[],[],[]],"highCut":[[],[],[]],"highSVJ2":[[],[],[]], "name":"varyZ_mean"}
 		vZ_s = {"lowCut":[[],[],[]],"lowSVJ2":[[],[],[]],"highCut":[[],[],[]],"highSVJ2":[[],[],[]], "name":"varyZ_stdev"}
@@ -88,6 +90,7 @@ for expSig in ["Sig0","Sig1"]:
 					print("="*25)
 					continue
 				tree = fitDiagFile.Get("tree_fit_sb")
+				print(tree.Print())
 				c1 = rt.TCanvas("c1","c1",1000,1000)
 				selection = "fit_status==0" 
 				injSig = int(expSig[-1:])
@@ -101,7 +104,7 @@ for expSig in ["Sig0","Sig1"]:
 				rt.gDirectory.Get("h3").Fit("gaus","R")
 				gaus.SetLineColor(rt.kBlue)
 				gaus.Draw("same")
-				c1.SaveAs("~/nobackup/SVJ/biasStudies2/CMSSW_10_2_13/src/Stat/Limits/test/nParEqual/plots/"+SVJNAME+"_"+region+expSig+funcs+".png")
+				c1.SaveAs("~/nobackup/SVJ/biasStudies2/CMSSW_10_2_13/src/Stat/Limits/test/biasNew/plots/"+SVJNAME+"_"+region+expSig+funcs+".png")
 				if gaus.GetNDF() == 0:
 					continue
 				if varyZ:
@@ -137,7 +140,7 @@ for expSig in ["Sig0","Sig1"]:
 				fitDiagFile.Close()
 		for region in regions:
 			for vec in [vZ_m, vZ_s]:#vD_m, vR_m, vA_m, vZ_s, vD_s, vR_s, vA_s]:
-				out = open("../nParEqual/plots/"+vec["name"]+"_"+region+expSig+funcs+".txt","w")
+				out = open("../biasNew/plots/"+vec["name"]+"_"+region+expSig+funcs+".txt","w")
 				for i in range(len(vec[region][0])):
 					out.write("{} {} {}\n".format(vec[region][0][i], vec[region][1][i], vec[region][2][i]))
 				out.close()

@@ -1,8 +1,8 @@
 universe = vanilla
-Executable = datacardCreation.sh
+Executable = datacardCreationUnified.sh
 Should_Transfer_Files = YES
 WhenToTransferOutput = ON_EXIT
-Transfer_Input_Files = datacardCreation.sh
+Transfer_Input_Files = datacardCreationUnified.sh
 Output = SVJ_mZprime$(mZ)_mDark$(mD)_rinv$(rI)_alpha$(aD).stdout
 Error = SVJ_mZprime$(mZ)_mDark$(mD)_rinv$(rI)_alpha$(aD).stderr
 Log = SVJ_mZprime$(mZ)_mDark$(mD)_rinv$(rI)_alpha$(aD).log
@@ -11,7 +11,7 @@ mZ = 3000
 mD = 20
 rI = 03
 aD = peak
-s = Yes
+s = N
 Arguments = SVJ_mZprime$(mZ)_mDark$(mD)_rinv$(rI)_alpha$(aD)/ template $(mZ) $(md) $(rI) $(aD) $(s)
 Queue mZ, mD, rI, aD from (
 1500, 100, 03, peak

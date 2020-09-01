@@ -28,8 +28,8 @@ fitFunc=${9} # 0 for bkgFunc, 1 for altFunc
 
 SVJ_NAME="SVJ_mZprime${mZ}_mDark${mD}_rinv${rI}_alpha${aD}"
 
-xrdcp -s root://cmseos.fnal.gov//store/user/cfallon/biasStudies_expNum/${SVJ_NAME}/${SVJ_NAME}_${REGION}_2018_template_bias.txt ${SVJ_NAME}_${REGION}_2018_template_bias.txt
-xrdcp -s root://cmseos.fnal.gov//store/user/cfallon/biasStudies_expNum/${SVJ_NAME}/ws_${SVJ_NAME}_${REGION}_2018_template.root ws_${SVJ_NAME}_${REGION}_2018_template.root
+xrdcp -s root://cmseos.fnal.gov//store/user/cfallon/biasStudies_biasNew/${SVJ_NAME}/${SVJ_NAME}_${REGION}_2018_template_bias.txt ${SVJ_NAME}_${REGION}_2018_template_bias.txt
+xrdcp -s root://cmseos.fnal.gov//store/user/cfallon/biasStudies_biasNew/${SVJ_NAME}/ws_${SVJ_NAME}_${REGION}_2018_template.root ws_${SVJ_NAME}_${REGION}_2018_template.root
 
 rMin=-10
 rMax=10
@@ -42,23 +42,21 @@ rMax=10
 # updated nPar and nParAlt 24jul20
 #
 #      | lC | l2 | hC | h2 
-# main |  2 |  2 |  3 |  1
-# alt  |  3 |  2 |  3 |  2
+# main |  5 |  2 |  5 |  2
+# alt  |  4 |  2 |  3 |  1
 
 if [ ${REGION} == "highCut" ]
 then
   parOptsMain="--setParameters pdf_index_${REGION}_2018=0 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_3_alt,${REGION}_p2_3_alt,${REGION}_p3_3_alt"
-  parOptsAlt="--setParameters pdf_index_${REGION}_2018=1 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_3,${REGION}_p2_3,${REGION}_p3_3"
-  parOptsTrackMain=" --trackParameters ${REGION}_p1_3,${REGION}_p2_3,${REGION}_p3_3"
+  parOptsAlt="--setParameters pdf_index_${REGION}_2018=1 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_4,${REGION}_p2_4,${REGION}_p3_4,${REGION}_p4_4,${REGION}_p5_4"
+  parOptsTrackMain=" --trackParameters ${REGION}_p1_4,${REGION}_p2_4,${REGION}_p3_4,${REGION}_p4_4,${REGION}_p5_4"
   parOptsTrackAlt="--trackParameters ${REGION}_p1_3_alt,${REGION}_p2_3_alt,${REGION}_p3_3_alt"
 elif [ ${REGION} == "lowCut" ]
-then # nParsEqual
-  parOptsMain="--setParameters pdf_index_${REGION}_2018=0 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_3_alt,${REGION}_p2_3_alt,${REGION}_p3_3_alt"
-  #parOptsTrackMain="--trackParameters ${REGION}_p1_2,${REGION}_p2_2"
-  #parOptsAlt="--setParameters pdf_index_${REGION}_2018=1 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_2,${REGION}_p2_2"
-  parOptsTrackMain="--trackParameters ${REGION}_p1_3,${REGION}_p2_3,${REGION}_p3_3"
-  parOptsAlt="--setParameters pdf_index_${REGION}_2018=1 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_3,${REGION}_p2_3,${REGION}_p3_3"
-  parOptsTrackAlt="--trackParameters ${REGION}_p1_3_alt,${REGION}_p2_3_alt,${REGION}_p3_3_alt"
+then 
+  parOptsMain="--setParameters pdf_index_${REGION}_2018=0 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_4_alt,${REGION}_p2_4_alt,${REGION}_p3_4_alt,${REGION}_p4_4_alt"
+  parOptsTrackMain="--trackParameters ${REGION}_p1_4,${REGION}_p2_4,${REGION}_p3_4,${REGION}_p4_4,${REGION}_p5_4"
+  parOptsAlt="--setParameters pdf_index_${REGION}_2018=1 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_4,${REGION}_p2_4,${REGION}_p3_4,${REGION}_p4_4,${REGION}_p5_4"
+  parOptsTrackAlt="--trackParameters ${REGION}_p1_4_alt,${REGION}_p2_4_alt,${REGION}_p3_4_alt,${REGION}_p4_4_alt"
 elif [ ${REGION} == "highSVJ2" ]
 then
   if [ ${expSig} -eq 0 ]
@@ -66,12 +64,10 @@ then
     rMin=-1
     rMax=1
   fi
-  parOptsMain="--setParameters pdf_index_${REGION}_2018=0 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_2_alt,${REGION}_p2_2_alt"
-  #parOptsTrackMain="--trackParameters ${REGION}_p1_1"
-  #parOptsAlt="--setParameters pdf_index_${REGION}_2018=1 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_1"
-  parOptsTrackMain="--trackParameters ${REGION}_p1_2,${REGION}_p2_2"
-  parOptsAlt="--setParameters pdf_index_${REGION}_2018=1 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_2,${REGION}_p2_2"
-  parOptsTrackAlt="--trackParameters ${REGION}_p1_2_alt,${REGION}_p2_2_alt"
+  parOptsMain="--setParameters pdf_index_${REGION}_2018=0 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_1_alt"
+  parOptsTrackMain="--trackParameters ${REGION}_p1_1,${REGION}_p2_1"
+  parOptsAlt="--setParameters pdf_index_${REGION}_2018=1 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_1,${REGION}_p2_1"
+  parOptsTrackAlt="--trackParameters ${REGION}_p1_1_alt"
 elif [ ${REGION} == "lowSVJ2" ]
 then
   if [ ${expSig} -eq 0 ]
@@ -80,8 +76,8 @@ then
     rMax=1
   fi
   parOptsMain="--setParameters pdf_index_${REGION}_2018=0 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_2_alt,${REGION}_p2_2_alt"
-  parOptsTrackMain="--trackParameters ${REGION}_p1_2,${REGION}_p2_2"
-  parOptsAlt="--setParameters pdf_index_${REGION}_2018=1 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_2,${REGION}_p2_2"
+  parOptsTrackMain="--trackParameters ${REGION}_p1_1,${REGION}_p2_1"
+  parOptsAlt="--setParameters pdf_index_${REGION}_2018=1 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_1,${REGION}_p2_1"
   parOptsTrackAlt="--trackParameters ${REGION}_p1_2_alt,${REGION}_p2_2_alt"
 else
   exit 1
@@ -114,9 +110,9 @@ fi
 
 
 cmdMDFa="combine ${SVJ_NAME}_${REGION}_2018_template_bias.txt -M MultiDimFit -n ${genName} --saveWorkspace --rMin -80 --rMax 80 ${parOptsMDFa}" 
-cmdGen="combine higgsCombine${genName}.MultiDimFit.mH120.root --snapshotName MultiDimFit -M GenerateOnly ${parOptsGen} -n ${genName} -t ${nTOYS} --toysFrequentist --saveToys --expectSignal ${expSig} --bypassFrequentistFit --saveWorkspace -s 123456"
+cmdGen="combine higgsCombine${genName}.MultiDimFit.mH120.root --snapshotName MultiDimFit -M GenerateOnly ${parOptsGen} -n ${genName} -t ${nTOYS} --toysFrequentist --saveToys --expectSignal ${expSig} --bypassFrequentistFit --saveWorkspace -s 123456 -v -1"
 cmdMDFb="combine ${SVJ_NAME}_${REGION}_2018_template_bias.txt -M MultiDimFit -n ${fitName} --saveWorkspace --rMin -80 --rMax 80 ${parOptsMDFb}" 
-cmdFit="combine higgsCombine${fitName}.MultiDimFit.mH120.root --snapshotName MultiDimFit -M FitDiagnostics ${parOptsFit} -n ${fitName} --toysFile higgsCombine${genName}.GenerateOnly.mH120.123456.root -t ${nTOYS} --toysFrequentist --saveToys --expectSignal ${expSig} --rMin ${rMin} --rMax ${rMax} --bypassFrequentistFit"
+cmdFit="combine higgsCombine${fitName}.MultiDimFit.mH120.root --snapshotName MultiDimFit -M FitDiagnostics ${parOptsFit} -n ${fitName} --toysFile higgsCombine${genName}.GenerateOnly.mH120.123456.root -t ${nTOYS} --toysFrequentist --saveToys --expectSignal ${expSig} --rMin ${rMin} --rMax ${rMax} --bypassFrequentistFit -v -1"
 
 
 echo "combine commands:"
@@ -151,7 +147,7 @@ ls *.root
 echo "List all files"
 ls 
 echo "*******************************************"
-OUTDIR=root://cmseos.fnal.gov//store/user/cfallon/biasStudies_expNum/${SVJ_NAME}
+OUTDIR=root://cmseos.fnal.gov//store/user/cfallon/biasStudies_biasNew/${SVJ_NAME}
 echo "xrdcp output for condor"
 for FILE in *.root
 do

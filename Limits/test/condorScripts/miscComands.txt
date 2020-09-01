@@ -1,0 +1,33 @@
+
+#to recompile from CMSSW dir
+scramv1 b clean ; scramv1 b
+
+
+eosrm store/user/cfallon/CMSSW_10_2_13.tgz
+rm CMSSW_10_2_13.tgz
+
+
+
+# to create the tarball of CMSSW without unnessecary files
+tar --exclude-caches-all --exclude-vcs -zcf CMSSW_10_2_13.tgz CMSSW_10_2_13 --exclude="*.root" --exclude=tmp
+
+#move said tarball to eos space so that condor can access it
+xrdcp CMSSW_10_2_13.tgz root://cmseos.fnal.gov//store/user/cfallon
+
+# symlink condorScripts to condorSub dir
+lndir -silent -ignorelinks ../condorScripts .
+
+#copying from EOS to local
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/biasStudies_july14/SVJ_mZprime3000_mDark20_rinv03_alphapeak/ .
+
+
+#annapaola's plotting scripts, run in datacard folders
+combine -M FitDiagnostics -d SVJ_mZprime2000_mDark20_rinv03_alphapeak_hist.txt  --minos all --robustFit=1 --saveWithUncertainties --cminDefaultMinimizerStrategy 0
+text2workspace.py  SVJ_mZprime2000_mDark20_rinv03_alphapeak_hist.txt
+ ../../../../../CombineHarvester/CombineTools/scripts/combineTool.py -M Impacts -d SVJ_mZprime2000_mDark20_rinv03_alphapeak_hist.root --doInitialFit --robustFit 1 -m 125
+../../../../../CombineHarvester/CombineTools/scripts/combineTool.py -M Impacts -d SVJ_mZprime2000_mDark20_rinv03_alphapeak_hist.root --robustFit 1 -m 125 --doFits
+../../../../../CombineHarvester/CombineTools/scripts/combineTool.py -M Impacts -d SVJ_mZprime2000_mDark20_rinv03_alphapeak_hist.root -o impacts.json -m 125
+../../../../../CombineHarvester/CombineTools/scripts/plotImpacts.py -i impacts.json  -o impacts
+
+
+
