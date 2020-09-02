@@ -558,33 +558,33 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                      print "channel: ", ch_red
 
 
-                     p1_1 = RooRealVar(ch_red + "_p1_1", "p1", 1., -30., 30.)
-                     p1_2 = RooRealVar(ch_red + "_p1_2", "p1", 1., -30., 30.)
-                     p1_3 = RooRealVar(ch_red + "_p1_3", "p1", 1., -30., 30.)
-                     p1_4 = RooRealVar(ch_red + "_p1_4", "p1", 1., -30., 30.)
+                     p1_1 = RooRealVar(ch_red + "_p1_1", "p1", 1., -100., 100.)
+                     p1_2 = RooRealVar(ch_red + "_p1_2", "p1", 1., -100., 100.)
+                     p1_3 = RooRealVar(ch_red + "_p1_3", "p1", 1., -100., 100.)
+                     p1_4 = RooRealVar(ch_red + "_p1_4", "p1", 1., -100., 100.)
 
-                     p2_1 = RooRealVar(ch_red + "_p2_1", "p2", 1., -30., 30.)
-                     p2_2 = RooRealVar(ch_red + "_p2_2", "p2", 1., -30., 30.)
-                     p2_3 = RooRealVar(ch_red + "_p2_3", "p2", 1., -30., 30.)
-                     p2_4 = RooRealVar(ch_red + "_p2_4", "p2", 1., -30., 30.)
+                     p2_1 = RooRealVar(ch_red + "_p2_1", "p2", 1., -100., 100.)
+                     p2_2 = RooRealVar(ch_red + "_p2_2", "p2", 1., -100., 100.)
+                     p2_3 = RooRealVar(ch_red + "_p2_3", "p2", 1., -100., 100.)
+                     p2_4 = RooRealVar(ch_red + "_p2_4", "p2", 1., -100., 100.)
 
-                     p3_2 = RooRealVar(ch_red + "_p3_2", "p3", 1., -30., 30.)
-                     p3_3 = RooRealVar(ch_red + "_p3_3", "p3", 1., -30., 30.)
-                     p3_4 = RooRealVar(ch_red + "_p3_4", "p3", 1., -30., 30.)
+                     p3_2 = RooRealVar(ch_red + "_p3_2", "p3", 1., -100., 100.)
+                     p3_3 = RooRealVar(ch_red + "_p3_3", "p3", 1., -100., 100.)
+                     p3_4 = RooRealVar(ch_red + "_p3_4", "p3", 1., -100., 100.)
 
-                     p4_3 = RooRealVar(ch_red + "_p4_3", "p4", 1., -30., 30.)
-                     p4_4 = RooRealVar(ch_red + "_p4_4", "p4", 1., -30., 30.)
+                     p4_3 = RooRealVar(ch_red + "_p4_3", "p4", 1., -100., 100.)
+                     p4_4 = RooRealVar(ch_red + "_p4_4", "p4", 1., -100., 100.)
 
-                     p5_4 = RooRealVar(ch_red + "_p5_4", "p5", 1., -30., 30.)
+                     p5_4 = RooRealVar(ch_red + "_p5_4", "p5", 1., -100., 100.)
 
 
                      #Function from Theorists, combo testing, sequence E, 1, 11, 12, 22
                      # model NM has N params on 1-x and M params on x. exponents are (p_i + p_{i+1} * log(x))
                      # these are the RooGenericPdf verisons, convert to RooParametricShapeBinPdf below
-                     modelBkg1_rgp = RooGenericPdf(modelName+"1_rgp", "Thry. fit (11)", "pow(1 - @0/13000, @1) * pow(@0/13000, -@2)", RooArgList(mT, p1_1, p2_1))
-                     modelBkg2_rgp = RooGenericPdf(modelName+"2_rgp", "Thry. fit (12)", "pow(1 - @0/13000, @1) * pow(@0/13000, -@2 - @3*log(@0/13000) )", RooArgList(mT, p1_2, p2_2, p3_2))
-                     modelBkg3_rgp = RooGenericPdf(modelName+"3_rgp", "Thry. fit (13)", "pow(1 - @0/13000, @1) * pow(@0/13000, -@2 - @3*log(@0/13000) - @4*pow(log(@0/13000),2) )", RooArgList(mT, p1_3, p2_3, p3_3, p4_3))
-                     modelBkg4_rgp = RooGenericPdf(modelName+"4_rgp", "Thry. fit (14)", "pow(1 - @0/13000, @1) * pow(@0/13000, -@2 - @3*log(@0/13000) - @4*pow(log(@0/13000),2) - @5*pow(log(@0/13000),3) )", RooArgList(mT, p1_4, p2_4, p3_4, p4_4, p5_4))
+                     modelBkg1_rgp = RooGenericPdf(modelName+"1_rgp", "Thry. fit (11)", "pow(1 - @0/13000, @1) * pow(@0/13000, -(@2))",                                                                         RooArgList(mT, p1_1, p2_1))
+                     modelBkg2_rgp = RooGenericPdf(modelName+"2_rgp", "Thry. fit (12)", "pow(1 - @0/13000, @1) * pow(@0/13000, -(@2+@3*log(@0/13000)))",                                                     RooArgList(mT, p1_2, p2_2, p3_2))
+                     modelBkg3_rgp = RooGenericPdf(modelName+"3_rgp", "Thry. fit (13)", "pow(1 - @0/13000, @1) * pow(@0/13000, -(@2+@3*log(@0/13000)+@4*pow(log(@0/13000),2)))",                           RooArgList(mT, p1_3, p2_3, p3_3, p4_3))
+                     modelBkg4_rgp = RooGenericPdf(modelName+"4_rgp", "Thry. fit (14)", "pow(1 - @0/13000, @1) * pow(@0/13000, -(@2+@3*log(@0/13000)+@4*pow(log(@0/13000),2)+@5*pow(log(@0/13000),3)))", RooArgList(mT, p1_4, p2_4, p3_4, p4_4, p5_4))
 
                      modelBkg1 = RooParametricShapeBinPdf(modelName+"1", "Thry. Fit (11)", modelBkg1_rgp, mT, RooArgList(p1_1, p2_1), histBkgData)
                      modelBkg2 = RooParametricShapeBinPdf(modelName+"2", "Thry. Fit (12)", modelBkg2_rgp, mT, RooArgList(p1_2, p2_2, p3_2), histBkgData)
@@ -665,24 +665,24 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                             normAlt = RooRealVar("Bkg_"+ch+"alt_norm", "Number of background events", nBkgEvts, 0., 2.e4)
                             normData = RooRealVar("Data_"+ch+"alt_norm", "Number of background events", nDataEvts, 0., 2.e4) 
 
-                            p1_1_alt = RooRealVar(ch_red + "_p1_1_alt", "p1", 1., -50., 50.)
-                            p1_2_alt = RooRealVar(ch_red + "_p1_2_alt", "p1", 1., -50., 50.)
-                            p1_3_alt = RooRealVar(ch_red + "_p1_3_alt", "p1", 1., -50., 50.)
-                            p1_4_alt = RooRealVar(ch_red + "_p1_4_alt", "p1", 1., -50., 50.)
+                            p1_1_alt = RooRealVar(ch_red + "_p1_1_alt", "p1", 1., -100., 100.)
+                            p1_2_alt = RooRealVar(ch_red + "_p1_2_alt", "p1", 1., -100., 100.)
+                            p1_3_alt = RooRealVar(ch_red + "_p1_3_alt", "p1", 1., -100., 100.)
+                            p1_4_alt = RooRealVar(ch_red + "_p1_4_alt", "p1", 1., -100., 100.)
 
-                            p2_2_alt = RooRealVar(ch_red + "_p2_2_alt", "p2", 1., -50., 50.)
-                            p2_3_alt = RooRealVar(ch_red + "_p2_3_alt", "p2", 1., -50., 50.)
-                            p2_4_alt = RooRealVar(ch_red + "_p2_4_alt", "p2", 1., -50., 50.)
+                            p2_2_alt = RooRealVar(ch_red + "_p2_2_alt", "p2", 1., -100., 100.)
+                            p2_3_alt = RooRealVar(ch_red + "_p2_3_alt", "p2", 1., -100., 100.)
+                            p2_4_alt = RooRealVar(ch_red + "_p2_4_alt", "p2", 1., -100., 100.)
 
-                            p3_3_alt = RooRealVar(ch_red + "_p3_3_alt", "p3", 1., -50., 50.)
-                            p3_4_alt = RooRealVar(ch_red + "_p3_4_alt", "p3", 1., -50., 50.)
+                            p3_3_alt = RooRealVar(ch_red + "_p3_3_alt", "p3", 1., -100., 100.)
+                            p3_4_alt = RooRealVar(ch_red + "_p3_4_alt", "p3", 1., -100., 100.)
 
-                            p4_4_alt = RooRealVar(ch_red + "_p4_4_alt", "p4", 1., -50., 50.) 
+                            p4_4_alt = RooRealVar(ch_red + "_p4_4_alt", "p4", 1., -100., 100.) 
 
-                            p2_1_alt = RooRealVar(ch_red + "_p2_1_alt", "p2", 1., -50., 50.)
-                            p3_2_alt = RooRealVar(ch_red + "_p3_2_alt", "p3", 1., -50., 50.)
-                            p4_3_alt = RooRealVar(ch_red + "_p4_3_alt", "p4", 1., -50., 50.)
-                            p5_4_alt = RooRealVar(ch_red + "_p5_4_alt", "p5", 1., -50., 50.)
+                            p2_1_alt = RooRealVar(ch_red + "_p2_1_alt", "p2", 1., -100., 100.)
+                            p3_2_alt = RooRealVar(ch_red + "_p3_2_alt", "p3", 1., -100., 100.)
+                            p4_3_alt = RooRealVar(ch_red + "_p4_3_alt", "p4", 1., -100., 100.)
+                            p5_4_alt = RooRealVar(ch_red + "_p5_4_alt", "p5", 1., -100., 100.)
 
 
 
@@ -1084,8 +1084,9 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                             getattr(w, "import")(mcstatSigHistUp, RooFit.Rename(sig + "_" + mcstatSysName + "Up") )
                             getattr(w, "import")(mcstatSigHistDown, RooFit.Rename(sig + "_" + mcstatSysName + "Down") )
 
-              
               for sysName,sysValue  in syst.iteritems():
+                     if not ((doSys == True) or (sysName == "lumi")):
+                            continue # always include lumi, and only do others if doSys is True
                      if(sysValue[0]=="shape" and "mcstat" not in sysName):              
                             sysUp =  getHist(ch, sig + "_" + sysName + "Up", ifile)
                             sysDown =  getHist(ch, sig + "_" + sysName + "Down", ifile)
@@ -1175,92 +1176,76 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
        card += "rate                                    %-43.6f%-43s\n" % (rates[sig], rateLine) #signalYield[m].getVal(), nevents
        card += "-----------------------------------------------------------------------------------\n"
 
-
-       if doSys == True:
-              for sysName,sysValue  in syst.iteritems():
-                     print(sysName, sysValue, "testSystematicValues")
-                     #if sysName == "lumi":
-                     #       card += "%-20s%-20s%-20s%-20s" % (sysName, sysValue[0], sysValue[2], "-")
-                     #elif(sysValue[0]=="lnN"): 
-                     if(sysValue[0]=="lnN"): 
-                            card += "%-20s%-20s" % (sysName, sysValue[0])
-                            if(sysValue[1]=="all"and len(sysValue)>2):
-                                   if(mode == "template"): card += "%-20s" % (sysValue[2]) * (2)
-                                   else: card += "%-20s" % (sysValue[2]) * (len(processes) + 1)
-       
-                            else:
-                                   if (sysValue[1]=="all"):
-                                          sysValue[1] = copy.deepcopy(processes)
-                                          sysValue[1].append(sig)
-       
+       for sysName,sysValue  in syst.iteritems():
+              print(sysName, sysValue, "testSystematicValues")
+              if not ((doSys == True) or (sysName == "lumi")):
+                  continue # always include lumi, and only do others if doSys is True
+              if(sysValue[0]=="lnN"): 
+                     card += "%-20s%-20s" % (sysName, sysValue[0])
+                     if(sysValue[1]=="all"and len(sysValue)>2):
+                            if(mode == "template"): card += "%-20s" % (sysValue[2]) * (2)
+                            else: card += "%-20s" % (sysValue[2]) * (len(processes) + 1)
+                     else:
+                            if (sysValue[1]=="all"):
+                                   sysValue[1] = copy.deepcopy(processes)
+                                   sysValue[1].append(sig)
                                    hsysName =  "_" + sysName  
-                                   hsysNameUp = "_" + sysName + "UP"  
-                                   hsysNameDown = "_" + sysName + "DOWN" 
-                                                               #print "Applying syst on ", sysValue[1]
-                                   if("sig" in sysValue[1]):
-                                          try:
-                                                 if(getRate(ch, sig, ifile) != 0.): sigSys = abs((getRate(ch, sig+hsysNameUp, ifile) - getRate(ch, sig+hsysNameDown, ifile))/ (2* getRate(ch, sig, ifile)))
-                                          except AttributeError:
-                                                 sigSys = sysValue[2]
-                                          if(sigSys < 1. and sigSys > 0.): sigSys = sigSys + 1
-                                          card += "%-20s" % (sigSys)
+                            hsysNameUp = "_" + sysName + "UP"  
+                            hsysNameDown = "_" + sysName + "DOWN" 
+                            if("sig" in sysValue[1]):
+                                   try:
+                                          if(getRate(ch, sig, ifile) != 0.): sigSys = abs((getRate(ch, sig+hsysNameUp, ifile) - getRate(ch, sig+hsysNameDown, ifile))/ (2* getRate(ch, sig, ifile)))
+                                   except AttributeError:
+                                          sigSys = sysValue[2]
+                                   if(sigSys < 1. and sigSys > 0.): sigSys = sigSys + 1
+                                   card += "%-20s" % (sigSys)
+                            else:  card += "%-20s" % ("-")
+                            for p in processes:
+                                   print(p, processes)
+                                   if (p in sysValue[1]):
+                                          if (getRate(ch, p, ifile) != 0.): bkgSys = abs((getRate(ch, p+hsysNameUp, ifile) - getRate(ch, p+hsysNameDown, ifile))/ (2* getRate(ch, p, ifile)) )
+                                          else: bkgSys = 1
+                                          if(bkgSys<1. and bkgSys >0.): bkgSys = bkgSys + 1
+                                          card += "%-20s" % (bkgSys)
                                    else:  card += "%-20s" % ("-")
-                                   for p in processes:
-                                          print(p, processes)
-                                          if (p in sysValue[1]):
-                                                 if (getRate(ch, p, ifile) != 0.): bkgSys = abs((getRate(ch, p+hsysNameUp, ifile) - getRate(ch, p+hsysNameDown, ifile))/ (2* getRate(ch, p, ifile)) )
-                                                 else: bkgSys = 1
-                                                 if(bkgSys<1. and bkgSys >0.): bkgSys = bkgSys + 1
-                                                 card += "%-20s" % (bkgSys)
-                                          else:  card += "%-20s" % ("-")
-       
-       
-       
-                     elif(sysValue[0]=="lnU"):
-                            card += "%-20s%-20s%-20s%-20s" % (sysName, sysValue[0], "-", sysValue[2])
-                     elif(sysValue[0]=="shape"):
-                         if("mcstat" not in sysName):
-                                   card += "%-20s     shape     " % (sysName)
-                                   if ("sig" in sysValue[1]): card += "%-20s" % ( "1") 
+              elif(sysValue[0]=="lnU"):
+                     card += "%-20s%-20s%-20s%-20s" % (sysName, sysValue[0], "-", sysValue[2])
+              elif(sysValue[0]=="shape"):
+                  if("mcstat" not in sysName):
+                            card += "%-20s     shape     " % (sysName)
+                            if ("sig" in sysValue[1]): card += "%-20s" % ( "1") 
+                            else: card += "%-20s" % ( "-") 
+                            for p in processes:
+                                   if (p in sysValue[1]): card += "%-20s" % ( "1") 
                                    else: card += "%-20s" % ( "-") 
-                                   for p in processes:
-                                          if (p in sysValue[1]): card += "%-20s" % ( "1") 
-                                          else: card += "%-20s" % ( "-") 
-                     
-       
-                         else:
+                  else:
                                    # CAMBIARE NOME DELLA SYST      , change name of syst?               
-                                   for samp in sysValue[1]:
-                                          sampName = ""
-                                          line = ""
-                                          if (samp == "sig" or samp == "Sig"): 
-                   
-                                                 line = "%-20s" % ( "1") 
-                                                 line += "%-20s" % ("-") * (len(processes)) 
-                                                 sampName = sig
-                                          elif(mode != "template"):
-                                                 
-                                                 line = "%-20s" % ( "-") 
-                                                 lineProc = ["%-20s" % ( "-") for x in xrange (len(processes))]
-                                                 if samp in processes: 
-                                                        index = processes.index(samp)  
-                                                        lineProc[index] = "1"
-                                                        
-                                                 lineProc = "         ".join(lineProc)
-                                                 line += lineProc
-                                                 sampName =  samp
+                            for samp in sysValue[1]:
+                                   sampName = ""
+                                   line = ""
+                                   if (samp == "sig" or samp == "Sig"): 
+               
+                                          line = "%-20s" % ( "1") 
+                                          line += "%-20s" % ("-") * (len(processes)) 
+                                          sampName = sig
+                                   elif(mode != "template"):
+                                          line = "%-20s" % ( "-") 
+                                          lineProc = ["%-20s" % ( "-") for x in xrange (len(processes))]
+                                          if samp in processes: 
+                                                 index = processes.index(samp)  
+                                                 lineProc[index] = "1"
+                                          lineProc = "         ".join(lineProc)
+                                          line += lineProc
+                                          sampName =  samp
+                                   else: continue
+                                   for i in xrange(hist.GetNbinsX()):
+                                          for year in ["2016","2017","2018"]:
+                                                 sysName = "mcstat_%s_%s_MC%sbin%d      "  % (ch, sampName, year, i+1)
+                                                 card += "%-20s   shape   " % (sysName)
+                                                 card += line   
+                                                 card += "\n"    
        
-                                          else: continue
-       
-       
-                                          for i in xrange(hist.GetNbinsX()):
-                                                 for year in ["2016","2017","2018"]:
-                                                        sysName = "mcstat_%s_%s_MC%sbin%d      "  % (ch, sampName, year, i+1)
-                                                        card += "%-20s   shape   " % (sysName)
-                                                        card += line   
-                                                        card += "\n"    
-       
-                     card += "\n"
+              card += "\n"
               
        if mode == "template":
               for par in parNames: card += "%-20s%-20s\n" % (par, "flatParam")

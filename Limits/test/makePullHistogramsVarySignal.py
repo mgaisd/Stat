@@ -82,15 +82,17 @@ for expSig in ["Sig0","Sig1"]:
 				print(eosArea + SVJNAME + "/fitDiagnostics"+region+expSig+funcs+".root")
 				fitDiagFile = rt.TFile.Open(eosArea + SVJNAME + "/fitDiagnostics"+region+expSig+funcs+".root","read")
 				if type(fitDiagFile) == type(rt.TFile()):
+					fitDiagFile.Close()
 					continue
 				print(type(fitDiagFile))
 				if float(fitDiagFile.GetSize()) < 20000:
+					fitDiagFile.Close()
 					print("="*25)
 					print("{} could not be drawn".format(region))
 					print("="*25)
 					continue
 				tree = fitDiagFile.Get("tree_fit_sb")
-				print(tree.Print())
+				#print(tree.Print())
 				c1 = rt.TCanvas("c1","c1",1000,1000)
 				selection = "fit_status==0" 
 				injSig = int(expSig[-1:])
