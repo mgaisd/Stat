@@ -18,7 +18,22 @@ xrdcp CMSSW_10_2_13.tgz root://cmseos.fnal.gov//store/user/cfallon
 lndir -silent -ignorelinks ../condorScripts .
 
 #copying from EOS to local
-xrdcp root://cmseos.fnal.gov//store/user/cfallon/biasStudies_july14/SVJ_mZprime3000_mDark20_rinv03_alphapeak/ .
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/FisherTest_alt_lowCut_2018.txt ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/FisherTest_alt_lowSVJ2_2018.txt ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/FisherTest_alt_highCut_2018.txt ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/FisherTest_alt_highSVJ2_2018.txt ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/FisherTest_lowCut_2018.txt ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/FisherTest_lowSVJ2_2018.txt ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/FisherTest_highCut_2018.txt ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/FisherTest_highSVJ2_2018.txt ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/Residuals_highCut_2018_Bkg_Alt_highCut_20182_ratio_log.pdf ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/Residuals_highSVJ2_2018_Bkg_Alt_highSVJ2_20182_ratio_log.pdf ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/Residuals_lowCut_2018_Bkg_Alt_lowCut_20183_ratio_log.pdf ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/Residuals_lowSVJ2_2018_Bkg_Alt_lowSVJ2_20182_ratio_log.pdf ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/Residuals_highCut_2018_Bkg_highCut_20184_ratio_log.pdf ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/Residuals_highSVJ2_2018_Bkg_highSVJ2_20181_ratio_log.pdf ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/Residuals_lowCut_2018_Bkg_lowCut_20181_ratio_log.pdf ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/Residuals_lowSVJ2_2018_Bkg_lowSVJ2_20181_ratio_log.pdf ./plots
 
 
 #annapaola's plotting scripts, run in datacard folders

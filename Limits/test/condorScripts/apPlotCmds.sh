@@ -5,8 +5,7 @@ REG=${1}
 
 if [ ! -e "SVJ_mZprime3100_mDark20_rinv03_alphapeak_${REG}_2018_hist.txt" ]
 then
-  echo "file doesnt exist"
-  #combine -M FitDiagnostics -d SVJ_mZprime3100_mDark20_rinv03_alphapeak_hist.txt  --minos all --robustFit=1 --saveWithUncertainties --cminDefaultMinimizerStrategy 0
+  combine -M FitDiagnostics -d SVJ_mZprime3100_mDark20_rinv03_alphapeak_hist.txt  --minos all --robustFit=1 --saveWithUncertainties --cminDefaultMinimizerStrategy 0
 fi
 
 text2workspace.py  SVJ_mZprime3100_mDark20_rinv03_alphapeak_${REG}_2018_hist.txt

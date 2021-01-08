@@ -1,10 +1,17 @@
 import ROOT as rt
+import os,sys
+import subprocess
 rt.gSystem.Load("libHiggsAnalysisCombinedLimit.so")
-rt.gStyle.SetOptStat(0)
+rt.gStyle.SetOptStat(1)
 rt.gStyle.SetOptFit(1011)
 
+
+if len(sys.argv) < 2:
+	print("must include EOSDIR option. Try again. (/store/user/cfallon/<INPUT>/)")
+	exit()
+eosDir = sys.argv[1]
 # runover each SR to fit all 100 toys to the main function
-eosArea = "root://cmsxrootd.fnal.gov//store/user/cfallon/biasStudies_biasNew/"
+eosArea = "root://cmseos.fnal.gov//store/user/cfallon/"+eosDir+"/"
 
 listOfParams = [
 ['1500', '20', '03', 'peak'],
@@ -27,25 +34,28 @@ listOfParams = [
 ['4900', '20', '03', 'peak'],
 ['5100', '20', '03', 'peak']]
 
+choices = subprocess.check_output(["eos","root://cmseos.fnal.gov","ls",eosArea.split("//")[2]])
+
 regions = ["lowCut","lowSVJ2","highCut","highSVJ2"]
-regions = ["lowCut"]
+#regions = ["lowSVJ2","highSVJ2"]
 for expSig in ["Sig0","Sig1"]:
-	for funcs in ["GenMainFitMain","GenMainFitAlt","GenAltFitMain","GenAltFitAlt"]:
-		if not (expSig + funcs in ["Sig0GenMainFitMain","Sig0GenAltFitMain","Sig1GenAltFitMain"]):
-			continue
+	#for funcs in ["GenMainFitMain","GenAltFitMain"]:
+	for funcs in ["GenMainFitAlt","GenAltFitAlt"]:
 		#setup four TGraphErrors, one for each varying-variable
 		vZ_m = {"lowCut":[[],[],[]],"lowSVJ2":[[],[],[]],"highCut":[[],[],[]],"highSVJ2":[[],[],[]], "name":"varyZ_mean"}
 		vZ_s = {"lowCut":[[],[],[]],"lowSVJ2":[[],[],[]],"highCut":[[],[],[]],"highSVJ2":[[],[],[]], "name":"varyZ_stdev"}
-		#vD_m = {"lowCut":[[],[],[]],"lowSVJ2":[[],[],[]],"highCut":[[],[],[]],"highSVJ2":[[],[],[]], "name":"varyD_mean"}
-		#vD_s = {"lowCut":[[],[],[]],"lowSVJ2":[[],[],[]],"highCut":[[],[],[]],"highSVJ2":[[],[],[]], "name":"varyD_stdev"}
-		#vR_m = {"lowCut":[[],[],[]],"lowSVJ2":[[],[],[]],"highCut":[[],[],[]],"highSVJ2":[[],[],[]], "name":"varyR_mean"}
-		#vR_s = {"lowCut":[[],[],[]],"lowSVJ2":[[],[],[]],"highCut":[[],[],[]],"highSVJ2":[[],[],[]], "name":"varyR_stdev"}
-		#vA_m = {"lowCut":[[],[],[]],"lowSVJ2":[[],[],[]],"highCut":[[],[],[]],"highSVJ2":[[],[],[]], "name":"varyA_mean"}
-		#vA_s = {"lowCut":[[],[],[]],"lowSVJ2":[[],[],[]],"highCut":[[],[],[]],"highSVJ2":[[],[],[]], "name":"varyA_stdev"}
+		vZ_c = {"lowCut":[[],[]],"lowSVJ2":[[],[]],"highCut":[[],[]],"highSVJ2":[[],[]], "name":"varyZ_chi2"}
+		vD_m = {"lowCut":[[],[],[]],"lowSVJ2":[[],[],[]],"highCut":[[],[],[]],"highSVJ2":[[],[],[]], "name":"varyD_mean"}
+		vD_s = {"lowCut":[[],[],[]],"lowSVJ2":[[],[],[]],"highCut":[[],[],[]],"highSVJ2":[[],[],[]], "name":"varyD_stdev"}
+		vR_m = {"lowCut":[[],[],[]],"lowSVJ2":[[],[],[]],"highCut":[[],[],[]],"highSVJ2":[[],[],[]], "name":"varyR_mean"}
+		vR_s = {"lowCut":[[],[],[]],"lowSVJ2":[[],[],[]],"highCut":[[],[],[]],"highSVJ2":[[],[],[]], "name":"varyR_stdev"}
+		vA_m = {"lowCut":[[],[],[]],"lowSVJ2":[[],[],[]],"highCut":[[],[],[]],"highSVJ2":[[],[],[]], "name":"varyA_mean"}
+		vA_s = {"lowCut":[[],[],[]],"lowSVJ2":[[],[],[]],"highCut":[[],[],[]],"highSVJ2":[[],[],[]], "name":"varyA_stdev"}
 
 
 		for sigPars in listOfParams:
 			SVJNAME = "SVJ_mZprime{}_mDark{}_rinv{}_alpha{}".format(sigPars[0],sigPars[1],sigPars[2],sigPars[3])
+			if not (SVJNAME in choices): continue
 			print("************************",SVJNAME,"************************")
 			#(re)set varyBools to all be false
 			varyZ = False
@@ -62,13 +72,15 @@ for expSig in ["Sig0","Sig1"]:
 			elif sigPars[3] == "high":
 				aDark = 1.5
 			# baseline signal should be in every plot
-			if [sigPars[0],sigPars[1],sigPars[2],sigPars[3]] == ['3000', '20', '03', 'peak']:
+			# NOTE: This only works because in listOfParams we explicitly only
+			# vary one parameter at a time.
+			if [sigPars[0],sigPars[1],sigPars[2],sigPars[3]] == ['3100', '20', '03', 'peak']:
 				varyZ = True
 				varyD = True
 				varyR = True
 				varyA = True
 			else: # if one parameter doesn't match baseline, then we're varying that parameter
-				if sigPars[0] != "3000":
+				if sigPars[0] != "3100":
 					varyZ = True
 				if sigPars[1] != "20":
 					varyD = True
@@ -78,13 +90,11 @@ for expSig in ["Sig0","Sig1"]:
 					varyA = True
 			for region in regions:
 				print("************************",region, "************************")
-				                                   # new pattern: fitDiagnosticshighCutSig1GenMainFitMain.root
-				print(eosArea + SVJNAME + "/fitDiagnostics"+region+expSig+funcs+".root")
-				fitDiagFile = rt.TFile.Open(eosArea + SVJNAME + "/fitDiagnostics"+region+expSig+funcs+".root","read")
-				if type(fitDiagFile) == type(rt.TFile()):
-					fitDiagFile.Close()
-					continue
-				print(type(fitDiagFile))
+				fileName = eosArea + SVJNAME + "/fitDiagnostics"+region+expSig+funcs+".root"
+				# check if file exists, skipping if it doesnt
+				fileDir = subprocess.check_output(["eos","root://cmseos.fnal.gov","ls",eosArea.split("//")[2]+SVJNAME])
+				if not ("fitDiagnostics"+region+expSig+funcs+".root" in fileDir): continue
+				fitDiagFile = rt.TFile.Open(fileName,"read")
 				if float(fitDiagFile.GetSize()) < 20000:
 					fitDiagFile.Close()
 					print("="*25)
@@ -93,26 +103,38 @@ for expSig in ["Sig0","Sig1"]:
 					continue
 				tree = fitDiagFile.Get("tree_fit_sb")
 				#print(tree.Print())
-				c1 = rt.TCanvas("c1","c1",1000,1000)
+				c1 = rt.TCanvas("c1","c1",1500,500)
+				c1.Divide(3,1)
 				selection = "fit_status==0" 
 				injSig = int(expSig[-1:])
 				print("INJSIG CHECK ************ ", str(injSig))
+				c1.cd(3)
 				tree.Draw("(r-{})/rErr>>h3(50,-5,5)".format(injSig),selection)
+				#tree.Draw("(r-{})/rErr>>h4(50,-5,5)".format(injSig),"fit_status==0","same")
+				#rt.gDirectory.Get("h4").SetLineColor(rt.kRed)
 				rt.gDirectory.Get("h3").SetLineColor(rt.kBlack)
 				rt.gDirectory.Get("h3").SetLineWidth(2)
 				rt.gDirectory.Get("h3").SetAxisRange(0,rt.gDirectory.Get("h3").GetMaximum()*1.1,"Y")
 				rt.gPad.Update()
 				gaus = rt.TF1("gaus","gaus(0)", -5, 5)
-				rt.gDirectory.Get("h3").Fit("gaus","R")
+				fitResult = rt.gDirectory.Get("h3").Fit("gaus","RS")
 				gaus.SetLineColor(rt.kBlue)
 				gaus.Draw("same")
-				c1.SaveAs("~/nobackup/SVJ/biasStudies2/CMSSW_10_2_13/src/Stat/Limits/test/biasNew/plots/"+SVJNAME+"_"+region+expSig+funcs+".png")
+				c1.cd(1)
+				tree.Draw("r>>h1(50,-5,5)".format(injSig),selection)
+				#tree.Draw("r>>h5(160,-40,40)".format(injSig),"fit_status==0","same")
+				#rt.gDirectory.Get("h5").SetLineColor(rt.kRed)
+				c1.cd(2)
+				tree.Draw("rErr>>h2(50,0,5)".format(injSig),selection)
+				c1.SaveAs("./plots/"+SVJNAME+"_"+region+expSig+funcs+"_3PlotsR.pdf")
 				if gaus.GetNDF() == 0:
 					continue
 				if varyZ:
 					vZ_m[region][0].append(zMass)
 					vZ_m[region][1].append(gaus.GetParameter(1))
 					vZ_m[region][2].append(gaus.GetParError(1))
+					vZ_c[region][0].append(zMass)
+					vZ_c[region][1].append(fitResult.Chi2()/fitResult.Ndf())
 					vZ_s[region][0].append(zMass)
 					vZ_s[region][1].append(gaus.GetParameter(2))
 					vZ_s[region][2].append(gaus.GetParError(2))
@@ -141,10 +163,14 @@ for expSig in ["Sig0","Sig1"]:
 
 				fitDiagFile.Close()
 		for region in regions:
-			for vec in [vZ_m, vZ_s]:#vD_m, vR_m, vA_m, vZ_s, vD_s, vR_s, vA_s]:
-				out = open("../biasNew/plots/"+vec["name"]+"_"+region+expSig+funcs+".txt","w")
+			for vec in [vZ_m,vZ_s, vZ_c]:#[vZ_m,vD_m, vR_m, vA_m, vZ_s, vD_s, vR_s, vA_s]:
+				out = open("./plots/"+vec["name"]+"_"+region+expSig+funcs+".txt","w")
+				out.write("#varVal mean/stdev error\n")
 				for i in range(len(vec[region][0])):
-					out.write("{} {} {}\n".format(vec[region][0][i], vec[region][1][i], vec[region][2][i]))
+					if len(vec[region]) == 3:
+						out.write("{} {} {}\n".format(vec[region][0][i], vec[region][1][i], vec[region][2][i]))
+					if len(vec[region]) == 2:
+						out.write("{} {}\n".format(vec[region][0][i], vec[region][1][i]))
 				out.close()
 
 

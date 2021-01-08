@@ -10,7 +10,7 @@
 #
 import sys
 import string
-from ROOT import TCanvas, gInterpreter, gROOT, TLegend, TGraph, TGraphErrors, TMultiGraph
+from ROOT import TCanvas, gInterpreter, gROOT, TLegend, TGraph, TGraphErrors, TMultiGraph, TH1F
 
 gROOT.SetBatch(True)
 
@@ -33,10 +33,6 @@ def main():
 	
 	# loop over files:
 	allGraphs = TMultiGraph()
-	if "1"  in name:
-		leg = TLegend(0.55, 0.11, 0.89, 0.30) # lower right
-	else:
-		leg = TLegend(0.55, 0.70, 0.89, 0.89) # upper right
 	leg = TLegend(0.55, 0.70, 0.89, 0.89) # upper right
 	leg.SetBorderSize(0)
 	leg.SetTextSize(0.04)
@@ -55,9 +51,14 @@ def main():
 	if "mean" in name:
 		allGraphs.SetMaximum(1.5)
 		allGraphs.SetMinimum(-1.5)
-	else:
+	elif "stdev" in name:
 		allGraphs.SetMaximum(2.5)
 		allGraphs.SetMinimum(-0.5)
+	elif "chi2" in name:
+		allGraphs.SetMaximum(5.0)
+		allGraphs.SetMinimum(0.0)
+	else:
+		pass
 		
 	gROOT.SetStyle('Plain')
 	c1 = TCanvas("c1", "ReadSeveralFilesScatterPlotErrors")
@@ -68,7 +69,7 @@ def main():
    
 	#allGraphs.SetMaximum(ymax)
 	#allGraphs.SetMinimum(0.0)
-	allGraphs.Draw("AL")
+	allGraphs.Draw("0AL")
 	leg.Draw()
 	if "1" in name:
 		ring = 1
@@ -83,11 +84,14 @@ def main():
 	else:
 		extraTitle += ", GenAlt"
 	if "mean" in name:
-		allGraphs.SetTitle("Mean of Pull Distribution, r = {}".format(ring) + extraTitle)
+		allGraphs.SetTitle("Mean of Gaus Fit to Pull Distribution, r = {}".format(ring) + extraTitle)
 		allGraphs.GetYaxis().SetTitle("Mean")
-	else:
-		allGraphs.SetTitle("StdDev of Pull Distribution, r = {}".format(ring) + extraTitle)
+	elif "stdev" in name:
+		allGraphs.SetTitle("StdDev of Gaus Fit to Pull Distribution, r = {}".format(ring) + extraTitle)
 		allGraphs.GetYaxis().SetTitle("StdDev")
+	elif "chi2" in name:
+		allGraphs.SetTitle("#chi^2 of Gaus Fit to Pull Distribution, r = {}".format(ring) + extraTitle)
+		allGraphs.GetYaxis().SetTitle("#chi^2")
 		
 	allGraphs.GetXaxis().SetAxisColor(17)
 	allGraphs.GetYaxis().SetAxisColor(17)

@@ -33,6 +33,11 @@ fi
 echo "Signal Parameters: ${3} ${4} ${5} ${6}"
 cmd="python createDatacardsUnified.py -d ${1} -m ${2} -t -Z ${3} -D ${4} -R ${5} -A ${6} ${s}"
 
+
+echo "combine commands:"
+echo ${cmd}
+echo ${cmd} >/dev/stderr
+
 $cmd
 
 SVJ_NAME="SVJ_mZprime${3}_mDark${4}_rinv${5}_alpha${6}"
@@ -43,7 +48,7 @@ ls *.root
 echo "List all files"
 ls 
 echo "*******************************************"
-EOSDIR=/store/user/cfallon/biasStudies_biasNew/${1}
+EOSDIR=/store/user/cfallon/datacards_4Jan/${1}
 OUTDIR=root://cmseos.fnal.gov/${EOSDIR}
 echo "xrdcp output for condor"
 for FILE in *.root *.pdf *.txt #Residuals/*.pdf plots/*.pdf Fisher/*.txt ${SVJ_NAME}/*.txt

@@ -29,9 +29,9 @@ syst = collections.OrderedDict()
 # data doesn't get any (cause its data)
 # and MC bkg is indirectly used (via the fits)
 # and the uncertainties on the fit parameters take care of that
-syst["lumi"] = ("lnN", "sig", 2.6)
-syst["trig"] = ("lnN", "sig", 2.0)
-syst["scale"] = ("lnN", "sig", 15.0)
+syst["lumi"] = ("lnN", "sig", 1.026)
+syst["trig"] = ("lnN", "sig", 1.020)
+syst["scale"] = ("lnN", "sig", 1.15)
 
 syst["mcstat"] = ("shape", ["sig"])
 
@@ -97,7 +97,11 @@ def getHist(ch, process, ifile):
        h.SetDirectory(0)
        return h
 
-
+def altMerge(l1, l2):
+	result = [None]*(len(l1)+len(l2))
+	result[::2] = l1
+	result[1::2] = l2
+	return result
 
 
 def getEfficiency(sig, channels, ifilename):
@@ -200,7 +204,7 @@ def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label
               txt.SetNDC()
               txt.SetTextSize(0.04) 
               txt.SetTextColor(ROOT.kRed) 
-              txt.Draw();
+              txt.Draw()
 
               #txt_2 = ROOT.TText(2500, 800, "Prob: " + str(roopro))
               #txt_2 = ROOT.TText(2500, 2., "Prob: " + str(roopro))
@@ -209,18 +213,18 @@ def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label
               txt_2.SetNDC()
               txt_2.SetTextSize(0.04) 
               txt_2.SetTextColor(ROOT.kRed) 
-              txt_2.Draw();
+              txt_2.Draw()
               
               c.cd()
               c.Update()
               c.cd()
-              pad2 = ROOT.TPad("pad2", "pad2", 0, 0.1, 1, 0.3)
+              pad2 = ROOT.TPad("pad2", "pad2", 0, 0.1, 1, 0.34)
               ROOT.SetOwnership(pad2, False)
-              pad2.SetTopMargin(0);
-              pad2.SetBottomMargin(0.25);
-              pad2.SetGridx();
-              pad2.SetGridy();
-              pad2.Draw();
+              pad2.SetTopMargin(0)
+              pad2.SetBottomMargin(0.25)
+              pad2.SetGridx()
+              pad2.SetGridy()
+              pad2.Draw()
               pad2.cd()
               pad2.Clear()
        #frame.Draw()
@@ -310,9 +314,9 @@ def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label
        sumErrors = 0
        graphFit.Print()
        fitmodel = graphFit.getHist()
-       fitmodel_curve = graphFit.getCurve("Bkg_"+str(ch)+str(order)+"_rgp_Norm[mH]_errorband")
+       fitmodel_curve = graphFit.getCurve("Bkg_"+str(ch)+str(order)+"_rgp_Norm[mH"+ch+"]_errorband")
        if label == "alt":
-              fitmodel_curve = graphFit.getCurve("Bkg_Alt_"+str(ch)+str(order)+"_rgp_Norm[mH]_errorband")
+              fitmodel_curve = graphFit.getCurve("Bkg_Alt_"+str(ch)+str(order)+"_rgp_Norm[mH"+ch+"]_errorband")
        print "fitmodel_curve: "
        fitmodel_curve.Print()
 
@@ -369,11 +373,13 @@ def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label
         
        rss = math.sqrt(rss)
        parValList = []
+       parErrList = []
        print(len(fitRes[0].floatParsFinal()))
        for iPar in range(len(fitRes[0].floatParsFinal())):
               print(iPar)
               parValList.append((fitRes[0].floatParsFinal().at(iPar)).getValV())
-       out = {"chiSquared":roochi2,"chi2" : chi2, "chi1" : chi1, "rss" : rss, "res" : res, "nbins" : hist.GetN(), "npar" : npar, "parVals": parValList}
+              parErrList.append((fitRes[0].floatParsFinal().at(iPar)).getError())
+       out = {"chiSquared":roochi2,"chi2" : chi2, "chi1" : chi1, "rss" : rss, "res" : res, "nbins" : hist.GetN(), "npar" : npar, "parVals": parValList, "parErr":parErrList}
        length=1
        if(length<2):
 
@@ -416,7 +422,7 @@ def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label
               c2.cd()
               c2.Update()
               c2.cd()
-              pad2_2 = ROOT.TPad("pad2_2", "pad2_2", 0, 0.05, 1, 0.3)
+              pad2_2 = ROOT.TPad("pad2_2", "pad2_2", 0, 0.05, 1, 0.34)
               ROOT.SetOwnership(pad2_2, False)
               pad2_2.SetTopMargin(0);
               pad2_2.SetBottomMargin(0.25);
@@ -454,6 +460,91 @@ def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label
 
        return out
 
+def drawTwoFuncs(sig, ch, variable, modelA, modelB, dataset, fitRes, carddir,  norm = -1, label = "nom"):
+       name = modelA.GetName()+"_"+modelB.GetName()
+       varArg = ROOT.RooArgSet(variable)
+      
+       frame = variable.frame(ROOT.RooFit.Title(""))
+       dataset.plotOn(frame, RooFit.Invisible())
+       modelA.plotOn(frame, RooFit.VisualizeError(fitRes[0], 1, False), RooFit.Normalization(norm if norm>0 else dataset.sumEntries(), ROOT.RooAbsReal.NumEvent), RooFit.LineStyle(2), RooFit.LineColor(ROOT.kBlue), RooFit.FillColor(ROOT.kCyan), RooFit.FillStyle(1001), RooFit.DrawOption("FL"), RooFit.Name(modelA.GetName()),  RooFit.Range("Full"))
+       modelB.plotOn(frame, RooFit.VisualizeError(fitRes[1], 1, False), RooFit.Normalization(norm if norm>0 else dataset.sumEntries(), ROOT.RooAbsReal.NumEvent), RooFit.LineStyle(2), RooFit.LineColor(ROOT.kRed),  RooFit.FillColor(ROOT.kOrange), RooFit.FillStyle(1001), RooFit.DrawOption("FL"), RooFit.Name(modelB.GetName()),  RooFit.Range("Full"))
+       dataset.plotOn(frame, RooFit.DataError(ROOT.RooAbsData.Poisson if isData else ROOT.RooAbsData.SumW2), RooFit.DrawOption("PE0"), RooFit.Name(dataset.GetName()))
+       modelA.plotOn(frame, RooFit.Normalization(norm if norm>0 else dataset.sumEntries(), ROOT.RooAbsReal.NumEvent), RooFit.LineColor(ROOT.kBlue), RooFit.DrawOption("L"), RooFit.Name(modelA.GetName()),  RooFit.Range("Full"))
+       modelB.plotOn(frame, RooFit.Normalization(norm if norm>0 else dataset.sumEntries(), ROOT.RooAbsReal.NumEvent), RooFit.LineColor(ROOT.kRed), RooFit.DrawOption("L"), RooFit.Name(modelB.GetName()),  RooFit.Range("Full"))
+       frame.SetMaximum(frame.GetMaximum()*10.)
+       frame.SetMinimum(0.1)
+
+       c = ROOT.TCanvas("c_"+ch+name, ch, 800, 800)
+       c.cd()
+       pad1 = ROOT.TPad("pad1", "pad1", 0., 0.35, 1., 1.0)
+       ROOT.SetOwnership(pad1, False)
+       pad1.SetBottomMargin(0.)
+       pad1.SetGridx()
+       pad1.SetGridy()
+       pad1.SetLogy()
+       pad1.Draw()
+       pad1.cd()
+
+       frame.Draw()
+       frame.SetTitle("")
+              
+       txt = ROOT.TText(0.5, 0.7, modelA.GetName())              
+       txt.SetNDC()
+       txt.SetTextSize(0.04) 
+       txt.SetTextColor(ROOT.kBlue) 
+       txt.Draw()
+       txt_2 = ROOT.TText(0.5, 0.8, modelB.GetName())              
+       txt_2.SetNDC()
+       txt_2.SetTextSize(0.04) 
+       txt_2.SetTextColor(ROOT.kRed) 
+       txt_2.Draw()
+
+       c.cd()
+       c.Update()
+       c.cd()
+       pad2 = ROOT.TPad("pad2", "pad2", 0, 0.1, 1, 0.3)
+       ROOT.SetOwnership(pad2, False)
+       pad2.SetTopMargin(0)
+       pad2.SetBottomMargin(0.25)
+       pad2.SetGridx()
+       pad2.SetGridy()
+       pad2.Draw()
+       pad2.cd()
+       pad2.Clear()
+
+       frame_res = variable.frame(ROOT.RooFit.Title(""))
+       frame_res.GetYaxis().SetRangeUser(-3.5, 3.5)
+       frame_res.SetTitle("")
+       frame_res.GetYaxis().SetTitle("Ratio Main/Alt")
+       frame_res.GetYaxis().SetTitleOffset(.3)
+       frame_res.GetXaxis().SetTitleOffset(1.)
+       frame_res.GetYaxis().SetTitleSize(.13)
+       frame_res.GetXaxis().SetTitle("m_{T} (GeV)")
+       frame_res.GetXaxis().SetTitleSize(.13)
+       frame_res.GetXaxis().SetLabelSize(.12)
+       frame_res.GetYaxis().SetLabelSize(.12)
+       frame_res.Draw("SAME")
+       frame_res.SetTitle("")
+       
+       c.Update()
+       c.Range(1500, -3.5, 8000, 3.5)
+       # create two histograms, one for modelA (main) and one for modelB (alt)
+       # then diving A by B, and plot in Red
+       histA = ROOT.TH1F("histA","histA",65,1500,8000)
+       histB = ROOT.TH1F("histB","histB",65,1500,8000)
+       histA.Sumw2()
+       histB.Sumw2()
+       modelA.fillHistogram(histA, RooArgList(varArg))
+       modelB.fillHistogram(histB, RooArgList(varArg))
+       histA.Divide(histB)
+       histA.SetLineColor(ROOT.kMagenta)
+       histA.SetLineWidth(2)
+       histA.Draw("hist c same")
+       frame_res.GetYaxis().SetRangeUser(0.0, 2.0)
+       
+       c.Update()
+       c.Modified()
+       c.SaveAs("Residuals_"+ch+"_"+name+"_TwoFuncs_14.pdf")
 
 def fisherTest(RSS1, RSS2, o1, o2, N):
        print "Testing functions with parameters o1 ", o1, " and o2 ", o2, " with RSS RSS1 ", RSS1, " and RSS2 ", RSS2, " and N ", N
@@ -530,7 +621,7 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
               #print "histBkgData: ", histBkgData.Integral()
               xvarmin = 1500.
               xvarmax = 8000.
-              mT = RooRealVar(  "mH",    "m_{T}", xvarmin, xvarmax, "GeV")
+              mT = RooRealVar(  "mH"+ch,    "m_{T}", xvarmin, xvarmax, "GeV")
               binMin = histData.FindBin(xvarmin)
               binMax = histData.FindBin(xvarmax)
               bkgData = RooDataHist("bkgdata", "MC Bkg",  RooArgList(mT), histBkgData, 1.)
@@ -556,42 +647,60 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
               if(doModelling):
                      #ch_red = ch
                      print "channel: ", ch_red
+                     lowerLimit = -50
+                     upperLimit = 150
+                     if "lowCut" in ch_red:
+                            lowerLimit = -60
+                            upperLimit = 150
+                     if "highCut" in ch_red:
+                            lowerLimit = -50
+                            upperLimit = 150
+                     if "lowSVJ2" in ch_red:
+                            lowerLimit = -80
+                            upperLimit = 190
+                     if "highSVJ2" in ch_red:
+                            lowerLimit = -20
+                            upperLimit = 100
 
 
-                     p1_1 = RooRealVar(ch_red + "_p1_1", "p1", 1., -100., 100.)
-                     p1_2 = RooRealVar(ch_red + "_p1_2", "p1", 1., -100., 100.)
-                     p1_3 = RooRealVar(ch_red + "_p1_3", "p1", 1., -100., 100.)
-                     p1_4 = RooRealVar(ch_red + "_p1_4", "p1", 1., -100., 100.)
+                     p1_1 = RooRealVar(ch_red + "_p1_1", "p1", 1., lowerLimit, upperLimit)
+                     p1_2 = RooRealVar(ch_red + "_p1_2", "p1", 1., lowerLimit, upperLimit)
+                     p1_3 = RooRealVar(ch_red + "_p1_3", "p1", 1., lowerLimit, upperLimit)
+                     p1_4 = RooRealVar(ch_red + "_p1_4", "p1", 1., lowerLimit, upperLimit)
 
-                     p2_1 = RooRealVar(ch_red + "_p2_1", "p2", 1., -100., 100.)
-                     p2_2 = RooRealVar(ch_red + "_p2_2", "p2", 1., -100., 100.)
-                     p2_3 = RooRealVar(ch_red + "_p2_3", "p2", 1., -100., 100.)
-                     p2_4 = RooRealVar(ch_red + "_p2_4", "p2", 1., -100., 100.)
+                     p2_1 = RooRealVar(ch_red + "_p2_1", "p2", 1., lowerLimit, upperLimit)
+                     p2_2 = RooRealVar(ch_red + "_p2_2", "p2", 1., lowerLimit, upperLimit)
+                     p2_3 = RooRealVar(ch_red + "_p2_3", "p2", 1., lowerLimit, upperLimit)
+                     p2_4 = RooRealVar(ch_red + "_p2_4", "p2", 1., lowerLimit, upperLimit)
 
-                     p3_2 = RooRealVar(ch_red + "_p3_2", "p3", 1., -100., 100.)
-                     p3_3 = RooRealVar(ch_red + "_p3_3", "p3", 1., -100., 100.)
-                     p3_4 = RooRealVar(ch_red + "_p3_4", "p3", 1., -100., 100.)
+                     p3_2 = RooRealVar(ch_red + "_p3_2", "p3", 1., lowerLimit, upperLimit)
+                     p3_3 = RooRealVar(ch_red + "_p3_3", "p3", 1., lowerLimit, upperLimit)
+                     p3_4 = RooRealVar(ch_red + "_p3_4", "p3", 1., lowerLimit, upperLimit)
 
-                     p4_3 = RooRealVar(ch_red + "_p4_3", "p4", 1., -100., 100.)
-                     p4_4 = RooRealVar(ch_red + "_p4_4", "p4", 1., -100., 100.)
+                     p4_3 = RooRealVar(ch_red + "_p4_3", "p4", 1., lowerLimit, upperLimit)
+                     p4_4 = RooRealVar(ch_red + "_p4_4", "p4", 1., lowerLimit, upperLimit)
 
-                     p5_4 = RooRealVar(ch_red + "_p5_4", "p5", 1., -100., 100.)
+                     p5_4 = RooRealVar(ch_red + "_p5_4", "p5", 1., lowerLimit, upperLimit)
 
 
                      #Function from Theorists, combo testing, sequence E, 1, 11, 12, 22
                      # model NM has N params on 1-x and M params on x. exponents are (p_i + p_{i+1} * log(x))
                      # these are the RooGenericPdf verisons, convert to RooParametricShapeBinPdf below
-                     modelBkg1_rgp = RooGenericPdf(modelName+"1_rgp", "Thry. fit (11)", "pow(1 - @0/13000, @1) * pow(@0/13000, -(@2))",                                                                         RooArgList(mT, p1_1, p2_1))
-                     modelBkg2_rgp = RooGenericPdf(modelName+"2_rgp", "Thry. fit (12)", "pow(1 - @0/13000, @1) * pow(@0/13000, -(@2+@3*log(@0/13000)))",                                                     RooArgList(mT, p1_2, p2_2, p3_2))
-                     modelBkg3_rgp = RooGenericPdf(modelName+"3_rgp", "Thry. fit (13)", "pow(1 - @0/13000, @1) * pow(@0/13000, -(@2+@3*log(@0/13000)+@4*pow(log(@0/13000),2)))",                           RooArgList(mT, p1_3, p2_3, p3_3, p4_3))
-                     modelBkg4_rgp = RooGenericPdf(modelName+"4_rgp", "Thry. fit (14)", "pow(1 - @0/13000, @1) * pow(@0/13000, -(@2+@3*log(@0/13000)+@4*pow(log(@0/13000),2)+@5*pow(log(@0/13000),3)))", RooArgList(mT, p1_4, p2_4, p3_4, p4_4, p5_4))
-
+                     modelBkg1_rgp = RooGenericPdf(modelName+"1_rgp", "Thry. fit (11)", "pow(1 - @0/13000, @1) * pow(@0/13000, -(@2))",                                                                  RooArgList(mT, p1_1, p2_1))
+                     modelBkg2_rgp = RooGenericPdf(modelName+"2_rgp", "Thry. fit (12)", "pow(1 - @0/13000, @1) * pow(@0/13000, -(@2+@3*log(@0/13000)))",                                                 RooArgList(mT, p1_2, p2_2, p3_2))
+                     #modelBkg3_rgp = RooGenericPdf(modelName+"3_rgp", "Thry. fit (13)", "pow(1 - @0/13000, @1) * pow(@0/13000, -(@2+@3*log(@0/13000)+@4*pow(log(@0/13000),2)))",                         RooArgList(mT, p1_3, p2_3, p3_3, p4_3))
+                     #modelBkg4_rgp = RooGenericPdf(modelName+"4_rgp", "Thry. fit (14)", "pow(1 - @0/13000, @1) * pow(@0/13000, -(@2+@3*log(@0/13000)+@4*pow(log(@0/13000),2)+@5*pow(log(@0/13000),3)))", RooArgList(mT, p1_4, p2_4, p3_4, p4_4, p5_4))
+                     modelBkg3_rgp = RooGenericPdf(modelName+"3_rgp", "Thry. fit (22)", "pow(1 - @0/13000, @1+@2*log(@0/13000)) * pow(@0/13000, -(@3+@4*log(@0/13000)))",                         RooArgList(mT, p1_3, p2_3, p3_3, p4_3))
+                     modelBkg4_rgp = RooGenericPdf(modelName+"4_rgp", "Thry. fit (32)", "pow(1 - @0/13000, @1+@2*log(@0/13000)+@3*pow(log(@0/13000),2)) * pow(@0/13000, -(@4+@5*log(@0/13000)))", RooArgList(mT, p1_4, p2_4, p3_4, p4_4, p5_4))
+                     #modelBkg4_rgp = RooGenericPdf(modelName+"4_rgp", "Thry. fit (41)", "pow(1 - @0/13000, @1+@2*log(@0/13000)+@3*pow(log(@0/13000),2)+@4*pow(log(@0/13000),3)) * pow(@0/13000, -@5)", RooArgList(mT, p1_4, p2_4, p3_4, p4_4, p5_4))
                      modelBkg1 = RooParametricShapeBinPdf(modelName+"1", "Thry. Fit (11)", modelBkg1_rgp, mT, RooArgList(p1_1, p2_1), histBkgData)
                      modelBkg2 = RooParametricShapeBinPdf(modelName+"2", "Thry. Fit (12)", modelBkg2_rgp, mT, RooArgList(p1_2, p2_2, p3_2), histBkgData)
-                     modelBkg3 = RooParametricShapeBinPdf(modelName+"3", "Thry. Fit (13)", modelBkg3_rgp, mT, RooArgList(p1_3, p2_3, p3_3, p4_3), histBkgData)
-                     modelBkg4 = RooParametricShapeBinPdf(modelName+"4", "Thry. Fit (14)", modelBkg4_rgp, mT, RooArgList(p1_4, p2_4, p3_4, p4_4, p5_4), histBkgData)
-                     
-                     
+                     #modelBkg3 = RooParametricShapeBinPdf(modelName+"3", "Thry. Fit (13)", modelBkg3_rgp, mT, RooArgList(p1_3, p2_3, p3_3, p4_3), histBkgData)
+                     #modelBkg4 = RooParametricShapeBinPdf(modelName+"4", "Thry. Fit (14)", modelBkg4_rgp, mT, RooArgList(p1_4, p2_4, p3_4, p4_4, p5_4), histBkgData)
+                     modelBkg3 = RooParametricShapeBinPdf(modelName+"3", "Thry. Fit (22)", modelBkg3_rgp, mT, RooArgList(p1_3, p2_3, p3_3, p4_3), histBkgData)
+                     modelBkg4 = RooParametricShapeBinPdf(modelName+"4", "Thry. Fit (32)", modelBkg4_rgp, mT, RooArgList(p1_4, p2_4, p3_4, p4_4, p5_4), histBkgData)
+                     #modelBkg4 = RooParametricShapeBinPdf(modelName+"4", "Thry. Fit (41)", modelBkg4_rgp, mT, RooArgList(p1_4, p2_4, p3_4, p4_4, p5_4), histBkgData)
+
                      RSS = {}
                      fitrange = "Full"
                      #if (ch == "highSVJ1_2016"): fitrange = "Low,High"
@@ -653,7 +762,6 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                      RSS[fitRes2.floatParsFinal().getSize()] = getRSS(sig, ch, mT, modelBkg2, obsData,  [fitRes2], carddir, nDataEvts)
                      RSS[fitRes3.floatParsFinal().getSize()] = getRSS(sig, ch, mT, modelBkg3, obsData,  [fitRes3], carddir, nDataEvts)
                      RSS[fitRes4.floatParsFinal().getSize()] = getRSS(sig, ch, mT, modelBkg4, obsData,  [fitRes4], carddir, nDataEvts)
-
                      print RSS[2]
 
                      #**********************************************************
@@ -665,24 +773,37 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                             normAlt = RooRealVar("Bkg_"+ch+"alt_norm", "Number of background events", nBkgEvts, 0., 2.e4)
                             normData = RooRealVar("Data_"+ch+"alt_norm", "Number of background events", nDataEvts, 0., 2.e4) 
 
-                            p1_1_alt = RooRealVar(ch_red + "_p1_1_alt", "p1", 1., -100., 100.)
-                            p1_2_alt = RooRealVar(ch_red + "_p1_2_alt", "p1", 1., -100., 100.)
-                            p1_3_alt = RooRealVar(ch_red + "_p1_3_alt", "p1", 1., -100., 100.)
-                            p1_4_alt = RooRealVar(ch_red + "_p1_4_alt", "p1", 1., -100., 100.)
+                          
+                            lowAlt = -100
+                            highAlt = 100
+                            p1i = 1.
+                            p2i = 1.
+                            p3i = 1.
+                            p4i = 1.
+                            if "highSVJ2" in ch_red:
+                                   lowAlt = -1000
+                            elif "highCut" in ch_red:
+                                   p1i = -5.
+                                   p2i = -10.
+                                   p3i = 0.1
+                            p1_1_alt = RooRealVar(ch_red + "_p1_1_alt", "p1", p1i, lowAlt, highAlt)
 
-                            p2_2_alt = RooRealVar(ch_red + "_p2_2_alt", "p2", 1., -100., 100.)
-                            p2_3_alt = RooRealVar(ch_red + "_p2_3_alt", "p2", 1., -100., 100.)
-                            p2_4_alt = RooRealVar(ch_red + "_p2_4_alt", "p2", 1., -100., 100.)
+                            p1_2_alt = RooRealVar(ch_red + "_p1_2_alt", "p1", p1i, lowAlt, highAlt)
+                            p2_2_alt = RooRealVar(ch_red + "_p2_2_alt", "p2", p2i, lowAlt, highAlt)
 
-                            p3_3_alt = RooRealVar(ch_red + "_p3_3_alt", "p3", 1., -100., 100.)
-                            p3_4_alt = RooRealVar(ch_red + "_p3_4_alt", "p3", 1., -100., 100.)
+                            p1_3_alt = RooRealVar(ch_red + "_p1_3_alt", "p1", p1i, lowAlt, highAlt)
+                            p2_3_alt = RooRealVar(ch_red + "_p2_3_alt", "p2", p2i, lowAlt, highAlt)
+                            p3_3_alt = RooRealVar(ch_red + "_p3_3_alt", "p3", p3i, lowAlt, highAlt)
 
-                            p4_4_alt = RooRealVar(ch_red + "_p4_4_alt", "p4", 1., -100., 100.) 
+                            p1_4_alt = RooRealVar(ch_red + "_p1_4_alt", "p1", p1i, lowAlt, highAlt)
+                            p2_4_alt = RooRealVar(ch_red + "_p2_4_alt", "p2", p2i, lowAlt, highAlt)
+                            p3_4_alt = RooRealVar(ch_red + "_p3_4_alt", "p3", p3i, lowAlt, highAlt)
+                            p4_4_alt = RooRealVar(ch_red + "_p4_4_alt", "p4", p4i, lowAlt, highAlt)
 
-                            p2_1_alt = RooRealVar(ch_red + "_p2_1_alt", "p2", 1., -100., 100.)
-                            p3_2_alt = RooRealVar(ch_red + "_p3_2_alt", "p3", 1., -100., 100.)
-                            p4_3_alt = RooRealVar(ch_red + "_p4_3_alt", "p4", 1., -100., 100.)
-                            p5_4_alt = RooRealVar(ch_red + "_p5_4_alt", "p5", 1., -100., 100.)
+                            #p2_1_alt = RooRealVar(ch_red + "_p2_1_alt", "p2", 1., -50., 50.)
+                            #p3_2_alt = RooRealVar(ch_red + "_p3_2_alt", "p3", 1., -50., 50.)
+                            #p4_3_alt = RooRealVar(ch_red + "_p4_3_alt", "p4", 1., -50., 50.)
+                            #p5_4_alt = RooRealVar(ch_red + "_p5_4_alt", "p5", 1., -50., 50.)
 
 
 
@@ -693,10 +814,16 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                             #modelAlt4_rgp = RooGenericPdf(modelAltName+"4_rgp", "Dij. fit (4 par.)", "pow(1 - @0/13000, abs(@1)) * pow(@0/13000, -abs(@2)-log(@0/13000)*(abs(@3) + abs(@4)* log(@0/13000)))", RooArgList(mT, p1_4_alt, p2_4_alt, p3_4_alt, p4_4_alt))
 
                             # New Alt Function
-                            modelAlt1_rgp = RooGenericPdf(modelAltName+"1_rgp", "Alt. fit (1 par.)", "exp(@1*(@0/13000))", RooArgList(mT, p1_1_alt))
-                            modelAlt2_rgp = RooGenericPdf(modelAltName+"2_rgp", "Alt. fit (2 par.)", "exp(@1*(@0/13000)+@2*log(@0/13000))", RooArgList(mT, p1_2_alt, p2_2_alt))
-                            modelAlt3_rgp = RooGenericPdf(modelAltName+"3_rgp", "Alt. fit (3 par.)", "exp(@1*(@0/13000)+@2*log(@0/13000)+@3*pow(log(@0/13000),2))", RooArgList(mT, p1_3_alt, p2_3_alt, p3_3_alt))
-                            modelAlt4_rgp = RooGenericPdf(modelAltName+"4_rgp", "Alt. fit (4 par.)", "exp(@1*(@0/13000)+@2*log(@0/13000)+@3*pow(log(@0/13000),2)+@4*pow(log(@0/13000),3))", RooArgList(mT, p1_4_alt, p2_4_alt, p3_4_alt, p4_4_alt))
+                            #modelAlt1_rgp = RooGenericPdf(modelAltName+"1_rgp", "Alt. fit (1 par.)", "exp(@1*(@0/13000))", RooArgList(mT, p1_1_alt))
+                            #modelAlt2_rgp = RooGenericPdf(modelAltName+"2_rgp", "Alt. fit (2 par.)", "exp(@1*(@0/13000)+@2*log(@0/13000))", RooArgList(mT, p1_2_alt, p2_2_alt))
+                            #modelAlt3_rgp = RooGenericPdf(modelAltName+"3_rgp", "Alt. fit (3 par.)", "exp(@1*(@0/13000)+@2*log(@0/13000)+@3*pow(log(@0/13000),2))", RooArgList(mT, p1_3_alt, p2_3_alt, p3_3_alt))
+                            #modelAlt4_rgp = RooGenericPdf(modelAltName+"4_rgp", "Alt. fit (4 par.)", "exp(@1*(@0/13000)+@2*log(@0/13000)+@3*pow(log(@0/13000),2)+@4*pow(log(@0/13000),3))", RooArgList(mT, p1_4_alt, p2_4_alt, p3_4_alt, p4_4_alt))
+
+                            # New Alt Function, reparameterized, decoupled
+                            modelAlt1_rgp = RooGenericPdf(modelAltName+"1_rgp", "Alt. Reparam (1 par.)", "exp(@1*(@0/13000))", RooArgList(mT, p1_1_alt))
+                            modelAlt2_rgp = RooGenericPdf(modelAltName+"2_rgp", "Alt. Reparam (2 par.)", "exp(@1*(@0/13000)) * pow(@0/13000,@2)", RooArgList(mT, p1_2_alt, p2_2_alt))
+                            modelAlt3_rgp = RooGenericPdf(modelAltName+"3_rgp", "Alt. Reparam (3 par.)", "exp(@1*(@0/13000)) * pow(@0/13000,@2*(1+@3*log(@0/13000)))", RooArgList(mT, p1_3_alt, p2_3_alt, p3_3_alt))
+                            modelAlt4_rgp = RooGenericPdf(modelAltName+"4_rgp", "Alt. Reparam (4 par.)", "exp(@1*(@0/13000)) * pow(@0/13000,@2*(1+@3*log(@0/13000)*(1+@4*log(@0/13000))))", RooArgList(mT, p1_4_alt, p2_4_alt, p3_4_alt, p4_4_alt))
 
                             modelAlt1 = RooParametricShapeBinPdf(modelAltName+"1", "Alt. Fit 1par", modelAlt1_rgp, mT, RooArgList(p1_1_alt), histBkgData)
                             modelAlt2 = RooParametricShapeBinPdf(modelAltName+"2", "Alt. Fit 2par", modelAlt2_rgp, mT, RooArgList(p1_2_alt, p2_2_alt), histBkgData)
@@ -715,15 +842,33 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                             RSS_alt = {}
                             fitrange = "Full"
                             #if (ch == "highSVJ1_2016"): fitrange = "Low,High"
-                            fitRes1_alt = modelAlt1.fitTo(obsData, RooFit.Extended(True), RooFit.Save(1), RooFit.SumW2Error(True), RooFit.Strategy(2), RooFit.Minimizer("Minuit"), RooFit.PrintLevel(2), RooFit.Range(fitrange))
-                            fitRes2_alt = modelAlt2.fitTo(obsData, RooFit.Extended(True), RooFit.Save(1), RooFit.SumW2Error(True), RooFit.Strategy(2), RooFit.Minimizer("Minuit"), RooFit.PrintLevel(2), RooFit.Range(fitrange))
-                            fitRes3_alt = modelAlt3.fitTo(obsData, RooFit.Extended(True), RooFit.Save(1), RooFit.SumW2Error(True), RooFit.Strategy(2), RooFit.Minimizer("Minuit"), RooFit.PrintLevel(2), RooFit.Range(fitrange))
-                            fitRes4_alt = modelAlt4.fitTo(obsData, RooFit.Extended(True), RooFit.Save(1), RooFit.SumW2Error(True), RooFit.Strategy(2), RooFit.Minimizer("Minuit"), RooFit.PrintLevel(2), RooFit.Range(fitrange))
+                            fitRes1_alt = modelAlt1.fitTo(obsData, RooFit.Extended(True), RooFit.Save(1), RooFit.SumW2Error(True), RooFit.Strategy(2), RooFit.Minimizer("Minuit2"), RooFit.PrintLevel(2), RooFit.Range(fitrange))
+                            fitRes2_alt = modelAlt2.fitTo(obsData, RooFit.Extended(True), RooFit.Save(1), RooFit.SumW2Error(True), RooFit.Strategy(2), RooFit.Minimizer("Minuit2"), RooFit.PrintLevel(2), RooFit.Range(fitrange))
+                            fitRes3_alt = modelAlt3.fitTo(obsData, RooFit.Extended(True), RooFit.Save(1), RooFit.SumW2Error(True), RooFit.Strategy(2), RooFit.Minimizer("Minuit2"), RooFit.PrintLevel(2), RooFit.Range(fitrange))
+                            fitRes4_alt = modelAlt4.fitTo(obsData, RooFit.Extended(True), RooFit.Save(1), RooFit.SumW2Error(True), RooFit.Strategy(2), RooFit.Minimizer("Minuit2"), RooFit.PrintLevel(2), RooFit.Range(fitrange))
 
                             RSS_alt[fitRes1_alt.floatParsFinal().getSize()] = getRSS(sig, ch, mT, modelAlt1, obsData,  [fitRes1_alt], carddir,  nDataEvts, label = "alt")
                             RSS_alt[fitRes2_alt.floatParsFinal().getSize()] = getRSS(sig, ch, mT, modelAlt2, obsData,  [fitRes2_alt], carddir,  nDataEvts, label = "alt")
                             RSS_alt[fitRes3_alt.floatParsFinal().getSize()] = getRSS(sig, ch, mT, modelAlt3, obsData,  [fitRes3_alt], carddir,  nDataEvts, label = "alt")
                             RSS_alt[fitRes4_alt.floatParsFinal().getSize()] = getRSS(sig, ch, mT, modelAlt4, obsData,  [fitRes4_alt], carddir,  nDataEvts, label = "alt")
+                            
+                            drawTwoFuncs(sig, ch, mT, modelBkg1, modelAlt1, obsData, [fitRes1, fitRes1_alt], carddir,  nDataEvts, label = "dual")
+                            drawTwoFuncs(sig, ch, mT, modelBkg1, modelAlt2, obsData, [fitRes1, fitRes2_alt], carddir,  nDataEvts, label = "dual")
+                            drawTwoFuncs(sig, ch, mT, modelBkg1, modelAlt3, obsData, [fitRes1, fitRes3_alt], carddir,  nDataEvts, label = "dual")
+                            drawTwoFuncs(sig, ch, mT, modelBkg1, modelAlt4, obsData, [fitRes1, fitRes4_alt], carddir,  nDataEvts, label = "dual")
+                            drawTwoFuncs(sig, ch, mT, modelBkg2, modelAlt1, obsData, [fitRes2, fitRes1_alt], carddir,  nDataEvts, label = "dual")
+                            drawTwoFuncs(sig, ch, mT, modelBkg2, modelAlt2, obsData, [fitRes2, fitRes2_alt], carddir,  nDataEvts, label = "dual")
+                            drawTwoFuncs(sig, ch, mT, modelBkg2, modelAlt3, obsData, [fitRes2, fitRes3_alt], carddir,  nDataEvts, label = "dual")
+                            drawTwoFuncs(sig, ch, mT, modelBkg2, modelAlt4, obsData, [fitRes2, fitRes4_alt], carddir,  nDataEvts, label = "dual")
+                            drawTwoFuncs(sig, ch, mT, modelBkg3, modelAlt1, obsData, [fitRes3, fitRes1_alt], carddir,  nDataEvts, label = "dual")
+                            drawTwoFuncs(sig, ch, mT, modelBkg3, modelAlt2, obsData, [fitRes3, fitRes2_alt], carddir,  nDataEvts, label = "dual")
+                            drawTwoFuncs(sig, ch, mT, modelBkg3, modelAlt3, obsData, [fitRes3, fitRes3_alt], carddir,  nDataEvts, label = "dual")
+                            drawTwoFuncs(sig, ch, mT, modelBkg3, modelAlt4, obsData, [fitRes3, fitRes4_alt], carddir,  nDataEvts, label = "dual")
+                            drawTwoFuncs(sig, ch, mT, modelBkg4, modelAlt1, obsData, [fitRes4, fitRes1_alt], carddir,  nDataEvts, label = "dual")
+                            drawTwoFuncs(sig, ch, mT, modelBkg4, modelAlt2, obsData, [fitRes4, fitRes2_alt], carddir,  nDataEvts, label = "dual")
+                            drawTwoFuncs(sig, ch, mT, modelBkg4, modelAlt3, obsData, [fitRes4, fitRes3_alt], carddir,  nDataEvts, label = "dual")
+                            drawTwoFuncs(sig, ch, mT, modelBkg4, modelAlt4, obsData, [fitRes4, fitRes4_alt], carddir,  nDataEvts, label = "dual")
+
                             length = 1
                             if(length<2):
                                    xframeAlt = mT.frame(ROOT.RooFit.Title("extended ML fit example"))
@@ -790,23 +935,23 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                                    if RTDict["{}v{}".format(RSS[nParMin]['npar'],RSS[nParMin+3]['npar'])] > aCrit:
                                           order = RSS[RSS[nParMin]['npar']]['npar']
                                    else:
-                                          order = RSS[RSS[nParMin]['npar']+3]['npar']
+                                          order = RSS[RSS[nParMin+3]['npar']]['npar']
                             else:
-                                   if RTDict["{}v{}".format(RSS[nParMin]['npar']+2,RSS[nParMin+3]['npar'])] > aCrit:
-                                          order = RSS[RSS[nParMin]['npar']+2]['npar']
+                                   if RTDict["{}v{}".format(RSS[nParMin+2]['npar'],RSS[nParMin+3]['npar'])] > aCrit:
+                                          order = RSS[RSS[nParMin+2]['npar']]['npar']
                                    else:
-                                          order = RSS[RSS[nParMin]['npar']+3]['npar']
+                                          order = RSS[RSS[nParMin+3]['npar']]['npar']
                      else:
-                            if RTDict["{}v{}".format(RSS[nParMin]['npar']+1,RSS[nParMin+2]['npar'])] > aCrit:
-                                   if RTDict["{}v{}".format(RSS[nParMin]['npar']+1,RSS[nParMin+3]['npar'])] > aCrit:
-                                          order = RSS[RSS[nParMin]['npar']+1]['npar']
+                            if RTDict["{}v{}".format(RSS[nParMin+1]['npar'],RSS[nParMin+2]['npar'])] > aCrit:
+                                   if RTDict["{}v{}".format(RSS[nParMin+1]['npar'],RSS[nParMin+3]['npar'])] > aCrit:
+                                          order = RSS[RSS[nParMin+1]['npar']]['npar']
                                    else:
-                                          order = RSS[RSS[nParMin]['npar']+3]['npar']
+                                          order = RSS[RSS[nParMin+3]['npar']]['npar']
                             else:
-                                   if RTDict["{}v{}".format(RSS[nParMin]['npar']+2,RSS[nParMin+3]['npar'])] > aCrit:
-                                          order = RSS[RSS[nParMin]['npar']+2]['npar']
+                                   if RTDict["{}v{}".format(RSS[nParMin+2]['npar'],RSS[nParMin+3]['npar'])] > aCrit:
+                                          order = RSS[RSS[nParMin+2]['npar']]['npar']
                                    else:
-                                          order = RSS[RSS[nParMin]['npar']+3]['npar']
+                                          order = RSS[RSS[nParMin+3]['npar']]['npar']
                      #OLD WAY OF DOING IT, only does n vs n+1
                      #for o1 in xrange(1, len(RSS)):
                      #       o2 = o1+1
@@ -832,10 +977,10 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                      print "-"*25   
                      print "Order is", order, "("+ch+")"
                      report += "Order is %d (%s)\n" % (order, ch)
-                     report += ("11 param: " + ", ".join(['%.2f']*len(RSS[nParMin]["parVals"])) + "\n") % tuple(RSS[nParMin]["parVals"])
-                     report += ("12 param: " + ", ".join(['%.2f']*len(RSS[nParMin+1]["parVals"])) + "\n") % tuple(RSS[nParMin+1]["parVals"])
-                     report += ("13 param: " + ", ".join(['%.2f']*len(RSS[nParMin+2]["parVals"])) + "\n") % tuple(RSS[nParMin+2]["parVals"])
-                     report += ("14 param: " + ", ".join(['%.2f']*len(RSS[nParMin+3]["parVals"])) + "\n") % tuple(RSS[nParMin+3]["parVals"])
+                     report += ("2 param: " + ", ".join(['%.2f']*len(RSS[nParMin]["parVals"])) + "\n") % tuple(RSS[nParMin]["parVals"])
+                     report += ("3 param: " + ", ".join(['%.2f']*len(RSS[nParMin+1]["parVals"])) + "\n") % tuple(RSS[nParMin+1]["parVals"])
+                     report += ("4 param: " + ", ".join(['%.2f']*len(RSS[nParMin+2]["parVals"])) + "\n") % tuple(RSS[nParMin+2]["parVals"])
+                     report += ("5 param: " + ", ".join(['%.2f']*len(RSS[nParMin+3]["parVals"])) + "\n") % tuple(RSS[nParMin+3]["parVals"])
                      report += "%d (%d) par are sufficient\n" % (RSS[order]['npar'], order)
                      if moreParFlag: report += "BUT really, more Pars are needed!"
                      for i in range(nParMin, nParMin+4):
@@ -877,23 +1022,23 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                                           if RTDict_alt["{}v{}".format(RSS_alt[nParMin_alt]['npar'],RSS_alt[nParMin_alt+3]['npar'])] > aCrit:
                                                  order_alt = RSS_alt[RSS_alt[nParMin_alt]['npar']]['npar']
                                           else:
-                                                 order_alt = RSS_alt[RSS_alt[nParMin_alt]['npar']+3]['npar']
+                                                 order_alt = RSS_alt[RSS_alt[nParMin_alt+3]['npar']]['npar']
                                    else:
-                                          if RTDict_alt["{}v{}".format(RSS_alt[nParMin_alt]['npar']+2,RSS_alt[nParMin_alt+3]['npar'])] > aCrit:
-                                                 order_alt = RSS_alt[RSS_alt[nParMin_alt]['npar']+2]['npar']
+                                          if RTDict_alt["{}v{}".format(RSS_alt[nParMin_alt+2]['npar'],RSS_alt[nParMin_alt+3]['npar'])] > aCrit:
+                                                 order_alt = RSS_alt[RSS_alt[nParMin_alt+2]['npar']]['npar']
                                           else:
-                                                 order_alt = RSS_alt[RSS_alt[nParMin_alt]['npar']+3]['npar']
+                                                 order_alt = RSS_alt[RSS_alt[nParMin_alt+3]['npar']]['npar']
                             else:
-                                   if RTDict_alt["{}v{}".format(RSS_alt[nParMin_alt]['npar']+1,RSS_alt[nParMin_alt+2]['npar'])] > aCrit:
-                                          if RTDict_alt["{}v{}".format(RSS_alt[nParMin_alt]['npar']+1,RSS_alt[nParMin_alt+3]['npar'])] > aCrit:
-                                                 order_alt = RSS_alt[RSS_alt[nParMin_alt]['npar']+1]['npar']
+                                   if RTDict_alt["{}v{}".format(RSS_alt[nParMin_alt+1]['npar'],RSS_alt[nParMin_alt+2]['npar'])] > aCrit:
+                                          if RTDict_alt["{}v{}".format(RSS_alt[nParMin_alt+1]['npar'],RSS_alt[nParMin_alt+3]['npar'])] > aCrit:
+                                                 order_alt = RSS_alt[RSS_alt[nParMin_alt+1]['npar']]['npar']
                                           else:
-                                                 order_alt = RSS_alt[RSS_alt[nParMin_alt]['npar']+3]['npar']
+                                                 order_alt = RSS_alt[RSS_alt[nParMin_alt+3]['npar']]['npar']
                                    else:
-                                          if RTDict_alt["{}v{}".format(RSS_alt[nParMin_alt]['npar']+2,RSS_alt[nParMin_alt+3]['npar'])] > aCrit:
-                                                 order_alt = RSS_alt[RSS_alt[nParMin_alt]['npar']+2]['npar']
+                                          if RTDict_alt["{}v{}".format(RSS_alt[nParMin_alt+2]['npar'],RSS_alt[nParMin_alt+3]['npar'])] > aCrit:
+                                                 order_alt = RSS_alt[RSS_alt[nParMin_alt+2]['npar']]['npar']
                                           else:
-                                                 order_alt = RSS_alt[RSS_alt[nParMin_alt]['npar']+3]['npar']
+                                                 order_alt = RSS_alt[RSS_alt[nParMin_alt+3]['npar']]['npar']
 
                             #OLD WAY OF DOING IT, only does n vs n+1
                             #for o1 in xrange(1, len(RSS)):
@@ -922,10 +1067,10 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                             print "-"*25   
                             print "Order is", order_alt, "("+ch+")"
                             report += "Order is %d (%s)\n" % (order_alt, ch)
-                            report += ("alt 1: " + ", ".join(['%.2f']*len(RSS_alt[nParMin_alt]["parVals"])) + "\n") % tuple(RSS_alt[nParMin_alt]["parVals"])
-                            report += ("alt 2: " + ", ".join(['%.2f']*len(RSS_alt[nParMin_alt+1]["parVals"])) + "\n") % tuple(RSS_alt[nParMin_alt+1]["parVals"])
-                            report += ("alt 3: " + ", ".join(['%.2f']*len(RSS_alt[nParMin_alt+2]["parVals"])) + "\n") % tuple(RSS_alt[nParMin_alt+2]["parVals"])
-                            report += ("alt 4: " + ", ".join(['%.2f']*len(RSS_alt[nParMin_alt+3]["parVals"])) + "\n") % tuple(RSS_alt[nParMin_alt+3]["parVals"])
+                            report += ("alt 1: " + ", ".join(['%.2f (%.2f)']*len(RSS_alt[nParMin_alt]["parVals"])) + "\n") % tuple(altMerge(RSS_alt[nParMin_alt]["parVals"],RSS_alt[nParMin_alt]["parErr"]))
+                            report += ("alt 2: " + ", ".join(['%.2f (%.2f)']*len(RSS_alt[nParMin_alt+1]["parVals"])) + "\n") % tuple(altMerge(RSS_alt[nParMin_alt+1]["parVals"],RSS_alt[nParMin_alt+1]["parErr"]))
+                            report += ("alt 3: " + ", ".join(['%.2f (%.2f)']*len(RSS_alt[nParMin_alt+2]["parVals"])) + "\n") % tuple(altMerge(RSS_alt[nParMin_alt+2]["parVals"],RSS_alt[nParMin_alt+2]["parErr"]))
+                            report += ("alt 4: " + ", ".join(['%.2f (%.2f)']*len(RSS_alt[nParMin_alt+3]["parVals"])) + "\n") % tuple(altMerge(RSS_alt[nParMin_alt+3]["parVals"],RSS_alt[nParMin_alt+3]["parErr"]))
                             report += "%d par are sufficient\n" % (RSS_alt[order_alt]['npar'])
                             if moreParFlag_alt: report += "BUT really, more Pars are needed!"
                             iPar, iPar_alt = nParMin, nParMin_alt
@@ -941,7 +1086,8 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                      #       order = order_alt
                      #else:
                      #       order_alt = order
-
+                     # force to use model4 (32 or 41)
+                     #order = 5
                      if order==RSS[nParMin]['npar']:
                             modelBkg = modelBkg1#.Clone("Bkg")
                             #normzBkg = normzBkg2#.Clone("Bkg_norm")
@@ -976,8 +1122,6 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
 
 
                      if bias:
-                            #temporarily change to force order 2
-                            #order_alt = 3
                             if order_alt==RSS_alt[nParMin_alt]['npar']:
                                    print "Alt Model is modelAlt1"
                                    modelAlt = modelAlt1#.Clone("Alt")
@@ -1122,7 +1266,7 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
 
               processes.append("Bkg")
               processes[:-1] = []
-              rates["Bkg"] = nBkgEvts
+              rates["Bkg"] = nDataEvts #nBkgEvts, Kevin asked to change to data yield, limits converge better
               procLine += ("%-43s") % (modelBkg.GetName())
               rateLine += ("%-43s") % (rates["Bkg"])
               binString += (("%-43s") % (ch) ) * (2)
