@@ -66,12 +66,12 @@ then
       rMax=5
     fi
   fi
-#  parOptsMain="--setParameters pdf_index_${REGION}_2018=0 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_3_alt,${REGION}_p2_3_alt,${REGION}_p3_3_alt"
-  parOptsMain="--setParameters pdf_index_${REGION}_2018=0 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_2_alt,${REGION}_p2_2_alt"
+  parOptsMain="--setParameters pdf_index_${REGION}_2018=0 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_3_alt,${REGION}_p2_3_alt,${REGION}_p3_3_alt"
+#  parOptsMain="--setParameters pdf_index_${REGION}_2018=0 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_2_alt,${REGION}_p2_2_alt"
   parOptsTrackMain="--trackParameters ${REGION}_p1_4,${REGION}_p2_4,${REGION}_p3_4,${REGION}_p4_4,${REGION}_p5_4"
   parOptsAlt="--setParameters pdf_index_${REGION}_2018=1 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_4,${REGION}_p2_4,${REGION}_p3_4,${REGION}_p4_4,${REGION}_p5_4"
-#  parOptsTrackAlt="--trackParameters ${REGION}_p1_3_alt,${REGION}_p2_3_alt,${REGION}_p3_3_alt"
-  parOptsTrackAlt="--trackParameters ${REGION}_p1_2_alt,${REGION}_p2_2_alt"
+  parOptsTrackAlt="--trackParameters ${REGION}_p1_3_alt,${REGION}_p2_3_alt,${REGION}_p3_3_alt"
+#  parOptsTrackAlt="--trackParameters ${REGION}_p1_2_alt,${REGION}_p2_2_alt"
 elif [ ${REGION} == "lowCut" ]
 then
   parOptsMain="--setParameters pdf_index_${REGION}_2018=0 --freezeParameters pdf_index_${REGION}_2018,${REGION}_p1_3_alt,${REGION}_p2_3_alt,${REGION}_p3_3_alt"

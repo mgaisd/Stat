@@ -132,7 +132,7 @@ for sigPars in listOfParams1:
 				if region == "highCut":
 					regCode = "hc"
 					nPar = 5
-					nParAlt = 2
+					nParAlt = 3
 					eitLimitUp = 12000 # events in toy
 					eitLimitDown = 10000
 					rDownLim = -4

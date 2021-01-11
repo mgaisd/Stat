@@ -739,39 +739,31 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                             report +="{} {} {} {} {} {}\n".format(funcs[0],funcs[1],funcs[2],funcs[3],funcs[4],order)
 
 # ALT FUNC
-                     lowAlt = -60 # -40, -46, -44, -53
-                     highAlt = 10 #   5,   5,   4,   5
-                     #if "highCut" in ch_red:
-                     #       lowerLimit_p1_3 = -20 
-                     #       upperLimit_p1_3 = 100
-                     #       lowerLimit_p2_3 = -40 
-                     #       upperLimit_p2_3 = 10
-                     #       lowerLimit_p3_3 = -20  
-                     #       upperLimit_p3_3 = 10
-                     #else:
-                     #       lowerLimit_p1_3 = lowAlt
-                     #       upperLimit_p1_3 = highAlt
-                     #       lowerLimit_p2_3 = lowAlt 
-                     #       upperLimit_p2_3 = highAlt
-                     #       lowerLimit_p3_3 = lowAlt 
-                     #       upperLimit_p3_3 = highAlt
+                     lowAlt = -100
+                     highAlt = 100
+                     p1i = 1.
+                     p2i = 1.
+                     p3i = 1.
+                     p4i = 1.
+                     if "highSVJ2" in ch_red:
+                            lowAlt = -1000
+                     elif "highCut" in ch_red:
+                            p1i = -5.
+                            p2i = -10.
+                            p3i = 0.1
+                     p1_1 = RooRealVar(ch_red + "_p1_1_alt", "p1", p1i, lowAlt, highAlt)
 
-                     p1_1 = RooRealVar(ch_red + "_p1_1", "p1", 1., lowAlt, highAlt)
+                     p1_2 = RooRealVar(ch_red + "_p1_2_alt", "p1", p1i, lowAlt, highAlt)
+                     p2_2 = RooRealVar(ch_red + "_p2_2_alt", "p2", p2i, lowAlt, highAlt)
 
-                     p1_2 = RooRealVar(ch_red + "_p1_2", "p1", 1., lowAlt, highAlt)
-                     p2_2 = RooRealVar(ch_red + "_p2_2", "p2", 1., lowAlt, highAlt)
+                     p1_3 = RooRealVar(ch_red + "_p1_3_alt", "p1", p1i, lowAlt, highAlt)
+                     p2_3 = RooRealVar(ch_red + "_p2_3_alt", "p2", p2i, lowAlt, highAlt)
+                     p3_3 = RooRealVar(ch_red + "_p3_3_alt", "p3", p3i, lowAlt, highAlt)
 
-                     p1_3 = RooRealVar(ch_red + "_p1_3", "p1", 1., lowAlt, highAlt)
-                     p2_3 = RooRealVar(ch_red + "_p2_3", "p2", 1., lowAlt, highAlt)
-                     p3_3 = RooRealVar(ch_red + "_p3_3", "p3", 1., lowAlt, highAlt)
-                     #p1_3 = RooRealVar(ch_red + "_p1_3", "p1", 1., lowerLimit_p1_3, upperLimit_p1_3)
-                     #p2_3 = RooRealVar(ch_red + "_p2_3", "p2", 1., lowerLimit_p2_3, upperLimit_p2_3)
-                     #p3_3 = RooRealVar(ch_red + "_p3_3", "p3", 1., lowerLimit_p3_3, upperLimit_p3_3)
-
-                     p1_4 = RooRealVar(ch_red + "_p1_4", "p1", 1., lowAlt, highAlt)
-                     p2_4 = RooRealVar(ch_red + "_p2_4", "p2", 1., lowAlt, highAlt)
-                     p3_4 = RooRealVar(ch_red + "_p3_4", "p3", 1., lowAlt, highAlt)
-                     p4_4 = RooRealVar(ch_red + "_p4_4", "p4", 1., lowAlt, highAlt)
+                     p1_4 = RooRealVar(ch_red + "_p1_4_alt", "p1", p1i, lowAlt, highAlt)
+                     p2_4 = RooRealVar(ch_red + "_p2_4_alt", "p2", p2i, lowAlt, highAlt)
+                     p3_4 = RooRealVar(ch_red + "_p3_4_alt", "p3", p3i, lowAlt, highAlt)
+                     p4_4 = RooRealVar(ch_red + "_p4_4_alt", "p4", p4i, lowAlt, highAlt)
 
 
                      #modelAlt1_rgp = RooGenericPdf(modelName+"_alt_1_rgp", "Alt. (1)", "exp(@0/13000 * @1)", RooArgList(mT, p1_1))
