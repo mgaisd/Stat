@@ -745,8 +745,9 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                      p2i = 1.
                      p3i = 1.
                      p4i = 1.
-                     if "highSVJ2" in ch_red:
-                            lowAlt = -1000
+                     if "high" in ch_red:
+                            lowAlt = -100
+                            highAlt = 100
                      elif "highCut" in ch_red:
                             p1i = -5.
                             p2i = -10.
@@ -775,7 +776,7 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                      modelAlt2_rgp = RooGenericPdf(modelAltName+"2_rgp", "Alt. Reparam (2 par.)", "exp(@1*(@0/13000)) * pow(@0/13000,@2)", RooArgList(mT, p1_2, p2_2))
                      modelAlt3_rgp = RooGenericPdf(modelAltName+"3_rgp", "Alt. Reparam (3 par.)", "exp(@1*(@0/13000)) * pow(@0/13000,@2*(1+@3*log(@0/13000)))", RooArgList(mT, p1_3, p2_3, p3_3))
                      modelAlt4_rgp = RooGenericPdf(modelAltName+"4_rgp", "Alt. Reparam (4 par.)", "exp(@1*(@0/13000)) * pow(@0/13000,@2*(1+@3*log(@0/13000)*(1+@4*log(@0/13000))))", RooArgList(mT, p1_4, p2_4, p3_4, p4_4))
-
+                     
                      modelAlt1 = RooParametricShapeBinPdf(modelName+"_alt_1", "Alt. (1)", modelAlt1_rgp, mT, RooArgList(p1_1), histBkgData)
                      modelAlt2 = RooParametricShapeBinPdf(modelName+"_alt_2", "Alt. (2)", modelAlt2_rgp, mT, RooArgList(p1_2, p2_2), histBkgData)
                      modelAlt3 = RooParametricShapeBinPdf(modelName+"_alt_3", "Alt. (3)", modelAlt3_rgp, mT, RooArgList(p1_3, p2_3, p3_3), histBkgData)
@@ -830,6 +831,10 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                      #report = "fTest = ((RSS1-RSS2)/(npar2-npar1))/(RSS2/(nBins-npar2))\n"
                      report += "ALT FUNC TEST -------------------------"
                      report += "%s\n" % (ch)
+                     #report += "{}\n".format(modelAlt1_rgp.Print())
+                     #report += "{}\n".format(modelAlt2_rgp.Print())
+                     #report += "{}\n".format(modelAlt3_rgp.Print())
+                     #report += "{}\n".format(modelAlt4_rgp.Print())
                      #{"chiSquared":roochi2,"chi2" : chi2, "chi1" : chi1, "rss" : rss, "res" : res, "nbins" : hist.GetN(), "npar" : npar}
                      report += "func\tchi2\trss\tnBins\tnPar\n"
                      for i in [1,2,3,4]:

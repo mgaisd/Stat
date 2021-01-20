@@ -48,7 +48,7 @@ ls *.root
 echo "List all files"
 ls 
 echo "*******************************************"
-EOSDIR=/store/user/cfallon/datacards_4Jan/${1}
+EOSDIR=/store/user/cfallon/datacards_testSyst/${1}
 OUTDIR=root://cmseos.fnal.gov/${EOSDIR}
 echo "xrdcp output for condor"
 for FILE in *.root *.pdf *.txt #Residuals/*.pdf plots/*.pdf Fisher/*.txt ${SVJ_NAME}/*.txt

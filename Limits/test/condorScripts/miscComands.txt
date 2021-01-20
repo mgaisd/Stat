@@ -26,7 +26,7 @@ xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_
 xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/FisherTest_lowSVJ2_2018.txt ./plots
 xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/FisherTest_highCut_2018.txt ./plots
 xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/FisherTest_highSVJ2_2018.txt ./plots
-xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/Residuals_highCut_2018_Bkg_Alt_highCut_20182_ratio_log.pdf ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/Residuals_highCut_2018_Bkg_Alt_highCut_20183_ratio_log.pdf ./plots
 xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/Residuals_highSVJ2_2018_Bkg_Alt_highSVJ2_20182_ratio_log.pdf ./plots
 xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/Residuals_lowCut_2018_Bkg_Alt_lowCut_20183_ratio_log.pdf ./plots
 xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/Residuals_lowSVJ2_2018_Bkg_Alt_lowSVJ2_20182_ratio_log.pdf ./plots

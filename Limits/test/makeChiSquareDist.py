@@ -165,16 +165,16 @@ for sigPars in listOfParams1:
 					upLimitrErr = 1
 					downLimitRMU = -4
 					upLimitRMU = 4
-					parLimDown1 = -100
-					parLimUp1 = 100
-					parLimDown2 = -100
-					parLimUp2 = 100
-					parLimDown3 = -100
-					parLimUp3 = 100
-					parLimDown4 = -100
-					parLimUp4 = 100
-					parLimDown5 = -100
-					parLimUp5 = 100
+					parLimDown1 = -1000
+					parLimUp1 = 1000
+					parLimDown2 = -1000
+					parLimUp2 = 1000
+					parLimDown3 = -1000
+					parLimUp3 = 1000
+					parLimDown4 = -1000
+					parLimUp4 = 1000
+					parLimDown5 = -1000
+					parLimUp5 = 1000
 					chi2LimitDown = 0
 					chi2LimitUp = 200
 				elif region == "lowCut":

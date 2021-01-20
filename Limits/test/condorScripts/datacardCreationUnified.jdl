@@ -11,7 +11,7 @@ mZ = 3000
 mD = 20
 rI = 03
 aD = peak
-s = N
+s = Y
 Arguments = SVJ_mZprime$(mZ)_mDark$(mD)_rinv$(rI)_alpha$(aD)/ template $(mZ) $(md) $(rI) $(aD) $(s)
 Queue mZ, mD, rI, aD from (
 1500, 20, 03, peak

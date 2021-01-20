@@ -28,8 +28,8 @@ fitFunc=${9} # 0 for bkgFunc, 1 for altFunc
 
 SVJ_NAME="SVJ_mZprime${mZ}_mDark${mD}_rinv${rI}_alpha${aD}"
 
-xrdcp -s root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/${SVJ_NAME}/${SVJ_NAME}_${REGION}_2018_template_bias.txt ${SVJ_NAME}_${REGION}_2018_template_bias.txt
-xrdcp -s root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/${SVJ_NAME}/ws_${SVJ_NAME}_${REGION}_2018_template.root ws_${SVJ_NAME}_${REGION}_2018_template.root
+xrdcp -s root://cmseos.fnal.gov//store/user/cfallon/datacards_testSyst/${SVJ_NAME}/${SVJ_NAME}_${REGION}_2018_template_bias.txt ${SVJ_NAME}_${REGION}_2018_template_bias.txt
+xrdcp -s root://cmseos.fnal.gov//store/user/cfallon/datacards_testSyst/${SVJ_NAME}/ws_${SVJ_NAME}_${REGION}_2018_template.root ws_${SVJ_NAME}_${REGION}_2018_template.root
 
 rMin=-5
 rMax=5
@@ -177,7 +177,7 @@ ls *.root
 echo "List all files"
 ls 
 echo "*******************************************"
-OUTDIR=root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/${SVJ_NAME}
+OUTDIR=root://cmseos.fnal.gov//store/user/cfallon/datacards_testSyst/${SVJ_NAME}
 echo "xrdcp output for condor"
 for FILE in *.root
 do

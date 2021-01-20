@@ -7,7 +7,8 @@ from Stat.Limits.datacardsQuickFisher import *
 # -Fisher testing is only done on the baseline (3000, 20, 03, peak) signal
 # -channels list is now created here
 
-channels = ["lowSVJ2", "highSVJ2", "highCut", "lowCut"]
+#channels = ["lowSVJ2", "highSVJ2", "highCut", "lowCut"]
+channels = ["highCut"]
 sigpoints = []
 print "====> CHANNELS: ", channels
 
