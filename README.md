@@ -36,22 +36,35 @@ Fisher testing and datacard writing are split into two jobs.
 First, to do the F-tests and generate the workspaces:
 
 > python createDatacardsFtest_pt1.py
+
 Options
+
 > -i inputFile directory, default is store/user/pedrok/SVJ2017/Datacards/trig4/sigfull
+
 > -d output directory. unused?
+
 > -m mode. default is hist, but template is more commonly used.
+
 > -t test, Bool flag. without -t, no bias testing is done
+
 > -u unblind Bool flag, also unused
 
 
 After part1 is done running, run part2:
 > python createDatacardsFtest_pt2.py
+
 options
+
 > -i inputFile directory, default is store/user/pedrok/SVJ2017/Datacards/trig4/sigfull
+
 > -d output directory. unused?
+
 > -m mode. default is hist, but template is more commonly used.
+
 > -Z, -D, -R, -A specifify which signal to use. defaults are 2900, 20, 03, peak
+
 > -t test, Bool flag. without -t, no bias testing is done
+
 > -u unblind Bool flag, also unused
 
 
