@@ -2,12 +2,9 @@ import ROOT
 import json
 
 #changed to no longer need the settings.py file
-# -syst list is created here
-# -rateParams list is created here
-# -processes list is created here
 # files now saved to base directory and exported to EOS after jobs completion
 
-#datacardsFtest.py - part I of seperating ftests from datacard writing
+#ftest.py - part I of seperating ftests from datacard writing
 # this part will create a ws.root file containing the two histograms and two funcs as well as funcs' parameters
 
 
@@ -29,58 +26,6 @@ ROOT.gStyle.SetPadColor(0)
 mopt = ROOT.Math.MinimizerOptions()
 mopt.SetMaxFunctionCalls(100000)
 mopt.SetMaxIterations(100000)
-
-
-syst = collections.OrderedDict()
-# uncertainties apply to signal only
-# data doesn't get any (cause its data)
-# and MC bkg is indirectly used (via the fits)
-# and the uncertainties on the fit parameters take care of that
-syst["lumi"] = ("lnN", "sig", 1.026)
-syst["trig"] = ("lnN", "sig", 1.020)
-syst["scale"] = ("lnN", "sig", 1.15)
-
-syst["mcstat"] = ("shape", ["sig"])
-
-syst["MC2016JEC"] = ("shape",["sig"])
-syst["MC2016JER"] = ("shape",["sig"])
-syst["MC2016puunc"] = ("shape",["sig"])
-syst["MC2016trigfnunc"] = ("shape",["sig"])
-
-syst["MC2017JEC"] = ("shape",["sig"])
-syst["MC2017JER"] = ("shape",["sig"])
-syst["MC2017puunc"] = ("shape",["sig"])
-syst["MC2017trigfnunc"] = ("shape",["sig"])
-
-syst["MC2018JEC"] = ("shape",["sig"])
-syst["MC2018JER"] = ("shape",["sig"])
-syst["MC2018puunc"] = ("shape",["sig"])
-syst["MC2018trigfnunc"] = ("shape",["sig"])
-
-syst["MCRun2JES"] = ("shape",["sig"])
-syst["MCRun2pdfallunc"] = ("shape",["sig"])
-syst["MCRun2psfsrunc"] = ("shape",["sig"])
-syst["MCRun2psisrunc"] = ("shape",["sig"])
-
-rateParams = {}
-rateParams["lowSVJ1_2018"] = "TMath::Power(TMath::Range(0.01,0.99,@0),1)*TMath::Power(1-TMath::Range(0.01,0.99,@0*%s),1)/(TMath::Power(1-%s,1))"
-rateParams["lowSVJ2_2018"] = "TMath::Power(TMath::Range(0.01,0.99,@0),2)*TMath::Power(1-TMath::Range(0.01,0.99,@0*%s),0)/(TMath::Power(1-%s,0))"
-rateParams["highSVJ1_2018"] = "TMath::Power(TMath::Range(0.01,0.99,@0),1)*TMath::Power(1-TMath::Range(0.01,0.99,@0*%s),1)/(TMath::Power(1-%s,1))"
-rateParams["highSVJ2_2018"] = "TMath::Power(TMath::Range(0.01,0.99,@0),2)*TMath::Power(1-TMath::Range(0.01,0.99,@0*%s),0)/(TMath::Power(1-%s,0))"
-
-
-processes = ["QCD"]
-
-#ROOT.Math.MinimizerOptions.SetDefaultTolerance(1e-3); 
-#ROOT.Math.MinimizerOptions.SetDefaultPrecision(1e-8)
-#*****************************************************
-#                                                       #
-#   getRate(process, ifile)                             #
-#                                                       #
-#   getCard(sig, ch, ifilename, outdir)                 #
-#                                                       #
-#*******************************************************#
-
 
 #*******************************************************#
 #                                                       #
@@ -150,11 +95,9 @@ def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label
        npar = fitRes[0].floatParsFinal().getSize() if len(fitRes)>0 else 0
        varArg = ROOT.RooArgSet(variable)
       
-       #frame = variable.frame()
        frame = variable.frame(ROOT.RooFit.Title(""))
        dataset.plotOn(frame, RooFit.Invisible())
        print(fitRes[0])
-       #if len(fitRes) > 0: model.plotOn(frame, RooFit.VisualizeError(fitRes[0], 1, False), RooFit.Normalization(norm if norm>0 else dataset.sumEntries(), ROOT.RooAbsReal.NumEvent), RooFit.LineColor(ROOT.kBlue), RooFit.FillColor(ROOT.kOrange), RooFit.FillStyle(1001), RooFit.DrawOption("FL"), RooFit.Range("Full"))
        if len(fitRes) > 0: graphFit = model.plotOn(frame, RooFit.VisualizeError(fitRes[0], 1, False), RooFit.Normalization(norm if norm>0 else dataset.sumEntries(), ROOT.RooAbsReal.NumEvent), RooFit.LineColor(ROOT.kBlue), RooFit.FillColor(ROOT.kOrange), RooFit.FillStyle(1001), RooFit.DrawOption("FL"), RooFit.Range("Full"))
 
        model.plotOn(frame, RooFit.Normalization(norm if norm>0 else dataset.sumEntries(), ROOT.RooAbsReal.NumEvent), RooFit.LineColor(ROOT.kBlue), RooFit.FillColor(ROOT.kOrange), RooFit.FillStyle(1001), RooFit.DrawOption("L"), RooFit.Name(model.GetName()),  RooFit.Range("Full"))
@@ -162,18 +105,6 @@ def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label
        
        graphData = dataset.plotOn(frame, RooFit.DataError(ROOT.RooAbsData.Poisson if isData else ROOT.RooAbsData.SumW2), RooFit.DrawOption("PE0"), RooFit.Name(dataset.GetName()))
 
-       #(ROOT.TVirtualFitter.GetFitter()).GetConfidenceIntervals(model)       
-
-       #f1 = ROOT.TF1(model)
-       #f1.SetName("f")
-       #f2 = ROOT.TF1(model)
-       #f2.SetName("g")
-       #nPar = f2.GetNpar()
-       #errorpar = np.zeros(nPar)
-
-       #f2.SetParErrors()
-       #f3 = ROOT.TF1("error", "f/g")
-       
        pulls = frame.pullHist(dataset.GetName(), model.GetName(), True)
        residuals = frame.residHist(dataset.GetName(), model.GetName(), False, True) # this is y_i - f(x_i)
     
@@ -205,8 +136,6 @@ def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label
               frame.Draw()
               frame.SetTitle("")
               
-              #txt = ROOT.TText(2500, 1000, "chiSquared: " + str(roochi2))
-              #txt = ROOT.TText(2500, 6., "chiSquared: " + str(roochi2))
               roochi2_small = format(roochi2, '.2f')
               txt = ROOT.TText(0.65, 0.7, "chiSquared: " + str(roochi2_small))              
               txt.SetNDC()
@@ -214,8 +143,6 @@ def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label
               txt.SetTextColor(ROOT.kRed) 
               txt.Draw()
 
-              #txt_2 = ROOT.TText(2500, 800, "Prob: " + str(roopro))
-              #txt_2 = ROOT.TText(2500, 2., "Prob: " + str(roopro))
               roopro_small = format(roopro, '.2f')
               txt_2 = ROOT.TText(0.65, 0.65, "prob: " + str(roopro_small))              
               txt_2.SetNDC()
@@ -235,7 +162,6 @@ def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label
               pad2.Draw()
               pad2.cd()
               pad2.Clear()
-       #frame.Draw()
               c.Update()
               c.Modified()
 
@@ -268,56 +194,14 @@ def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label
               line.Draw("same")
                             
               c.SaveAs("Residuals_"+ch+"_"+name+"_log.pdf")              
-              '''             
-              c2 = ROOT.TCanvas("c2_"+ch+model.GetName(), ch, 800, 800)
-              c2.cd()
-              pad1_2 = ROOT.TPad("pad1_2", "pad1_2", 0., 0.35, 1., 1.0)
-              ROOT.SetOwnership(pad1_2, False)
-              pad1_2.SetBottomMargin(0.);
-              pad1_2.SetGridx();
-              pad1_2.SetGridy();
-              pad1_2.SetLogy()
-              pad1_2.Draw()
-              pad1_2.cd()
-              frame.Draw()
-              
-              txt = ROOT.TText(3000, 4., "chiSquared: " + str(roochi2))
-              txt.SetTextSize(0.04) 
-              txt.SetTextColor(ROOT.kRed) 
-              txt.Draw()
-              
-              c2.cd()
-              c2.Update()
-              c2.cd()
-              pad2_2 = ROOT.TPad("pad2_2", "pad2_2", 0, 0.05, 1, 0.3)
-              ROOT.SetOwnership(pad2_2, False)
-              pad2_2.SetTopMargin(0);
-              pad2_2.SetBottomMargin(0.1);
-              pad2_2.SetGridx();
-              pad2_2.SetGridy();
-              pad2_2.Draw();
-              pad2_2.cd()
-              pad2_2.Clear()
-       #frame.Draw()
-              c2.Update()
-              c2.Modified()
 
-              '''
        # calculate RSS
        res, rss, chi1, chi2 = 0, 0., 0., 0., 
 
        xmin, xmax = array('d', [0.]), array('d', [0.])
        dataset.getRange(variable, xmin, xmax)
-#       print "N bins: ", hist.GetN()
-       #nBins = graphData.GetNbinsX()
        ratioHist = ROOT.TH1F("RatioPlot", "Ratio Plot", hist.GetN(), xmin_, xmax_)
        ROOT.SetOwnership(ratioHist, False)
-
- #      ratioHist.SetBins(nBins, graphData.GetXaxis().GetXbins().GetArray())
-
-       #hist.Dump()
-       #ratioHist.Dump()
-       #ratioHist.Print('all')
 
        sumErrors = 0
        graphFit.Print()
@@ -404,29 +288,18 @@ def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label
               frame.Draw()
               frame.SetTitle("")
 
-              #txt = ROOT.TText(2500, 6., "chiSquared: " + str(roochi2))
-              #txt = ROOT.TText(2500, 1000, "chiSquared: " + str(roochi2))
               txt = ROOT.TText(0.65, 0.7, "chiSquared: " + str(roochi2_small))              
               txt.SetNDC()
               txt.SetTextSize(0.04) 
               txt.SetTextColor(ROOT.kRed) 
               txt.Draw()
 
-
-              #txt_2 = ROOT.TText(2500, 800, "Prob: " + str(roopro))
               txt_2 = ROOT.TText(0.65, 0.65, "prob: " + str(roopro_small))              
               txt_2.SetNDC()
-              #txt_2 = ROOT.TText(2500, 2., "Prob: " + str(roopro))
               txt_2.SetTextSize(0.04) 
               txt_2.SetTextColor(ROOT.kRed) 
               txt_2.Draw();
 
-
-#              txt2 = ROOT.TText(3000, 1., "Error: "+  str(sumErrors))
-#              txt2.SetTextSize(0.04) 
-#              txt2.SetTextColor(ROOT.kOrange) 
-              #txt2.Draw("same");
-              
               c2.cd()
               c2.Update()
               c2.cd()
@@ -439,7 +312,6 @@ def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label
               pad2_2.Draw();
               pad2_2.cd()
               pad2_2.Clear()
-       #frame.Draw()
               c2.Update()
               c2.Modified()
               frame.SetTitle("")
@@ -455,7 +327,6 @@ def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label
               ratioHist.GetXaxis().SetLabelSize(.12)
               ratioHist.GetYaxis().SetLabelSize(.12)
 
-       #ratioHist.SetMarkerSize(2)
               ratioHist.SetMarkerStyle(20)
               ratioHist.Draw("PE")
               line2 = ROOT.TLine(xmin_, 1., xmax_, 1.)
@@ -537,7 +408,7 @@ def drawTwoFuncs(sig, ch, variable, modelA, modelB, dataset, fitRes, carddir,  n
        c.Update()
        c.Range(1500, -3.5, 8000, 3.5)
        # create two histograms, one for modelA (main) and one for modelB (alt)
-       # then diving A by B, and plot in Red
+       # then divide A by B, and plot in Red
        histA = ROOT.TH1F("histA","histA",65,1500,8000)
        histB = ROOT.TH1F("histB","histB",65,1500,8000)
        histA.Sumw2()
@@ -570,19 +441,7 @@ def fisherTest(RSS1, RSS2, o1, o2, N):
 #                                                       #
 #*******************************************************#
 
-def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = False, verbose = False):
-
-
-       ### Cmpute signal efficiencies 
-       
-       effname = "Efficiencies.txt"
-       efile = open(effname, 'r')
-       effline = efile.readline()
-
-       effs = json.loads(effline)
-       
-       eff = effs[sig]
-
+def getCard(sig, ch, ifilename, doModelling, mode = "histo", bias = False, verbose = False):
        try:
               ifile = ROOT.TFile.Open(ifilename)
        except IOError:
@@ -593,22 +452,10 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
 
 
        print "BIAS?", bias
-       #workdir_ = ifilename.split("/")[:-1]
-       #WORKDIR = "/".join(workdir_) + "/"
-       #carddir = outdir+  sig + "/"
-       #carddir = sig + "/"
        carddir = ""
-       #if not os.path.isdir(outdir): os.system('mkdir ' +outdir)
-       #if not os.path.isdir(outdir + "/" + sig): os.system('mkdir ' +carddir)
-       #if not os.path.isdir(outdir + carddir + "plots/"): os.system('mkdir ' +carddir + "plots/")
-       #if not os.path.isdir(outdir + carddir + "Fisher/"): os.system('mkdir ' +carddir + "Fisher/")
-       #if not os.path.isdir(outdir + carddir + "Residuals/"): os.system('mkdir ' + carddir + "Residuals/") 
 
        hist_filename = os.getcwd()+"/"+ifilename
        hist = getHist(ch, sig, ifile)
-
-       
-
 
        #*******************************************************#
        #                                                       #
@@ -626,7 +473,6 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
 
               histSig = getHist(ch, sig, ifile)
               print "histSigData: ", histSig.Integral()
-              #print "histBkgData: ", histBkgData.Integral()
               xvarmin = 1500.
               xvarmax = 8000.
               mT = RooRealVar(  "mH"+ch,    "m_{T}", xvarmin, xvarmax, "GeV")
@@ -637,13 +483,9 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
               sigData = RooDataHist("sigdata", "MC Sig",  RooArgList(mT), histSig, 1.)
               print "SUM ENTRIES: ", sigData.sumEntries()
               print "Bkg Integral: ", histData.Integral() 
-              #nBkgEvts = histBkgData.Integral(1, histBkgData.GetXaxis().GetNbins()-1) 
               nBkgEvts = histBkgData.Integral(binMin, binMax)
               nDataEvts = histData.Integral(binMin, binMax)
               nSigEvts = histSig.Integral(binMin, binMax)
-#              nBkgEvts = histData.Integral(1, histData.GetXaxis().GetNbins()-1)
-#              nDataEvts = histData.Integral(1, histData.GetXaxis().GetNbins()-1) 
-              #print "Bkg Events: ", nBkgEvts
 
               print "channel: ", ch
               normBkg = RooRealVar("Bkg_"+ch+"_norm", "Number of background events", nBkgEvts, 0., 2.e4)
@@ -653,7 +495,6 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
               modelAltName =  "Bkg_Alt_"+ch
               
               if(doModelling):
-                     #ch_red = ch
                      print "channel: ", ch_red
                      lowerLimit = -50
                      upperLimit = 150

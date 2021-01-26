@@ -14,7 +14,6 @@ print "====> CHANNELS: ", channels
 usage = 'usage: %prog -p histosPath -o outputFile'
 parser = optparse.OptionParser(usage)
 parser.add_option('-i', '--input', dest='ifile', type='string', default= "root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Datacards/trig4/sigfull/",help='Where can I find input histos? Default is new (24 July 2020) files created by Kevin')
-parser.add_option("-d","--outdir",dest="outdir",type="string",default="outdir",help="Name of the output directory where to store datacards. Default is outdir")
 parser.add_option("-m","--mode",dest="mode",type="string",default="hist",help="Kind of shape analysis: parametric fit or fit to histos?. Default is hist")
 parser.add_option("-t", "--test", dest="bias", action="store_true", default=False)
 parser.add_option("-u","--unblind",dest="unblind",action='store_true', default=False)
@@ -23,7 +22,6 @@ parser.add_option("-u","--unblind",dest="unblind",action='store_true', default=F
 sys.argv.append('-b')
 
 ifilename = opt.ifile + "datacard_final_SVJ_2900_20_0.3_peak.root"
-outdir = opt.outdir
 mode = opt.mode
 unblind = opt.unblind
 
@@ -44,16 +42,7 @@ for p in sigpoints:
 
     print "Creating datacards for mZprime = ", mZprime, " GeV, mDark = ", mDark, " GeV, rinv = ", rinv, " , alpha = ", alpha
     signal  = "SVJ_mZprime%s_mDark%s_rinv%s_alpha%s" % (mZprime, mDark, rinv, alpha) 
-    #if(bias):     signal  = "SVJ_mZprime%s_mDark%s_rinv%s_alpha%s_bias" % (mZprime, mDark, rinv, alpha) 
     signals.append(signal)
-
-
-
-#signals = ["SVJ_mZprime3000_mDark20_rinv03_alphapeak"]
-
-
-
-    
 
 try:
     ifile = ROOT.TFile.Open(ifilename)
@@ -110,15 +99,8 @@ efile.write(y)
 efile.close()
 
 for s in signals:
-
-    #if s=="SVJ_mZprime3000_mDark20_rinv03_alphapeak":
-    #    doModelling = True
-    #else:
-    #    doModelling = False
     doModelling = True # need to evaluate Fisher test for every batch
-    # as an alternatative, we could set things up to F-test once, then save
-    # those functions and import them to every submission, TODO?
     for ch in ch_year:
-        getCard(s, ch, ifilename, outdir, doModelling, mode, bias, True)
+        getCard(s, ch, ifilename, doModelling, mode, bias, True)
 
 
