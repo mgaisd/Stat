@@ -20,7 +20,7 @@ echo "Arguments passed to this script are:"
 echo "Name of output directory : ${1}"
 echo "Mode: ${2}"
 
-cmd="python createDatacardsFtest_pt1.py -d ${1} -m ${2} -t"
+cmd="python createFtest.py -d ${1} -m ${2} -t"
 
 
 echo "combine commands:"

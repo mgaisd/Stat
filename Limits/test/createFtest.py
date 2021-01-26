@@ -1,7 +1,7 @@
 import ROOT
 import os, sys
 import optparse
-from Stat.Limits.datacardsFtest import *
+from Stat.Limits.ftest import *
 #changed to no longer need the settings.py file
 # -signal parameters are now command-line input
 # -Fisher testing is only done on the baseline (3000, 20, 03, peak) signal
@@ -10,8 +10,6 @@ from Stat.Limits.datacardsFtest import *
 channels = ["lowSVJ2", "highSVJ2", "highCut", "lowCut"]
 sigpoints = []
 print "====> CHANNELS: ", channels
-
-path = "/uscms_data/d3/cfallon/SVJ/bs7/CMSSW_10_2_13/src/Stat/Limits/test"
 
 usage = 'usage: %prog -p histosPath -o outputFile'
 parser = optparse.OptionParser(usage)

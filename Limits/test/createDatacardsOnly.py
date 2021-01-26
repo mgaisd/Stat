@@ -1,7 +1,7 @@
 import ROOT
 import os, sys
 import optparse
-from Stat.Limits.datacardsFtest_pt2 import *
+from Stat.Limits.datacardsOnly import *
 #changed to no longer need the settings.py file
 # -signal parameters are now command-line input
 # -Fisher testing is only done on the baseline (3000, 20, 03, peak) signal

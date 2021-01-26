@@ -28,7 +28,7 @@ else
 fi
 
 echo "Signal Parameters: ${3} ${4} ${5} ${6}"
-cmd="python createDatacardsFtest_pt2.py -d ${1} -m ${2} -t -Z ${3} -D ${4} -R ${5} -A ${6} ${s}"
+cmd="python createDatacardsOnly.py -d ${1} -m ${2} -t -Z ${3} -D ${4} -R ${5} -A ${6} ${s}"
 
 
 echo "combine commands:"

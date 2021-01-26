@@ -35,7 +35,7 @@ Be warned, the following is super cobbled together with bits of twig and some st
 Fisher testing and datacard writing are split into two jobs.
 First, to do the F-tests and generate the workspaces:
 
-> python createDatacardsFtest_pt1.py
+> python createFtest.py
 
 Options
 
@@ -51,7 +51,7 @@ Options
 
 
 After part1 is done running, run part2:
-> python createDatacardsFtest_pt2.py
+> python createDatacardsOnly.py
 
 options
 
@@ -70,11 +70,11 @@ options
 
 for Condor submission:
 make sure to change directories in the following files:
-Stat/Limits/test/condorScripts/scramTarEos.sh : lines 19, 27
-Stat/Limits/test/condorScripts/datacardCreationFtest_pt1.sh : lines 7, 37
-Stat/Limits/test/condorScripts/datacardCreationFtest_pt1.jdl : line 10 
-Stat/Limits/test/condorScripts/datacardCreationFtest_pt2.sh : lines 7, 48 (the pt2.jdl doesn't require any change)
-Stat/Limits/python/datacardsFtest_pt2.py : line 636
+* Stat/Limits/test/condorScripts/scramTarEos.sh : lines 19, 27
+* Stat/Limits/test/condorScripts/ftest.sh : lines 7, 37
+* Stat/Limits/test/condorScripts/ftest.jdl : line 10 
+* Stat/Limits/test/condorScripts/datacardsOnly.sh : lines 7, 48 (the jdl doesn't require any change)
+* Stat/Limits/python/datacardsOnly.py : line 636
 
 step 1 is to create the workspace:
 > condor_submit datacardCreation_pt1.jdl
