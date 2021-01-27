@@ -27,8 +27,6 @@ signals = []
 
 sigpoints.append(["2900","20","03","peak"])
 
-print "====> CHANNELS: ", channels
-
 for p in sigpoints:
 
     mZprime=p[0]
@@ -67,32 +65,6 @@ print "====> CHANNELS + YEAR: ", ch_year
 
 cmd = "rm ws.root"
 os.system(cmd)
-
-cmd = "rm Efficiencies.txt"
-os.system(cmd)
-
-effs = {}
-
-
-ch_eff = ["lowSVJ0", "lowSVJ1", "lowSVJ2", "highSVJ0", "highSVJ1", "highSVJ2"]
-ch_eff_year = []
-for y in years:
-    ch_eff_years = [ch + '_' + y for ch in ch_eff ]
-    ch_eff_year= ch_eff_year + ch_eff_years
-
-print(signals)
-print(ch_eff_year)
-print(ifilename)
-for s in signals:
-
-    effs[s] = getEfficiency(s, ch_eff_year, ifilename)
-
-y = json.dumps(effs)
-outname =  "Efficiencies.txt"
-
-efile = open(outname, 'w')
-efile.write(y)
-efile.close()
 
 for s in signals:
     doModelling = True # need to evaluate Fisher test for every batch

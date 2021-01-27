@@ -4,7 +4,7 @@ import json
 #changed to no longer need the settings.py file
 # files now saved to base directory and exported to EOS after jobs completion
 
-#ftest.py - part I of seperating ftests from datacard writing
+#ftest.py - part I of separating ftests from datacard writing
 # this part will create a ws.root file containing the two histograms and two funcs as well as funcs' parameters
 
 
@@ -57,38 +57,6 @@ def altMerge(l1, l2):
 	result[::2] = l1
 	result[1::2] = l2
 	return result
-
-
-def getEfficiency(sig, channels, ifilename):
-
-       try:
-              ifile = ROOT.TFile.Open(ifilename)
-       except IOError:
-              print "Cannot open ", ifilename
-       else:
-              print "Opening file ",  ifilename
-              ifile.cd()
-              
-       cdfilename = os.getcwd()+"/"+ifilename
-       
-       rates = {}
-       for ch in channels:
-
-              rates[ch] = getRate(ch, sig, ifile)
-
-       sumjets = sum(rates.itervalues())*2
-       #print sumjets
-
-       evts2SVJ = sum(i for ch, i in rates.iteritems() if "SVJ2" in ch)
-       #print evts2SVJ
-       evts1SVJ = sum(i for ch, i in rates.iteritems() if "SVJ1" in ch)
-
-       num = evts1SVJ + (2 * evts2SVJ)
-       
-       eff = num/sumjets
-       return eff
-
-
 
 
 def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label = "nom"):
