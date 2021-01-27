@@ -1,7 +1,5 @@
-import ROOT
 import os, sys
-import optparse
-from Stat.Limits.ftest import *
+from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 #changed to no longer need the settings.py file
 # -signal parameters are now command-line input
 # -Fisher testing is only done on the baseline (3000, 20, 03, peak) signal
@@ -9,23 +7,21 @@ from Stat.Limits.ftest import *
 
 channels = ["lowSVJ2", "highSVJ2", "highCut", "lowCut"]
 sigpoints = []
-print "====> CHANNELS: ", channels
 
-usage = 'usage: %prog -p histosPath -o outputFile'
-parser = optparse.OptionParser(usage)
-parser.add_option('-i', '--input', dest='ifile', type='string', default= "root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Datacards/trig4/sigfull/",help='Where can I find input histos? Default is new (24 July 2020) files created by Kevin')
-parser.add_option("-m","--mode",dest="mode",type="string",default="hist",help="Kind of shape analysis: parametric fit or fit to histos?. Default is hist")
-parser.add_option("-t", "--test", dest="bias", action="store_true", default=False)
-parser.add_option("-u","--unblind",dest="unblind",action='store_true', default=False)
-
-(opt, args) = parser.parse_args()
+parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
+parser.add_argument('-i', '--input', dest='ifile', type=str, default= "root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Datacards/trig4/sigfull/",help='Where can I find input histos? trig4/sigfull = new (24 July 2020) files created by Kevin')
+parser.add_argument("-m","--mode",dest="mode",type=str,default="hist",help="Kind of shape analysis: parametric fit or fit to histos?")
+parser.add_argument("-t", "--test", dest="bias", action="store_true", default=False)
+parser.add_argument("-n","--npool",dest="npool",type=int,default=0,help="number of parallel processes for brute force method (0 = parallelism disabled)")
+parser.add_argument("-v", "--verbose", dest="verbose", action="store_true", default=False)
+parser.add_argument("-I", "--initvals", dest="initvals", type=float, default=[-10.0,-1.0,-0.1,0.1,1.0,10.0], nargs='+', help="list of allowed initial values for brute force method")
+opt = parser.parse_args()
 sys.argv.append('-b')
 
-ifilename = opt.ifile + "datacard_final_SVJ_2900_20_0.3_peak.root"
-mode = opt.mode
-unblind = opt.unblind
+import ROOT
+from Stat.Limits.ftest import *
 
-bias = opt.bias
+ifilename = opt.ifile + "datacard_final_SVJ_2900_20_0.3_peak.root"
 
 signals = []
 
@@ -101,6 +97,6 @@ efile.close()
 for s in signals:
     doModelling = True # need to evaluate Fisher test for every batch
     for ch in ch_year:
-        getCard(s, ch, ifilename, doModelling, mode, bias, True)
+        getCard(s, ch, ifilename, doModelling, opt.npool, opt.initvals, opt.mode, opt.bias, opt.verbose)
 
 

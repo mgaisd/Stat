@@ -130,7 +130,7 @@ def fitOnce(args, tmp=False):
         args["chi2"] = pdf.createChi2(data).getValV()
         return args
     else:
-        return pdf, objs
+        return pdf, objs, fitRes
 
 # one-param version for pool map
 def fitOnceTmp(args):
@@ -141,7 +141,8 @@ def fitOnceTmp(args):
 
 # recursively make a list of all combinations
 # paramlist: list of lists of allowed values
-def varyAll(paramlist, pos=0, val=[], tups=set()):
+def varyAll(paramlist, pos=0, val=[], tups=None):
+    if tups is None: tups = set()
     vals = paramlist[pos]
     for v in vals:
         tmp = val[:]+[v]
@@ -176,9 +177,9 @@ def bruteForce(info, data, initvals, npool):
     sortedArgs = sorted(resultArgs, key = lambda x: x["chi2"])
 
     # repeat fit w/ best inits
-    pdf, objs = fitOnce(sortedArgs[0], tmp=False)
+    pdf, objs, fitRes = fitOnce(sortedArgs[0], tmp=False)
 
-    return pdf, objs
+    return pdf, objs, fitRes
 
 def main(args):
     import ROOT as r
@@ -202,7 +203,7 @@ def main(args):
     else:
         hist = ws.data(args.data)
 
-    opdf, objs = bruteForce(info, hist, args.initvals, args.npool)
+    opdf, objs, fitRes = bruteForce(info, hist, args.initvals, args.npool)
 
     # print parameter vals in combine arg format
     opars = makeVarInfoList(opdf.getPars())
