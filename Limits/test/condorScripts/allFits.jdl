@@ -1,0 +1,12 @@
+universe = vanilla
+Executable = allFits.sh
+Should_Transfer_Files = YES
+WhenToTransferOutput = ON_EXIT
+Transfer_Input_Files = allFits.sh
+Output = allFits.stdout
+Error = allFits.stderr
+Log = allFits.log
+RequestCpus = 8
+x509userproxy = $ENV(X509_USER_PROXY)
+Arguments = datacards_20Jan/ 8
+Queue 1

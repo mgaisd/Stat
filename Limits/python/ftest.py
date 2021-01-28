@@ -15,7 +15,7 @@ import copy, math, pickle
 import collections
 import numpy as np
 from numpy import ndarray
-from bruteForce import VarInfo, PdfInfo, varToInfo, bruteForce, silence
+from bruteForce import silence
 silence()
 
 ROOT.TH1.SetDefaultSumw2()
@@ -25,10 +25,6 @@ ROOT.gROOT.SetBatch()
 ROOT.gStyle.SetPadBorderMode(0)
 ROOT.gStyle.SetPadColor(0)
 
-mopt = ROOT.Math.MinimizerOptions()
-mopt.SetMaxFunctionCalls(100000)
-mopt.SetMaxIterations(100000)
-
 #*******************************************************#
 #                                                       #
 #                     Utility Functions                 #
@@ -36,14 +32,6 @@ mopt.SetMaxIterations(100000)
 #*******************************************************#
 
 isData = True
-
-def getRate(ch, process, ifile):
-       hName = ch + "/"+ process
-       #print(hName)
-       h = ifile.Get(hName)
-       #return h.Integral()
-       return h.Integral(1,h.GetXaxis().GetNbins()-1)
-       #return h.Integral(1,91)
 
 def getHist(ch, process, ifile):
        hName = ch + "/"+ process
@@ -59,7 +47,7 @@ def altMerge(l1, l2):
 	return result
 
 
-def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label = "nom"):
+def getRSS(ch, variable, model, dataset, fitRes, carddir,  norm = -1, label = "nom"):
        name = model.GetName()
        order = int(name[-1])
        npar = fitRes[0].floatParsFinal().getSize() if len(fitRes)>0 else 0
@@ -87,7 +75,6 @@ def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label
 
        frame.SetMaximum(frame.GetMaximum()*10.)
        frame.SetMinimum(0.1)
-       #print "==========> len(sig): ", len(sig)
        length = 1
        if(length<2):
 
@@ -176,9 +163,10 @@ def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label
        sumErrors = 0
        #graphFit.Print()
        fitmodel = graphFit.getHist()
-       fitmodel_curve = graphFit.getCurve("Bkg_"+str(ch)+str(order)+"_rgp_Norm[mH"+ch+"]_errorband")
        if label == "alt":
-              fitmodel_curve = graphFit.getCurve("Bkg_Alt_"+str(ch)+str(order)+"_rgp_Norm[mH"+ch+"]_errorband")
+           fitmodel_curve = graphFit.getCurve("Bkg_Alt_"+str(ch)+str(order)+"_rgp_Norm[mH"+ch+"]_errorband")
+       else:
+           fitmodel_curve = graphFit.getCurve("Bkg_"+str(ch)+str(order)+"_rgp_Norm[mH"+ch+"]_errorband")
        #print "fitmodel_curve: "
        #fitmodel_curve.Print()
 
@@ -309,7 +297,7 @@ def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label
 
        return out
 
-def drawTwoFuncs(sig, ch, variable, modelA, modelB, dataset, fitRes, carddir,  norm = -1, label = "nom"):
+def drawTwoFuncs(ch, variable, modelA, modelB, dataset, fitRes, carddir,  norm = -1, label = "nom"):
        name = modelA.GetName()+"_"+modelB.GetName()
        varArg = ROOT.RooArgSet(variable)
       
@@ -411,116 +399,43 @@ def fisherTest(RSS1, RSS2, o1, o2, N):
 #                                                       #
 #*******************************************************#
 
-def getCard(sig, ch, ifilename, doModelling, npool = 1, initvals = [1.0], mode = "histo", bias = False, verbose = False):
-       try:
-              ifile = ROOT.TFile.Open(ifilename)
-       except IOError:
-              print "Cannot open ", ifilename
-       else:
-              print "Opening file ",  ifilename
-              ifile.cd()
-
+def getCard(ch, idir, bias = False, verbose = False):
+       ch_red = ch[:-5]
+       rfilename = idir+"/fitResults_{}.root".format(ch_red)
+       print "Opening file ", rfilename
+       rfile = ROOT.TFile.Open(rfilename)
+       wfilename = idir+"/ws_allFits_{}.root".format(ch_red)
+       print "Opening file ", wfilename
+       wfile = ROOT.TFile.Open(wfilename)
+       ws = wfile.Get("FitWS")
 
        print "BIAS?", bias
        carddir = ""
-
-       hist_filename = os.getcwd()+"/"+ifilename
-       hist = getHist(ch, sig, ifile)
 
        #*******************************************************#
        #                                                       #
        #                   Generate workspace                  #
        #                                                       #
        #*******************************************************#
-    
+       mode = "template"
+       doModelling = True    
        if(mode == "template"):
-
-              ###ATT: CHECK BKG AND DATA NORMALIZATION AND DISTRIBUTION
-              histBkgData = getHist(ch, "Bkg", ifile)
-              histData = getHist(ch, "data_obs", ifile)
-              print "channel ", ch             
-              print "signal ", sig
-
-              histSig = getHist(ch, sig, ifile)
-              print "histSigData: ", histSig.Integral()
               xvarmin = 1500.
               xvarmax = 8000.
               mT = RooRealVar(  "mH"+ch,    "m_{T}", xvarmin, xvarmax, "GeV")
-              binMin = histData.FindBin(xvarmin)
-              binMax = histData.FindBin(xvarmax)
-              bkgData = RooDataHist("bkgdata", "MC Bkg",  RooArgList(mT), histBkgData, 1.)
-              obsData = RooDataHist("data_obs", "Data",  RooArgList(mT), histData, 1.)
-              sigData = RooDataHist("sigdata", "MC Sig",  RooArgList(mT), histSig, 1.)
-              print "SUM ENTRIES: ", sigData.sumEntries()
-              print "Bkg Integral: ", histData.Integral() 
-              nBkgEvts = histBkgData.Integral(binMin, binMax)
-              nDataEvts = histData.Integral(binMin, binMax)
-              nSigEvts = histSig.Integral(binMin, binMax)
 
-              print "channel: ", ch
-              normBkg = RooRealVar("Bkg_"+ch+"_norm", "Number of background events", nBkgEvts, 0., 2.e4)
-              normData = RooRealVar("Data_"+ch+"_norm", "Number of background events", nDataEvts, 0., 2.e4)
-              ch_red = ch[:-5]
+              obsData = ws.data("data_obs")
+              nDataEvts = obsData.sum(False)
+              nFits = 4
               modelName = "Bkg_"+ch
+              nFitsAlt = 4
               modelAltName =  "Bkg_Alt_"+ch
               
               if(doModelling):
                      print "channel: ", ch_red
-                     lowerLimit = -50
-                     upperLimit = 150
-                     if "lowCut" in ch_red:
-                            lowerLimit = -60
-                            upperLimit = 150
-                     if "highCut" in ch_red:
-                            lowerLimit = -50
-                            upperLimit = 150
-                     if "lowSVJ2" in ch_red:
-                            lowerLimit = -80
-                            upperLimit = 190
-                     if "highSVJ2" in ch_red:
-                            lowerLimit = -20
-                            upperLimit = 100
+                     modelBkg = [ws.pdf(modelName+str(i+1)) for i in range(nFits)]
+                     fitRes = [rfile.Get("fitresult_{}_data_obs".format(m.GetName())) for m in modelBkg]
 
-
-                     p1_1 = RooRealVar(ch_red + "_p1_1", "p1", 1., lowerLimit, upperLimit)
-                     p1_2 = RooRealVar(ch_red + "_p1_2", "p1", 1., lowerLimit, upperLimit)
-                     p1_3 = RooRealVar(ch_red + "_p1_3", "p1", 1., lowerLimit, upperLimit)
-                     p1_4 = RooRealVar(ch_red + "_p1_4", "p1", 1., lowerLimit, upperLimit)
-
-                     p2_1 = RooRealVar(ch_red + "_p2_1", "p2", 1., lowerLimit, upperLimit)
-                     p2_2 = RooRealVar(ch_red + "_p2_2", "p2", 1., lowerLimit, upperLimit)
-                     p2_3 = RooRealVar(ch_red + "_p2_3", "p2", 1., lowerLimit, upperLimit)
-                     p2_4 = RooRealVar(ch_red + "_p2_4", "p2", 1., lowerLimit, upperLimit)
-
-                     p3_2 = RooRealVar(ch_red + "_p3_2", "p3", 1., lowerLimit, upperLimit)
-                     p3_3 = RooRealVar(ch_red + "_p3_3", "p3", 1., lowerLimit, upperLimit)
-                     p3_4 = RooRealVar(ch_red + "_p3_4", "p3", 1., lowerLimit, upperLimit)
-
-                     p4_3 = RooRealVar(ch_red + "_p4_3", "p4", 1., lowerLimit, upperLimit)
-                     p4_4 = RooRealVar(ch_red + "_p4_4", "p4", 1., lowerLimit, upperLimit)
-
-                     p5_4 = RooRealVar(ch_red + "_p5_4", "p5", 1., lowerLimit, upperLimit)
-
-
-                     #Function from Theorists, combo testing, sequence E, 1, 11, 12, 22
-                     # model NM has N params on 1-x and M params on x. exponents are (p_i + p_{i+1} * log(x))
-                     # these are the RooGenericPdf verisons, convert to RooParametricShapeBinPdf below
-                     modelBkg1_rgp = RooGenericPdf(modelName+"1_rgp", "Thry. fit (11)", "pow(1 - @0/13000, @1) * pow(@0/13000, -(@2))",                                                                  RooArgList(mT, p1_1, p2_1))
-                     modelBkg2_rgp = RooGenericPdf(modelName+"2_rgp", "Thry. fit (12)", "pow(1 - @0/13000, @1) * pow(@0/13000, -(@2+@3*log(@0/13000)))",                                                 RooArgList(mT, p1_2, p2_2, p3_2))
-                     #modelBkg3_rgp = RooGenericPdf(modelName+"3_rgp", "Thry. fit (13)", "pow(1 - @0/13000, @1) * pow(@0/13000, -(@2+@3*log(@0/13000)+@4*pow(log(@0/13000),2)))",                         RooArgList(mT, p1_3, p2_3, p3_3, p4_3))
-                     #modelBkg4_rgp = RooGenericPdf(modelName+"4_rgp", "Thry. fit (14)", "pow(1 - @0/13000, @1) * pow(@0/13000, -(@2+@3*log(@0/13000)+@4*pow(log(@0/13000),2)+@5*pow(log(@0/13000),3)))", RooArgList(mT, p1_4, p2_4, p3_4, p4_4, p5_4))
-                     modelBkg3_rgp = RooGenericPdf(modelName+"3_rgp", "Thry. fit (22)", "pow(1 - @0/13000, @1+@2*log(@0/13000)) * pow(@0/13000, -(@3+@4*log(@0/13000)))",                         RooArgList(mT, p1_3, p2_3, p3_3, p4_3))
-                     modelBkg4_rgp = RooGenericPdf(modelName+"4_rgp", "Thry. fit (32)", "pow(1 - @0/13000, @1+@2*log(@0/13000)+@3*pow(log(@0/13000),2)) * pow(@0/13000, -(@4+@5*log(@0/13000)))", RooArgList(mT, p1_4, p2_4, p3_4, p4_4, p5_4))
-                     #modelBkg4_rgp = RooGenericPdf(modelName+"4_rgp", "Thry. fit (41)", "pow(1 - @0/13000, @1+@2*log(@0/13000)+@3*pow(log(@0/13000),2)+@4*pow(log(@0/13000),3)) * pow(@0/13000, -@5)", RooArgList(mT, p1_4, p2_4, p3_4, p4_4, p5_4))
-                     modelBkg = [
-                        RooParametricShapeBinPdf(modelName+"1", "Thry. Fit (11)", modelBkg1_rgp, mT, RooArgList(p1_1, p2_1), histBkgData),
-                        RooParametricShapeBinPdf(modelName+"2", "Thry. Fit (12)", modelBkg2_rgp, mT, RooArgList(p1_2, p2_2, p3_2), histBkgData),
-                        RooParametricShapeBinPdf(modelName+"3", "Thry. Fit (22)", modelBkg3_rgp, mT, RooArgList(p1_3, p2_3, p3_3, p4_3), histBkgData),
-                        RooParametricShapeBinPdf(modelName+"4", "Thry. Fit (32)", modelBkg4_rgp, mT, RooArgList(p1_4, p2_4, p3_4, p4_4, p5_4), histBkgData),
-                     ]
-
-                     fitrange = "Full"
-                     fitRes = [modelBkg[i].fitTo(obsData, RooFit.Extended(False), RooFit.Save(1), RooFit.SumW2Error(True), RooFit.Strategy(2), RooFit.Minimizer("Minuit2"), RooFit.PrintLevel(-1 if not verbose else 2), RooFit.Range(fitrange)) for i in range(len(modelBkg))]
                      orderBkg = [len(f.floatParsFinal()) for f in fitRes]
                      
                      xframe = mT.frame(ROOT.RooFit.Title("extended ML fit example"))
@@ -563,67 +478,21 @@ def getCard(sig, ch, ifilename, doModelling, npool = 1, initvals = [1.0], mode =
                      c1.SetLogy()
                      c1.SaveAs("TestAfterFit_"+ch+".pdf")
 
-                     RSS = {orderBkg[i] : getRSS(sig, ch, mT, modelBkg[i], obsData, [fitRes[i]], carddir, nDataEvts) for i in range(len(modelBkg))}
+                     RSS = {orderBkg[i] : getRSS(ch, mT, modelBkg[i], obsData, [fitRes[i]], carddir, nDataEvts) for i in range(len(modelBkg))}
 
                      #**********************************************************
                      #                    ALTERNATIVE MODEL                    *
                      #**********************************************************
                      if bias:
-
-                            # alternative function is Silvio's nominal function, but with +1 instead of -1
-                            normAlt = RooRealVar("Bkg_"+ch+"alt_norm", "Number of background events", nBkgEvts, 0., 2.e4)
-                            normData = RooRealVar("Data_"+ch+"alt_norm", "Number of background events", nDataEvts, 0., 2.e4) 
-
-                            lowAlt = -100
-                            highAlt = 100
-                            pdfsAlt = [
-                                PdfInfo(modelAltName+"1", "Alt. Fit 1par", "exp(@1*(@0/13000))", hist=histBkgData,
-                                    x = varToInfo(mT, True),
-                                    pars = [
-                                        VarInfo(ch_red + "_p1_1_alt", "p1", 1., lowAlt, highAlt, "", False),
-                                    ],
-                                ),
-                                PdfInfo(modelAltName+"2", "Alt. Fit 2par", "exp(@1*(@0/13000)) * pow(@0/13000,@2)", hist=histBkgData,
-                                    x = varToInfo(mT, True),
-                                    pars = [
-                                        VarInfo(ch_red + "_p1_2_alt", "p1", 1., lowAlt, highAlt, "", False),
-                                        VarInfo(ch_red + "_p2_2_alt", "p2", 1., lowAlt, highAlt, "", False),
-                                    ],
-                                ),
-                                PdfInfo(modelAltName+"3", "Alt. Fit 3par", "exp(@1*(@0/13000)) * pow(@0/13000,@2*(1+@3*log(@0/13000)))", hist=histBkgData,
-                                    x = varToInfo(mT, True),
-                                    pars = [
-                                        VarInfo(ch_red + "_p1_3_alt", "p1", 1., lowAlt, highAlt, "", False),
-                                        VarInfo(ch_red + "_p2_3_alt", "p2", 1., lowAlt, highAlt, "", False),
-                                        VarInfo(ch_red + "_p3_3_alt", "p3", 1., lowAlt, highAlt, "", False),
-                                    ],
-                                ),
-                                PdfInfo(modelAltName+"4", "Alt. Fit 4par", "exp(@1*(@0/13000)) * pow(@0/13000,@2*(1+@3*log(@0/13000)*(1+@4*log(@0/13000))))", hist=histBkgData,
-                                    x = varToInfo(mT, True),
-                                    pars = [
-                                        VarInfo(ch_red + "_p1_4_alt", "p1", 1., lowAlt, highAlt, "", False),
-                                        VarInfo(ch_red + "_p2_4_alt", "p2", 1., lowAlt, highAlt, "", False),
-                                        VarInfo(ch_red + "_p3_4_alt", "p3", 1., lowAlt, highAlt, "", False),
-                                        VarInfo(ch_red + "_p4_4_alt", "p4", 1., lowAlt, highAlt, "", False),
-                                    ],
-                                ),
-                            ]
-                            modelAlt = []
-                            objsAlt = []
-                            fitResAlt = []
-                            for pdfAlt in pdfsAlt:
-                                mtmp, otmp, ftmp = bruteForce(pdfAlt, obsData, initvals, npool)
-                                modelAlt.append(mtmp)
-                                objsAlt.append(otmp)
-                                fitResAlt.append(ftmp)
-
+                            modelAlt = [ws.pdf(modelAltName+str(i+1)) for i in range(nFitsAlt)]
+                            fitResAlt = [rfile.Get("fitresult_{}_data_obs".format(m.GetName())) for m in modelAlt]
                             RSS_alt = {}
-                            for i in range(len(pdfsAlt)):
-                                RSS_alt[fitResAlt[i].floatParsFinal().getSize()] = getRSS(sig, ch, mT, modelAlt[i], obsData,  [fitResAlt[i]], carddir,  nDataEvts, label = "alt")
+                            for i in range(len(modelAlt)):
+                                RSS_alt[fitResAlt[i].floatParsFinal().getSize()] = getRSS(ch, mT, modelAlt[i], obsData,  [fitResAlt[i]], carddir,  nDataEvts, label = "alt")
 
-                            #for i in range(len(modelBkg)):
-                            #    for j in range(len(modelAlt)):
-                            #        drawTwoFuncs(sig, ch, mT, modelBkg[i], modelAlt[j], obsData, [fitRes[i], fitResAlt[j]], carddir,  nDataEvts, label = "dual")
+                            for i in range(len(modelBkg)):
+                                for j in range(len(modelAlt)):
+                                    drawTwoFuncs(ch, mT, modelBkg[i], modelAlt[j], obsData, [fitRes[i], fitResAlt[j]], carddir,  nDataEvts, label = "dual")
 
                             length = 1
                             if(length<2):
@@ -842,7 +711,6 @@ def getCard(sig, ch, ifilename, doModelling, npool = 1, initvals = [1.0], mode =
                             modelBkgF = modelBkg[-1]
 
                      modelBkgF.SetName(modelName)
-                     normData.SetName(modelName+"_norm")
 
 
                      #*******************************************************#
@@ -852,15 +720,10 @@ def getCard(sig, ch, ifilename, doModelling, npool = 1, initvals = [1.0], mode =
                      #*******************************************************#
 
                      wsfilename = "ws_{}.root".format(ch_red)
-                     wfile_ = ROOT.TFile(wsfilename)
-                     w_ = wfile_.FindObjectAny("BackgroundWS")
-                     if not w_.__nonzero__() :  w_ = RooWorkspace("BackgroundWS", "workspace")
-                     else:  w_ =  wfile_.Get("BackgroundWS")
+                     w_ = RooWorkspace("BackgroundWS", "workspace")
                      print "Storing ", modelName
                      getattr(w_, "import")(modelBkgF) #Bkg func with optimal num Paras
-
-                     getattr(w_, "import")(obsData, RooFit.Rename("data_obs")) # data_obs histogram
-
+                     getattr(w_, "import")(obsData) # data_obs histogram
 
                      if bias:
                         modelAltF = None
@@ -873,7 +736,6 @@ def getCard(sig, ch, ifilename, doModelling, npool = 1, initvals = [1.0], mode =
                                #exit()
                                modelAltF = modelAlt[-1]
                         modelAltF.SetName(modelAltName)
-                        normAlt.SetName(modelAltName+"_norm")
                         getattr(w_, "import")(modelAltF) # Alt func with optimal num Paras
 
-                     wstatus = w_.writeToFile(wsfilename, False)
+                     wstatus = w_.writeToFile(wsfilename, True)

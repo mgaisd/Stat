@@ -9,50 +9,16 @@ channels = ["lowSVJ2", "highSVJ2", "highCut", "lowCut"]
 sigpoints = []
 
 parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
-parser.add_argument('-i', '--input', dest='ifile', type=str, default= "root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Datacards/trig4/sigfull/",help='Where can I find input histos? trig4/sigfull = new (24 July 2020) files created by Kevin')
-parser.add_argument("-m","--mode",dest="mode",type=str,default="hist",help="Kind of shape analysis: parametric fit or fit to histos?")
+parser.add_argument('-i', '--input', dest='idir', type=str, default= "root://cmseos.fnal.gov//store/user/cfallon/datacards_20Jan/",help='Location of fit output files ws_allFits_{}.root, fitResults_{}.root')
 parser.add_argument("-t", "--test", dest="bias", action="store_true", default=False)
-parser.add_argument("-n","--npool",dest="npool",type=int,default=0,help="number of parallel processes for brute force method (0 = parallelism disabled)")
 parser.add_argument("-v", "--verbose", dest="verbose", action="store_true", default=False)
-parser.add_argument("-I", "--initvals", dest="initvals", type=float, default=[-10.0,-1.0,-0.1,0.1,1.0,10.0], nargs='+', help="list of allowed initial values for brute force method")
 opt = parser.parse_args()
 sys.argv.append('-b')
 
 import ROOT
 from Stat.Limits.ftest import *
 
-ifilename = opt.ifile + "datacard_final_SVJ_2900_20_0.3_peak.root"
-
-signals = []
-
-sigpoints.append(["2900","20","03","peak"])
-
-for p in sigpoints:
-
-    mZprime=p[0]
-    mDark=p[1]
-    rinv=p[2]
-    alpha=p[3]
-
-    print "Creating datacards for mZprime = ", mZprime, " GeV, mDark = ", mDark, " GeV, rinv = ", rinv, " , alpha = ", alpha
-    signal  = "SVJ_mZprime%s_mDark%s_rinv%s_alpha%s" % (mZprime, mDark, rinv, alpha) 
-    signals.append(signal)
-
-try:
-    ifile = ROOT.TFile.Open(ifilename)
-except IOError:
-    print "Cannot open ", ifilename
-else:
-    print "Opening file ",  ifilename
-    ifile.cd()
-    
-    r = ROOT.gDirectory.GetListOfKeys()[0]
-    
-    r_years = [r.ReadObj().GetName()[-4:] for r in ROOT.gDirectory.GetListOfKeys() ]
-    
-    years =  list(set(r_years))
-    
-
+years = ['2018']
 ch_year = []
 
 print "====> CHANNELS: ", channels
@@ -63,12 +29,7 @@ for y in years:
 
 print "====> CHANNELS + YEAR: ", ch_year
 
-cmd = "rm ws.root"
-os.system(cmd)
-
-for s in signals:
-    doModelling = True # need to evaluate Fisher test for every batch
-    for ch in ch_year:
-        getCard(s, ch, ifilename, doModelling, opt.npool, opt.initvals, opt.mode, opt.bias, opt.verbose)
+for ch in ch_year:
+    getCard(ch, opt.idir, opt.bias, opt.verbose)
 
 
