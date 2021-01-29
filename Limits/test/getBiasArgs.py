@@ -30,7 +30,7 @@ def main(region, fn, suff):
     indarg = "pdf_index_{}_2018".format(region)
 
     setargs = ["{}={}".format(indarg,fn)]
-    frzargs = get_param_names(region,other_fn)
+    frzargs = [indarg]+get_param_names(region,other_fn)
     trkargs = get_param_names(region,fn)
 
     args = [

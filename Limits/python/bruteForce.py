@@ -138,7 +138,7 @@ def fitOnceTmp(args):
     try:
         return fitOnce(args, True)
     except:
-        print("Failed combination: {}".format(args["inits"]))
+        if args["verbosity"]>=1: print("Failed combination: {}".format(args["inits"]))
         traceback.print_exc()
 
 # recursively make a list of all combinations
@@ -155,16 +155,16 @@ def varyAll(paramlist, pos=0, val=[], tups=None):
             varyAll(paramlist, pos=pos+1, val=tmp, tups=tups)
     if pos==0: return tups
 
-def bruteForce(info, data, initvals, npool, max):
+def bruteForce(info, data, initvals, npool, max, verbosity=1):
     # use allowed initial values for each parameter of pdf (up to max)
-    paramlist = [initvals for p in range(min(len(info.pars), 0 if max is None else max[0]))]
+    paramlist = [initvals for p in range(min(len(info.pars), 1e10 if max is None else max[0]))]
     allInits = list(sorted(varyAll(paramlist)))
     if max is not None and len(info.pars)>max[0]:
         extras = tuple([max[1]]*(len(info.pars)-max[0]))
         allInits = [init+extras for init in allInits]
 
     # make list of arg combinations for fitOnce
-    allArgs = [{"info": deepcopy(info), "inits": inits, "data": data} for inits in allInits]
+    allArgs = [{"info": deepcopy(info), "inits": inits, "data": data, "verbosity": verbosity} for inits in allInits]
 
     tstart = time.time()
     resultArgs = []
@@ -185,7 +185,7 @@ def bruteForce(info, data, initvals, npool, max):
     total = len(resultArgs)
     resultArgs = [x for x in resultArgs if x is not None and x["status"]==0]
     passed = len(resultArgs)
-    print("bruteForce result: {} out of {} succeeded in {:.2f} sec".format(passed,total,tstop-tstart))
+    if verbosity>=1: print("bruteForce result: {} out of {} succeeded in {:.2f} sec".format(passed,total,tstop-tstart))
 
     # sort by chi2
     sortedArgs = sorted(resultArgs, key = lambda x: x["chi2"])
@@ -217,7 +217,7 @@ def main(args):
     else:
         hist = ws.data(args.data)
 
-    opdf, objs, fitRes = bruteForce(info, hist, args.initvals, args.npool, args.max)
+    opdf, objs, fitRes = bruteForce(info, hist, args.initvals, args.npool, args.max, args.verbosity)
 
     # print parameter vals in combine arg format
     opars = makeVarInfoList(opdf.getPars())
@@ -231,11 +231,13 @@ if __name__=="__main__":
     parser.add_argument("-p", "--pdf", dest="pdf", type=str, required=True, help="pdf name")
     parser.add_argument("-i", "--initvals", dest="initvals", type=float, default=[-10.0,-1.0,-0.1,0.1,1.0,10.0], nargs='+', help="list of allowed initial values")
     parser.add_argument("-n", "--npool", dest="npool", type=int, default=1, help="number of processes")
-    parser.add_argument("-m", "--max", dest="max", type=int, default=None, nargs=2, help="[max # parameters (to generate initvals combinations)] [single initial value (for subsequent parameters)]")
+    parser.add_argument("-m", "--max", dest="max", type=float, default=None, nargs=2, help="[max # parameters (to generate initvals combinations)] [single initial value (for subsequent parameters)]")
+    parser.add_argument("-v", "--verbosity", dest="verbosity", type=int, default=1, help="verbosity level")
     data_group = parser.add_mutually_exclusive_group(required=True)
     data_group.add_argument("-d", "--data", dest="data", type=str, default="", help="dataset name")
     data_group.add_argument("-g", "--gen", dest="gen", type=str, default="", help="pdf name to generate data")
     args = parser.parse_args()
-    
+
+    if args.max is not None: max[0] = int(max[0])
     main(args)
 
