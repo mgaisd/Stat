@@ -202,7 +202,8 @@ def getCard(sig, ch, ifilename, npool = 1, initvals = [1.0], bias = False, verbo
                             fitResAlt = []
                             for pdfAlt in pdfsAlt:
                                 print "fit ",pdfAlt.name
-                                mtmp, otmp, ftmp = bruteForce(pdfAlt, obsData, initvals, npool)
+                                # truncate brute force at 3 param (4 takes too long, has some segfaults)
+                                mtmp, otmp, ftmp = bruteForce(pdfAlt, obsData, initvals, npool, [3,1.])
                                 modelAlt.append(mtmp)
                                 objsAlt.append(otmp)
                                 fitResAlt.append(ftmp)
