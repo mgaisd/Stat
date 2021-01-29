@@ -137,6 +137,7 @@ def fitOnceTmp(args):
     try:
         return fitOnce(args, True)
     except:
+        print("Failed combination: {}".format(args["inits"]))
         traceback.print_exc()
 
 # recursively make a list of all combinations
@@ -168,10 +169,14 @@ def bruteForce(info, data, initvals, npool):
             resultArgs.append(fitOnceTmp(a))
     else:
         # run in parallel
+        npool = min(len(allInits), npool)
         p = Pool(npool)
         resultArgs = p.map(fitOnceTmp, allArgs)
         p.close()
         p.join()
+
+    # handle any failures
+    resultArgs = [x for x in resultArgs if x is not None]
 
     # sort by chi2
     sortedArgs = sorted(resultArgs, key = lambda x: x["chi2"])
@@ -208,7 +213,7 @@ def main(args):
     # print parameter vals in combine arg format
     opars = makeVarInfoList(opdf.getPars())
     setargs = ["{}={}".format(p.name,p.val) for p in opars]
-    print(','.join(setargs))
+    print('setParameters {}'.format(','.join(setargs)))
 
 if __name__=="__main__":
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)

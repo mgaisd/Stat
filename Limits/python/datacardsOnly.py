@@ -57,15 +57,6 @@ syst["MCRun2psisrunc"] = ("shape",["sig"])
 
 processes = ["QCD"]
 
-#*****************************************************
-#                                                       #
-#   getRate(process, ifile)                             #
-#                                                       #
-#   getCard(sig, ch, ifilename, outdir)                 #
-#                                                       #
-#*******************************************************#
-
-
 #*******************************************************#
 #                                                       #
 #                     Utility Functions                 #
@@ -93,7 +84,7 @@ def getHist(ch, process, ifile):
 #                                                       #
 #*******************************************************#
 
-def getCard(sig, ch, ifilename, wsdir, outdir, doModelling, mode = "histo", bias = False, verbose = False, doSys = True):
+def getCard(sig, ch, ifilename, wsdir, doModelling, mode = "histo", bias = False, verbose = False, doSys = True):
        try:
               ifile = ROOT.TFile.Open(ifilename)
        except IOError:
