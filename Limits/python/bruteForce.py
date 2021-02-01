@@ -4,7 +4,7 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from multiprocessing import Pool
 from collections import namedtuple
 from copy import deepcopy
-import uuid, time
+import uuid, time, inspect
 
 debugws = False
 
@@ -39,7 +39,7 @@ def makePdf(info, inits=None, suff=""):
     silence()
 
     suff = checkSuff(suff)
-    x = makeVar(info.x, suff)
+    x = makeVar(info.x, suff=suff)
     pars = [makeVar(p, inits[i] if inits is not None else None, suff) for i,p in enumerate(info.pars)]
     allPars = [x]+pars
     pdf_rgp = r.RooGenericPdf(info.name+"_rgp"+suff, info.title, info.formula, r.RooArgList(*allPars))
@@ -90,7 +90,10 @@ def pdfToInfo(pdf):
     r.gSystem.Load("libHiggsAnalysisCombinedLimit.so")
 
     # access RooGenericPdf formula
-    r.gROOT.ProcessLine("""class RooGenericPdf2 : public RooGenericPdf {
+    try:
+        r.RooGenericPdf2
+    except:
+        r.gROOT.ProcessLine("""class RooGenericPdf2 : public RooGenericPdf {
 public:
 TString formExpr() { return _formExpr; }
 static TString getFormExpr(RooGenericPdf* pdf){ return ((RooGenericPdf2*)pdf)->formExpr(); }
@@ -107,6 +110,12 @@ static TString getFormExpr(RooGenericPdf* pdf){ return ((RooGenericPdf2*)pdf)->f
     hist = r.TH1F("hbins","",nbins,bins)
 
     return PdfInfo(name, title, formula, x, pars, hist)
+
+def remakePdf(pdf, suff="_old"):
+    name = pdf.GetName()
+    info = pdfToInfo(pdf)
+    pdf.SetName(name+suff)
+    return makePdf(info)
 
 # expected args: info (PdfInfo), inits (list of initial values), data (RooAbsData)
 def fitOnce(args, tmp=False):

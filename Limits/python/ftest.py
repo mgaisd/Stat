@@ -15,7 +15,7 @@ import copy, math, pickle
 import collections
 import numpy as np
 from numpy import ndarray
-from bruteForce import silence
+from bruteForce import silence, remakePdf
 silence()
 
 ROOT.TH1.SetDefaultSumw2()
@@ -711,6 +711,7 @@ def getCard(ch, idir, bias = False, verbose = False):
                             modelBkgF = modelBkg[-1]
 
                      modelBkgF.SetName(modelName)
+                     modelBkgF, objsBkg = remakePdf(modelBkgF)
 
 
                      #*******************************************************#
@@ -736,6 +737,7 @@ def getCard(ch, idir, bias = False, verbose = False):
                                #exit()
                                modelAltF = modelAlt[-1]
                         modelAltF.SetName(modelAltName)
+                        modelAltF, objsAlt = remakePdf(modelAltF)
                         getattr(w_, "import")(modelAltF) # Alt func with optimal num Paras
 
                      wstatus = w_.writeToFile(wsfilename, True)

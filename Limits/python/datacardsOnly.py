@@ -9,6 +9,7 @@ import json
 
 
 from ROOT import RooRealVar, RooDataHist, RooArgList, RooGenericPdf, RooBernstein, RooExtendPdf, RooCmdArg, RooWorkspace, RooFit, RooDataSet, RooArgSet, RooCategory, RooFitResult, RooCurve, RooParametricShapeBinPdf
+from Stat.Limits.bruteForce import remakePdf
 import os, sys
 from array import array
 import copy, math, pickle
@@ -135,9 +136,7 @@ def getCard(sig, ch, ifilename, wsdir, doModelling, mode = "histo", bias = False
               print "workspace ", wBkg.Print()
               print "Model name: ", modelName
               modelBkg = wBkg.pdf(modelName)
-              modelAlt = wBkg.pdf(modelAltName)
-              normAlt = wBkg.pdf(modelAltName+"_norm")
-              normData = wBkg.pdf(modelName+"_norm")
+              modelBkg, objsBkg = remakePdf(modelBkg)
               parSet = modelBkg.getParameters(obsData)
               parSet.Print()
               argList = ROOT.RooArgList(parSet)
@@ -148,6 +147,8 @@ def getCard(sig, ch, ifilename, wsdir, doModelling, mode = "histo", bias = False
                     print  argList[i].GetName(), "   ", argList[i].getVal()
 
               if bias:
+                     modelAlt = wBkg.pdf(modelAltName)
+                     modelAlt, objsAlt = remakePdf(modelAlt)
                      ROOT.gSystem.Load("libHiggsAnalysisCombinedLimit.so")
                      from ROOT import RooMultiPdf
                      pdf_index_string = "pdf_index_%s" % (ch)
