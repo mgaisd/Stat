@@ -31,8 +31,8 @@ rMax=10
 #parOptsTrack<X> is used in the FitDiag Command to track the parameters we use
 #  i.e., if we use parOptsMain, we should also use parOptsTrackMain, but only in FitDiag
 
-eval $(./getBiasArgs.py -r ${REGION} -f ${genFunc} -s Gen)
-eval $(./getBiasArgs.py -r ${REGION} -f ${fitFunc} -s Fit)
+eval $(./getBiasArgs.py -r ${REGION} -n ${genFunc} -s Gen -f ${WS_NAME})
+eval $(./getBiasArgs.py -r ${REGION} -n ${fitFunc} -s Fit -f ${WS_NAME})
 
 #print obtained variables
 echo "SetArgGen: $SetArgGen"
