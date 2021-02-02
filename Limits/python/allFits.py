@@ -169,31 +169,31 @@ def getCard(sig, ch, ifilename, npool = 1, initvals = [1.0], bias = False, verbo
                                 PdfInfo(modelAltName+"1", "Alt. Fit 1par", "exp(@1*(@0/13000))", hist=histBkgData,
                                     x = varToInfo(mT, True),
                                     pars = [
-                                        VarInfo(ch_red + "_p1_1_alt", "p1", 1., lowAlt, highAlt, "", False),
+                                        VarInfo(ch_red + "_p1_1_alt", "p1", 1., lowAlt, highAlt, 0, "", False),
                                     ],
                                 ),
                                 PdfInfo(modelAltName+"2", "Alt. Fit 2par", "exp(@1*(@0/13000)) * pow(@0/13000,@2)", hist=histBkgData,
                                     x = varToInfo(mT, True),
                                     pars = [
-                                        VarInfo(ch_red + "_p1_2_alt", "p1", 1., lowAlt, highAlt, "", False),
-                                        VarInfo(ch_red + "_p2_2_alt", "p2", 1., lowAlt, highAlt, "", False),
+                                        VarInfo(ch_red + "_p1_2_alt", "p1", 1., lowAlt, highAlt, 0, "", False),
+                                        VarInfo(ch_red + "_p2_2_alt", "p2", 1., lowAlt, highAlt, 0, "", False),
                                     ],
                                 ),
                                 PdfInfo(modelAltName+"3", "Alt. Fit 3par", "exp(@1*(@0/13000)) * pow(@0/13000,@2*(1+@3*log(@0/13000)))", hist=histBkgData,
                                     x = varToInfo(mT, True),
                                     pars = [
-                                        VarInfo(ch_red + "_p1_3_alt", "p1", 1., lowAlt, highAlt, "", False),
-                                        VarInfo(ch_red + "_p2_3_alt", "p2", 1., lowAlt, highAlt, "", False),
-                                        VarInfo(ch_red + "_p3_3_alt", "p3", 1., lowAlt, highAlt, "", False),
+                                        VarInfo(ch_red + "_p1_3_alt", "p1", 1., lowAlt, highAlt, 0, "", False),
+                                        VarInfo(ch_red + "_p2_3_alt", "p2", 1., lowAlt, highAlt, 0, "", False),
+                                        VarInfo(ch_red + "_p3_3_alt", "p3", 1., lowAlt, highAlt, 0, "", False),
                                     ],
                                 ),
                                 PdfInfo(modelAltName+"4", "Alt. Fit 4par", "exp(@1*(@0/13000)) * pow(@0/13000,@2*(1+@3*log(@0/13000)*(1+@4*log(@0/13000))))", hist=histBkgData,
                                     x = varToInfo(mT, True),
                                     pars = [
-                                        VarInfo(ch_red + "_p1_4_alt", "p1", 1., lowAlt, highAlt, "", False),
-                                        VarInfo(ch_red + "_p2_4_alt", "p2", 1., lowAlt, highAlt, "", False),
-                                        VarInfo(ch_red + "_p3_4_alt", "p3", 1., lowAlt, highAlt, "", False),
-                                        VarInfo(ch_red + "_p4_4_alt", "p4", 1., lowAlt, highAlt, "", False),
+                                        VarInfo(ch_red + "_p1_4_alt", "p1", 1., lowAlt, highAlt, 0, "", False),
+                                        VarInfo(ch_red + "_p2_4_alt", "p2", 1., lowAlt, highAlt, 0, "", False),
+                                        VarInfo(ch_red + "_p3_4_alt", "p3", 1., lowAlt, highAlt, 0, "", False),
+                                        VarInfo(ch_red + "_p4_4_alt", "p4", 1., lowAlt, highAlt, 0, "", False),
                                     ],
                                 ),
                             ]
@@ -203,7 +203,7 @@ def getCard(sig, ch, ifilename, npool = 1, initvals = [1.0], bias = False, verbo
                             for pdfAlt in pdfsAlt:
                                 print "fit ",pdfAlt.name
                                 # truncate brute force at 3 param (4 takes too long, has some segfaults)
-                                mtmp, otmp, ftmp = bruteForce(pdfAlt, obsData, initvals, npool, [3,1.])
+                                mtmp, otmp, ftmp = bruteForce(pdfAlt, obsData, initvals, npool, [3,1.], 2)
                                 modelAlt.append(mtmp)
                                 objsAlt.append(otmp)
                                 fitResAlt.append(ftmp)

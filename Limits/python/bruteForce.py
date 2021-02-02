@@ -4,12 +4,12 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from multiprocessing import Pool
 from collections import namedtuple
 from copy import deepcopy
-import uuid, time, inspect
+import uuid, time, inspect, itertools
 
 debugws = False
 
 # representations of info needed to construct RooFit objects on the fly
-VarInfo = namedtuple('VarInfo', ['name', 'title', 'val', 'vmin', 'vmax', 'unit', 'floating'])
+VarInfo = namedtuple('VarInfo', ['name', 'title', 'val', 'vmin', 'vmax', 'err', 'unit', 'floating'])
 PdfInfo = namedtuple('PdfInfo', ['name', 'title', 'formula', 'x', 'pars', 'hist'])
 
 def silence():
@@ -18,7 +18,7 @@ def silence():
     r.RooMsgService.instance().setGlobalKillBelow(r.RooFit.ERROR);
 
 def checkSuff(suff):
-    if len(suff)>0 and suff[0] != "_": suff = "_"+suff
+    if suff is not None and len(suff)>0 and suff[0] != "_": suff = "_"+suff
     return suff
 
 def makeVar(info, val=None, suff=""):
@@ -82,8 +82,9 @@ def varToInfo(var, floating=False):
     val = var.getValV()
     vmin = var.getBinning().lowBound()
     vmax = var.getBinning().highBound()
+    err = var.getError()
     unit = var.getUnit()
-    return VarInfo(name, title, val, vmin, vmax, unit, floating)    
+    return VarInfo(name, title, val, vmin, vmax, err, unit, floating)
 
 def pdfToInfo(pdf):
     import ROOT as r
@@ -117,6 +118,15 @@ def remakePdf(pdf, suff="_old"):
     pdf.SetName(name+suff)
     return makePdf(info)
 
+def remakeData(data, xname, x, suff=""):
+    import ROOT as r
+    r.gSystem.Load("libHiggsAnalysisCombinedLimit.so")
+
+    suff = checkSuff(suff)
+    hdata = data.createHistogram(xname)
+    newdata = r.RooDataHist(data.GetName()+suff,"",r.RooArgList(x),hdata)
+    return newdata
+
 # expected args: info (PdfInfo), inits (list of initial values), data (RooAbsData)
 def fitOnce(args, tmp=False):
     import ROOT as r
@@ -126,7 +136,7 @@ def fitOnce(args, tmp=False):
     # suffix for temporary pdfs and vars to keep them separate
     suff = uuid.uuid4().hex if tmp else ""
     pdf, objs = makePdf(args["info"], inits=args["inits"], suff=suff)
-    data = args["data"]
+    data = remakeData(args["data"], args["info"].x.name, objs[0], suff=suff) if tmp else args["data"]
 
     ncalls = 100000
     mopt = r.Math.MinimizerOptions()
@@ -136,8 +146,27 @@ def fitOnce(args, tmp=False):
     fitRes = pdf.fitTo(data, r.RooFit.Extended(False), r.RooFit.Save(1), r.RooFit.SumW2Error(True), r.RooFit.Strategy(2), r.RooFit.Minimizer("Minuit2"), r.RooFit.PrintLevel(-1), r.RooFit.Range("Full"))
     
     if tmp:
-        args["chi2"] = pdf.createChi2(data).getValV()
+        # recommended way to compute chi2 in RooFit
+        frame = objs[0].frame(r.RooFit.Title("frame_{}".format(suff)))
+        data.plotOn(frame, r.RooFit.Name(data.GetName()))
+        pdf.plotOn(frame, r.RooFit.Name(pdf.GetName()))
+        rchi2 = frame.chiSquare(pdf.GetName(), data.GetName())
+
+        # computes reduced chi2, so get ndf by hand
+        dhist = frame.findObject(data.GetName(),r.RooHist.Class())
+        ndf = 0
+        for i in range(dhist.GetN()):
+            x = r.Double(0.)
+            y = r.Double(0.)
+            dhist.GetPoint(i,x,y)
+            if y!=0: ndf += 1
+
+        args["ndf"] = ndf
+        args["chi2"] = rchi2*ndf
         args["status"] = fitRes.status()
+        pinfo = makeVarInfoList(pdf.getPars())
+        args["fitpars"] = [x.val for x in pinfo]
+        args["fiterrs"] = [x.err for x in pinfo]
         return args
     else:
         return pdf, objs, fitRes
@@ -147,7 +176,7 @@ def fitOnceTmp(args):
     try:
         return fitOnce(args, True)
     except:
-        if args["verbosity"]>=1: print("Failed combination: {}".format(args["inits"]))
+        if args["verbosity"]>=1: print("Crashed combination: {}".format(args["inits"]))
         traceback.print_exc()
 
 # recursively make a list of all combinations
@@ -164,12 +193,13 @@ def varyAll(paramlist, pos=0, val=[], tups=None):
             varyAll(paramlist, pos=pos+1, val=tmp, tups=tups)
     if pos==0: return tups
 
-def bruteForce(info, data, initvals, npool, max, verbosity=1):
+def bruteForce(info, data, initvals, npool, pmax, verbosity=1):
     # use allowed initial values for each parameter of pdf (up to max)
-    paramlist = [initvals for p in range(min(len(info.pars), 1e10 if max is None else max[0]))]
+    npars = len(info.pars)
+    paramlist = [initvals for p in range(min(npars, 1e10 if pmax is None else pmax[0]))]
     allInits = list(sorted(varyAll(paramlist)))
-    if max is not None and len(info.pars)>max[0]:
-        extras = tuple([max[1]]*(len(info.pars)-max[0]))
+    if pmax is not None and npars>pmax[0]:
+        extras = tuple([pmax[1]]*(npars-pmax[0]))
         allInits = [init+extras for init in allInits]
 
     # make list of arg combinations for fitOnce
@@ -190,17 +220,51 @@ def bruteForce(info, data, initvals, npool, max, verbosity=1):
         p.join()
     tstop = time.time()
 
-    # handle any failures
+    # handle any failures, sort by chi2
     total = len(resultArgs)
-    resultArgs = [x for x in resultArgs if x is not None and x["status"]==0]
-    passed = len(resultArgs)
+    passedArgs = sorted([x for x in resultArgs if x is not None and (x["status"]==0 or x["status"]==1)], key = lambda x: x["chi2"])
+    passed = len(passedArgs)
     if verbosity>=1: print("bruteForce result: {} out of {} succeeded in {:.2f} sec".format(passed,total,tstop-tstart))
 
-    # sort by chi2
-    sortedArgs = sorted(resultArgs, key = lambda x: x["chi2"])
+    # debugging info
+    if verbosity>=2:
+        # determine ndf from non-empty bins
+        hist = data.createHistogram("data_hist",makeVar(info.x))
+        ndf = sum([hist.GetBinContent(b+1)!=0 and hist.GetBinError(b+1)!=0 for b in range(hist.GetNbinsX())]) - npars
+        headers = ["chi2", "chi2/ndf", "inits", "params", "status"]
+        nheaders = len(headers)
+        headerLengths = [len(x) for x in headers]
+        columnFormats = ["{:.2f}", "{:.2f}", "("+', '.join("{:>6.1f}" for i in range(npars))+")", "("+', '.join("{:>8.3f} ({:>8.3f})" for i in range(npars))+")", "{:>3}"]
+        def printColumns(args):
+            # apply formatting row-wise
+            rows = [[
+                columnFormats[0].format(arg["chi2"]),
+                columnFormats[1].format(arg["chi2"]/float(ndf)),
+                columnFormats[2].format(*arg["inits"]),
+                # flatten list of tuple pairs
+                columnFormats[3].format(*list(itertools.chain(*[(arg["fitpars"][i],arg["fiterrs"][i]) for i in range(npars)]))),
+                columnFormats[4].format(arg["status"]),
+            ] for arg in args]
+            # transpose to find max length for each column
+            colLengths = [max(len(row[i]) for row in rows) for i in range(nheaders)] if len(rows)>0 else [0]*nheaders
+            colLengths = [max(colLengths[i], headerLengths[i]) for i in range(nheaders)]
+            print('  '.join(["{0:<{1}}".format(headers[i], colLengths[i]) for i in range(nheaders)]))
+            for row in rows:
+                print('  '.join(["{0:>{1}}".format(row[i], colLengths[i]) for i in range(nheaders)]))
+
+        failedArgs = sorted([x for x in resultArgs if x is not None and x["status"]!=0 and x["status"]!=1], key = lambda x: x["chi2"])
+
+        if len(passedArgs)>0:
+            print("Passed: (ndf = {})".format(ndf))
+            printColumns(passedArgs)
+            print("")
+        if len(failedArgs)>0:
+            print("Failed: (ndf = {})".format(ndf))
+            printColumns(failedArgs)
+            print("")
 
     # repeat fit w/ best inits
-    pdf, objs, fitRes = fitOnce(sortedArgs[0], tmp=False)
+    pdf, objs, fitRes = fitOnce(passedArgs[0], tmp=False)
 
     return pdf, objs, fitRes
 
