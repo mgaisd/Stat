@@ -47,7 +47,7 @@ def altMerge(l1, l2):
 	return result
 
 
-def getRSS(ch, variable, model, dataset, fitRes, carddir,  doplots, norm = -1, label = "nom"):
+def getRSS(ch, variable, model, dataset, fitRes, carddir, doplots, norm = -1, label = "nom"):
        name = model.GetName()
        order = int(name[-1])
        npar = fitRes[0].floatParsFinal().getSize() if len(fitRes)>0 else 0
@@ -359,7 +359,7 @@ def fisherTest(RSS1, RSS2, o1, o2, N):
 #                                                       #
 #*******************************************************#
 
-def getCard(ch, idir, bias = False, verbose = False, doplots = True):
+def getCard(ch, idir, bias = False, useChi2 = False, verbose = False, doplots = True):
        ch_red = ch[:-5]
        rfilename = idir+"/fitResults_{}.root".format(ch_red)
        print "Opening file ", rfilename
@@ -486,10 +486,10 @@ def getCard(ch, idir, bias = False, verbose = False, doplots = True):
 
                      ofile = open("FisherTest_%s.txt"%(ch),"w")
                      report = "Results from Fisher Test for category %s \n" % (ch)
-                     report += "func\tchi2\trss\tnBins\tnPar \n"
+                     report += "func\tchi2\tndof\trchi2\trss\n"
                      nParMin = RSS[fitRes[0].floatParsFinal().getSize()]['npar']
                      for i in xrange(nParMin, nParMin+len(RSS)):
-                            report += "   %i\t%.2f\t%.2f\t%i\t%i\n" % (i, RSS[i]['chiSquared'],RSS[i]['rss'],RSS[i]['nbins'],RSS[i]['npar'])
+                            report += "   %i\t%.2f\t%i\t%.2f\t%.2f\n" % (i, RSS[i]['chi2'], RSS[i]['nbins']-RSS[i]['npar'], RSS[i]['chiSquared'], RSS[i]['rss'])
                      report += "*******************************************************\n"
                      report += "fTest = ((RSS1-RSS2)/(npar2-npar1))/(RSS2/(nBins-npar2))\n"
                      report += "*******************************************************\n"
@@ -507,7 +507,9 @@ def getCard(ch, idir, bias = False, verbose = False, doplots = True):
                      for o1 in xrange(nParMin, nParMin+len(RSS)-1):
                             for o2 in xrange(o1+1,nParMin+len(RSS)):
                                    print(o1, o2)
-                                   RTDict[str(o1)+"v"+str(o2)], FDict[str(o1)+"v"+str(o2)] = fisherTest(RSS[o1]['rss'], RSS[o2]['rss'], RSS[o1]['npar'], RSS[o2]['npar'], RSS[o2]["nbins"])
+                                   if useChi2: qty = 'chi2'
+                                   else: qty = 'rss'
+                                   RTDict[str(o1)+"v"+str(o2)], FDict[str(o1)+"v"+str(o2)] = fisherTest(RSS[o1][qty], RSS[o2][qty], RSS[o1]['npar'], RSS[o2]['npar'], RSS[o2]["nbins"])
                                    report += "%d par vs %d par: CL=%.5f F_t=%.5f\n" % (RSS[o1]['npar'], RSS[o2]['npar'], RTDict[str(o1)+"v"+str(o2)], FDict[str(o1)+"v"+str(o2)])
 
                      if RTDict["{}v{}".format(RSS[nParMin]['npar'],RSS[nParMin+1]['npar'])] > aCrit:
@@ -574,10 +576,10 @@ def getCard(ch, idir, bias = False, verbose = False, doplots = True):
 
                             ofile_alt = open("FisherTest_alt_%s.txt"%(ch),"w")
                             report = "Results from Fisher Test on the alternative function for category %s \n" % (ch)
-                            report += "func\tchi2\trss\tnBins\tnPar \n"
+                            report += "func\tchi2\tndof\trchi2\trss\n"
                             nParMin_alt = RSS_alt[fitResAlt[0].floatParsFinal().getSize()]['npar']
                             for i in xrange(nParMin_alt, nParMin_alt+len(RSS_alt)):
-                                   report += "   %i\t%.2f\t%.2f\t%i\t%i\n" % (i, RSS_alt[i]['chiSquared'],RSS_alt[i]['rss'],RSS_alt[i]['nbins'],RSS_alt[i]['npar'])
+                                report += "   %i\t%.2f\t%i\t%.2f\t%.2f\n" % (i, RSS_alt[i]['chi2'], RSS_alt[i]['nbins']-RSS_alt[i]['npar'], RSS_alt[i]['chiSquared'], RSS_alt[i]['rss'])
                             report += "*******************************************************\n"
                             report += "fTest = ((RSS1-RSS2)/(npar2-npar1))/(RSS2/(nBins-npar2))\n"
                             report += "*******************************************************\n"
@@ -593,7 +595,9 @@ def getCard(ch, idir, bias = False, verbose = False, doplots = True):
                             FDict_alt = {}
                             for o1 in xrange(nParMin_alt, nParMin_alt+len(RSS_alt)-1):
                                    for o2 in xrange(o1+1,nParMin_alt+len(RSS_alt)):
-                                          RTDict_alt[str(o1)+"v"+str(o2)], FDict_alt[str(o1)+"v"+str(o2)] = fisherTest(RSS_alt[o1]['rss'], RSS_alt[o2]['rss'], RSS_alt[o1]['npar'], RSS_alt[o2]['npar'], RSS_alt[o2]["nbins"])
+                                          if useChi2: qty = 'chi2'
+                                          else: qty = 'rss'
+                                          RTDict_alt[str(o1)+"v"+str(o2)], FDict_alt[str(o1)+"v"+str(o2)] = fisherTest(RSS_alt[o1][qty], RSS_alt[o2][qty], RSS_alt[o1]['npar'], RSS_alt[o2]['npar'], RSS_alt[o2]["nbins"])
                                           report += "%d par vs %d par: CL=%.5f F_t=%.5f\n" % (RSS_alt[o1]['npar'], RSS_alt[o2]['npar'], RTDict_alt[str(o1)+"v"+str(o2)], FDict_alt[str(o1)+"v"+str(o2)])
 
                             if RTDict_alt["{}v{}".format(RSS_alt[nParMin_alt]['npar'],RSS_alt[nParMin_alt+1]['npar'])] > aCrit:
