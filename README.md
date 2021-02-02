@@ -2,6 +2,8 @@
 
 ## Updated method
 
+For full functionality, https://github.com/kpedro88/HiggsAnalysis-CombinedLimit/tree/faster_para_plus should be used.
+
 Fisher testing and datacard writing are split into three jobs.
 
 First, do all the fits:
