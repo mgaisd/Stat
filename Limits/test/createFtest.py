@@ -12,6 +12,7 @@ parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
 parser.add_argument('-i', '--input', dest='idir', type=str, default= "root://cmseos.fnal.gov//store/user/cfallon/datacards_20Jan/",help='Location of fit output files ws_allFits_{}.root, fitResults_{}.root')
 parser.add_argument("-t", "--test", dest="bias", action="store_true", default=False)
 parser.add_argument("-v", "--verbose", dest="verbose", action="store_true", default=False)
+parser.add_argument("-p", "--noplots", dest="doplots", action="store_false", default=True)
 opt = parser.parse_args()
 sys.argv.append('-b')
 
@@ -30,6 +31,6 @@ for y in years:
 print "====> CHANNELS + YEAR: ", ch_year
 
 for ch in ch_year:
-    getCard(ch, opt.idir, opt.bias, opt.verbose)
+    getCard(ch, opt.idir, opt.bias, opt.verbose, opt.doplots)
 
 

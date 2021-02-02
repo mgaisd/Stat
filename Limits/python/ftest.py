@@ -47,7 +47,7 @@ def altMerge(l1, l2):
 	return result
 
 
-def getRSS(ch, variable, model, dataset, fitRes, carddir,  norm = -1, label = "nom"):
+def getRSS(ch, variable, model, dataset, fitRes, carddir,  doplots, norm = -1, label = "nom"):
        name = model.GetName()
        order = int(name[-1])
        npar = fitRes[0].floatParsFinal().getSize() if len(fitRes)>0 else 0
@@ -56,7 +56,7 @@ def getRSS(ch, variable, model, dataset, fitRes, carddir,  norm = -1, label = "n
        frame = variable.frame(ROOT.RooFit.Title(""))
        dataset.plotOn(frame, RooFit.Invisible())
        #print(fitRes[0])
-       if len(fitRes) > 0: graphFit = model.plotOn(frame, RooFit.VisualizeError(fitRes[0], 1, False), RooFit.Normalization(norm if norm>0 else dataset.sumEntries(), ROOT.RooAbsReal.NumEvent), RooFit.LineColor(ROOT.kBlue), RooFit.FillColor(ROOT.kOrange), RooFit.FillStyle(1001), RooFit.DrawOption("FL"), RooFit.Range("Full"))
+       if doplots and len(fitRes) > 0: graphFit = model.plotOn(frame, RooFit.VisualizeError(fitRes[0], 1, False), RooFit.Normalization(norm if norm>0 else dataset.sumEntries(), ROOT.RooAbsReal.NumEvent), RooFit.LineColor(ROOT.kBlue), RooFit.FillColor(ROOT.kOrange), RooFit.FillStyle(1001), RooFit.DrawOption("FL"), RooFit.Range("Full"))
 
        model.plotOn(frame, RooFit.Normalization(norm if norm>0 else dataset.sumEntries(), ROOT.RooAbsReal.NumEvent), RooFit.LineColor(ROOT.kBlue), RooFit.FillColor(ROOT.kOrange), RooFit.FillStyle(1001), RooFit.DrawOption("L"), RooFit.Name(model.GetName()),  RooFit.Range("Full"))
        model.paramOn(frame, RooFit.Label(model.GetTitle()), RooFit.Layout(0.45, 0.95, 0.94), RooFit.Format("NEAU"))
@@ -67,16 +67,20 @@ def getRSS(ch, variable, model, dataset, fitRes, carddir,  norm = -1, label = "n
        residuals = frame.residHist(dataset.GetName(), model.GetName(), False, True) # this is y_i - f(x_i)
     
        roochi2 = frame.chiSquare(model.GetName(), dataset.GetName(),npar)#dataset.GetName(), model.GetName()) #model.GetName(), dataset.GetName()
-       #print "forcing bins: 65"
-       nbins = 65
-       chi = roochi2 * ( nbins - npar)
-       #print "pls: ", chi,  nbins
-       roopro = ROOT.TMath.Prob(chi, nbins - npar)
+       # get ndf by hand
+       dhist = frame.findObject(dataset.GetName(),ROOT.RooHist.Class())
+       nbins = 0
+       for i in range(dhist.GetN()):
+            x = ROOT.Double(0.)
+            y = ROOT.Double(0.)
+            dhist.GetPoint(i,x,y)
+            if y!=0: nbins += 1
+       chi2 = roochi2 * ( nbins - npar)
+       roopro = ROOT.TMath.Prob(chi2, nbins - npar)
 
        frame.SetMaximum(frame.GetMaximum()*10.)
        frame.SetMinimum(0.1)
-       length = 1
-       if(length<2):
+       if(doplots):
 
               c = ROOT.TCanvas("c_"+ch+model.GetName(), ch, 800, 800)
 
@@ -141,8 +145,7 @@ def getRSS(ch, variable, model, dataset, fitRes, carddir,  norm = -1, label = "n
        xmin_ = graphData.GetXaxis().GetXmin()
        xmax_ = graphData.GetXaxis().GetXmax()
        
-       length = 1
-       if(length<2):
+       if(doplots):
               c.Update()
               c.Range(xmin_, -3.5, xmax_, 3.5)
               line = ROOT.TLine(xmin_, 0., xmax_, 0.)
@@ -153,48 +156,14 @@ def getRSS(ch, variable, model, dataset, fitRes, carddir,  norm = -1, label = "n
               c.SaveAs("Residuals_"+ch+"_"+name+"_log.pdf")              
 
        # calculate RSS
-       res, rss, chi1, chi2 = 0, 0., 0., 0., 
+       rss = 0.
 
        xmin, xmax = array('d', [0.]), array('d', [0.])
        dataset.getRange(variable, xmin, xmax)
        ratioHist = ROOT.TH1F("RatioPlot", "Ratio Plot", hist.GetN(), xmin_, xmax_)
        ROOT.SetOwnership(ratioHist, False)
 
-       sumErrors = 0
-       #graphFit.Print()
-       fitmodel = graphFit.getHist()
-       if label == "alt":
-           fitmodel_curve = graphFit.getCurve("Bkg_Alt_"+str(ch)+str(order)+"_rgp_Norm[mH"+ch+"]_errorband")
-       else:
-           fitmodel_curve = graphFit.getCurve("Bkg_"+str(ch)+str(order)+"_rgp_Norm[mH"+ch+"]_errorband")
-       #print "fitmodel_curve: "
-       #fitmodel_curve.Print()
-
-       c_x = np.ndarray(fitmodel_curve.GetN(), 'd', fitmodel_curve.GetX())
-       c_y_all = np.ndarray(fitmodel_curve.GetN(), 'd', fitmodel_curve.GetY())
-       c_y_up = c_y_all[0:len(c_y_all)/2]
-       c_y_down = list(reversed(c_y_all[len(c_y_all)/2+1:]))
-       
-       def findClosestLowerBin(x, bins):
-              for ib in range(len(bins)):
-                     if bins[ib] > x:
-                            return ib-1
-
-       
        for i in xrange(0, hist.GetN()):
-              
-              #print "bin x and y: ",  hist.GetX()[i], hist.GetY()[i]
-              #print hist.GetN(), fitmodel_curve.GetN()
-              err_up = c_y_up[findClosestLowerBin(hist.GetX()[i], c_x)]
-              err_down = c_y_down[findClosestLowerBin(hist.GetX()[i], c_x)]
-              
-              #print "x, y, eyup, eydo: ", hist.GetX()[i], hist.GetY()[i], err_up, err_down
-              if(hist.GetY()[i]>0):
-                     diffErrors = abs(err_up - err_down)/hist.GetY()[i]
-              else:
-                     diffErrors = 0
-              sumErrors += diffErrors
-              
               hx, hy = hist.GetX()[i], hist.GetY()[i]
               hey = hist.GetErrorY(i)
               hexlo, hexhi = hist.GetErrorXlow(i), hist.GetErrorXhigh(i)
@@ -208,18 +177,10 @@ def getRSS(ch, variable, model, dataset, fitRes, carddir,  norm = -1, label = "n
               if hy <= 0.:
                      continue
               
-              res += ry
               rss += ry**2 
-
-              chi1 += abs(pull)
-              chi2 += abs((resi**2)/pull)
-
 
               ratioHist.SetBinContent(i+1, (ry - hy)/(-1*hy))
               ratioHist.SetBinError(i+1, (hey/ hy**2))
-              #ratioHist.Print('all')
-
-       #print "=======> sumErrors: ", sumErrors
         
        rss = math.sqrt(rss)
        parValList = []
@@ -229,9 +190,8 @@ def getRSS(ch, variable, model, dataset, fitRes, carddir,  norm = -1, label = "n
               #print(iPar)
               parValList.append((fitRes[0].floatParsFinal().at(iPar)).getValV())
               parErrList.append((fitRes[0].floatParsFinal().at(iPar)).getError())
-       out = {"chiSquared":roochi2,"chi2" : chi2, "chi1" : chi1, "rss" : rss, "res" : res, "nbins" : hist.GetN(), "npar" : npar, "parVals": parValList, "parErr":parErrList}
-       length=1
-       if(length<2):
+       out = {"chiSquared":roochi2,"chi2" : chi2, "rss" : rss, "nbins" : nbins, "npar" : npar, "parVals": parValList, "parErr":parErrList}
+       if(doplots):
 
               c2 = ROOT.TCanvas("c2_"+ch+model.GetName(), ch, 800, 800)
               c2.cd()
@@ -399,7 +359,7 @@ def fisherTest(RSS1, RSS2, o1, o2, N):
 #                                                       #
 #*******************************************************#
 
-def getCard(ch, idir, bias = False, verbose = False):
+def getCard(ch, idir, bias = False, verbose = False, doplots = True):
        ch_red = ch[:-5]
        rfilename = idir+"/fitResults_{}.root".format(ch_red)
        print "Opening file ", rfilename
@@ -437,48 +397,49 @@ def getCard(ch, idir, bias = False, verbose = False):
                      fitRes = [rfile.Get("fitresult_{}_data_obs".format(m.GetName())) for m in modelBkg]
 
                      orderBkg = [len(f.floatParsFinal()) for f in fitRes]
-                     
-                     xframe = mT.frame(ROOT.RooFit.Title("extended ML fit example"))
 
-                     c1 = ROOT.TCanvas()
-                     c1.cd()
-                     obsData.plotOn(xframe, RooFit.Name("obsData"))
+                     if doplots:
+                         xframe = mT.frame(ROOT.RooFit.Title("extended ML fit example"))
 
-                     modelBkg[0].plotOn(xframe, RooFit.Name("modelBkg1"), ROOT.RooFit.LineColor(ROOT.kPink + 6), RooFit.Range("Full"))
-                     modelBkg[1].plotOn(xframe, RooFit.Name("modelBkg2"), ROOT.RooFit.LineColor(ROOT.kBlue -4), RooFit.Range("Full"))
-                     modelBkg[2].plotOn(xframe, RooFit.Name("modelBkg3"), ROOT.RooFit.LineColor(ROOT.kRed -4), RooFit.Range("Full"))
-                     modelBkg[3].plotOn(xframe, RooFit.Name("modelBkg4"), ROOT.RooFit.LineColor(ROOT.kGreen +1), RooFit.Range("Full"))
+                         c1 = ROOT.TCanvas()
+                         c1.cd()
+                         obsData.plotOn(xframe, RooFit.Name("obsData"))
 
-                     chi2s_bkg = [xframe.chiSquare("modelBkg{}".format(i+1), "obsData", orderBkg[i]) for i in range(len(modelBkg))]
+                         modelBkg[0].plotOn(xframe, RooFit.Name("modelBkg1"), ROOT.RooFit.LineColor(ROOT.kPink + 6), RooFit.Range("Full"))
+                         modelBkg[1].plotOn(xframe, RooFit.Name("modelBkg2"), ROOT.RooFit.LineColor(ROOT.kBlue -4), RooFit.Range("Full"))
+                         modelBkg[2].plotOn(xframe, RooFit.Name("modelBkg3"), ROOT.RooFit.LineColor(ROOT.kRed -4), RooFit.Range("Full"))
+                         modelBkg[3].plotOn(xframe, RooFit.Name("modelBkg4"), ROOT.RooFit.LineColor(ROOT.kGreen +1), RooFit.Range("Full"))
 
-                     xframe.SetMinimum(0.0002)
-                     xframe.Draw()
+                         chi2s_bkg = [xframe.chiSquare("modelBkg{}".format(i+1), "obsData", orderBkg[i]) for i in range(len(modelBkg))]
 
-                     txt1 = ROOT.TText(2000., 10., "model1, nP {}, chi2: {}".format(orderBkg[0],chi2s_bkg[0]))
-                     txt1.SetTextSize(0.04) 
-                     txt1.SetTextColor(ROOT.kPink+6) 
-                     xframe.addObject(txt1) 
-                     txt2 = ROOT.TText(2000., 1, "model2, nP {}, chi2: {}".format(orderBkg[1],chi2s_bkg[1]))
-                     txt2.SetTextSize(0.04) 
-                     txt2.SetTextColor(ROOT.kBlue-4) 
-                     xframe.addObject(txt2) 
-                     txt3 = ROOT.TText(2000., 0.1, "model3, nP {}, chi2: {}".format(orderBkg[2],chi2s_bkg[2]))
-                     txt3.SetTextSize(0.04) 
-                     txt3.SetTextColor(ROOT.kRed-4) 
-                     xframe.addObject(txt3) 
-                     txt4 = ROOT.TText(2000., 0.01, "model4, nP {}, chi2: {}".format(orderBkg[3],chi2s_bkg[3]))
-                     txt4.SetTextSize(0.04) 
-                     txt4.SetTextColor(ROOT.kGreen+1) 
-                     xframe.addObject(txt4) 
-                     txt1.Draw()
-                     txt2.Draw()
-                     txt3.Draw()
-                     txt4.Draw()
+                         xframe.SetMinimum(0.0002)
+                         xframe.Draw()
 
-                     c1.SetLogy()
-                     c1.SaveAs("TestAfterFit_"+ch+".pdf")
+                         txt1 = ROOT.TText(2000., 10., "model1, nP {}, chi2: {}".format(orderBkg[0],chi2s_bkg[0]))
+                         txt1.SetTextSize(0.04) 
+                         txt1.SetTextColor(ROOT.kPink+6) 
+                         xframe.addObject(txt1) 
+                         txt2 = ROOT.TText(2000., 1, "model2, nP {}, chi2: {}".format(orderBkg[1],chi2s_bkg[1]))
+                         txt2.SetTextSize(0.04) 
+                         txt2.SetTextColor(ROOT.kBlue-4) 
+                         xframe.addObject(txt2) 
+                         txt3 = ROOT.TText(2000., 0.1, "model3, nP {}, chi2: {}".format(orderBkg[2],chi2s_bkg[2]))
+                         txt3.SetTextSize(0.04) 
+                         txt3.SetTextColor(ROOT.kRed-4) 
+                         xframe.addObject(txt3) 
+                         txt4 = ROOT.TText(2000., 0.01, "model4, nP {}, chi2: {}".format(orderBkg[3],chi2s_bkg[3]))
+                         txt4.SetTextSize(0.04) 
+                         txt4.SetTextColor(ROOT.kGreen+1) 
+                         xframe.addObject(txt4) 
+                         txt1.Draw()
+                         txt2.Draw()
+                         txt3.Draw()
+                         txt4.Draw()
 
-                     RSS = {orderBkg[i] : getRSS(ch, mT, modelBkg[i], obsData, [fitRes[i]], carddir, nDataEvts) for i in range(len(modelBkg))}
+                         c1.SetLogy()
+                         c1.SaveAs("TestAfterFit_"+ch+".pdf")
+
+                     RSS = {orderBkg[i] : getRSS(ch, mT, modelBkg[i], obsData, [fitRes[i]], carddir, doplots, nDataEvts) for i in range(len(modelBkg))}
 
                      #**********************************************************
                      #                    ALTERNATIVE MODEL                    *
@@ -488,32 +449,31 @@ def getCard(ch, idir, bias = False, verbose = False):
                             fitResAlt = [rfile.Get("fitresult_{}_data_obs".format(m.GetName())) for m in modelAlt]
                             RSS_alt = {}
                             for i in range(len(modelAlt)):
-                                RSS_alt[fitResAlt[i].floatParsFinal().getSize()] = getRSS(ch, mT, modelAlt[i], obsData,  [fitResAlt[i]], carddir,  nDataEvts, label = "alt")
+                                RSS_alt[fitResAlt[i].floatParsFinal().getSize()] = getRSS(ch, mT, modelAlt[i], obsData,  [fitResAlt[i]], carddir, doplots, nDataEvts, label = "alt")
 
-                            for i in range(len(modelBkg)):
-                                for j in range(len(modelAlt)):
-                                    drawTwoFuncs(ch, mT, modelBkg[i], modelAlt[j], obsData, [fitRes[i], fitResAlt[j]], carddir,  nDataEvts, label = "dual")
+                            if doplots:
+                                for i in range(len(modelBkg)):
+                                    for j in range(len(modelAlt)):
+                                        drawTwoFuncs(ch, mT, modelBkg[i], modelAlt[j], obsData, [fitRes[i], fitResAlt[j]], carddir,  nDataEvts, label = "dual")
 
-                            length = 1
-                            if(length<2):
-                                   xframeAlt = mT.frame(ROOT.RooFit.Title("extended ML fit example"))
+                                xframeAlt = mT.frame(ROOT.RooFit.Title("extended ML fit example"))
 
-                                   c2 = ROOT.TCanvas()
-                                   c2.cd()
-                                   obsData.plotOn(xframeAlt, RooFit.Name("obsData"))
+                                c2 = ROOT.TCanvas()
+                                c2.cd()
+                                obsData.plotOn(xframeAlt, RooFit.Name("obsData"))
 
-                                   modelAlt[0].plotOn(xframeAlt, RooFit.Name("modelAlt1"), ROOT.RooFit.LineColor(ROOT.kPink))
-                                   modelAlt[1].plotOn(xframeAlt, RooFit.Name("modelAlt2"), ROOT.RooFit.LineColor(ROOT.kBlue))
-                                   modelAlt[2].plotOn(xframeAlt, RooFit.Name("modelAlt3"), ROOT.RooFit.LineColor(ROOT.kRed))
-                                   modelAlt[3].plotOn(xframeAlt, RooFit.Name("modelAlt4"), ROOT.RooFit.LineColor(ROOT.kGreen))
+                                modelAlt[0].plotOn(xframeAlt, RooFit.Name("modelAlt1"), ROOT.RooFit.LineColor(ROOT.kPink))
+                                modelAlt[1].plotOn(xframeAlt, RooFit.Name("modelAlt2"), ROOT.RooFit.LineColor(ROOT.kBlue))
+                                modelAlt[2].plotOn(xframeAlt, RooFit.Name("modelAlt3"), ROOT.RooFit.LineColor(ROOT.kRed))
+                                modelAlt[3].plotOn(xframeAlt, RooFit.Name("modelAlt4"), ROOT.RooFit.LineColor(ROOT.kGreen))
 
-                                   chi2s_alt = [xframeAlt.chiSquare("modelAlt{}".format(i+1), "obsData", i+1) for i in range(len(modelAlt))]
+                                chi2s_alt = [xframeAlt.chiSquare("modelAlt{}".format(i+1), "obsData", i+1) for i in range(len(modelAlt))]
 
-                                   xframeAlt.SetMinimum(0.002)
-                                   xframeAlt.Draw()
+                                xframeAlt.SetMinimum(0.002)
+                                xframeAlt.Draw()
 
-                                   c2.SetLogy()
-                                   c2.SaveAs("TestAfterFit_"+ch+"_Alt.pdf")
+                                c2.SetLogy()
+                                c2.SaveAs("TestAfterFit_"+ch+"_Alt.pdf")
 
 
 
