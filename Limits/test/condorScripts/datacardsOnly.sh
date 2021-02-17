@@ -28,7 +28,7 @@ else
 fi
 
 echo "Signal Parameters: ${3} ${4} ${5} ${6}"
-cmd="python createDatacardsOnly.py -d ${1} -m ${2} -t -Z ${3} -D ${4} -R ${5} -A ${6} ${s}"
+cmd="python createDatacardsOnly.py -m ${2} -t -Z ${3} -D ${4} -R ${5} -A ${6} ${s}"
 
 
 echo "combine commands:"
@@ -45,7 +45,7 @@ ls *.root
 echo "List all files"
 ls 
 echo "*******************************************"
-EOSDIR=/store/user/cfallon/datacards_20Jan/${1}
+EOSDIR=/store/user/cfallon/datacards_07tsb_sys/${1}
 OUTDIR=root://cmseos.fnal.gov/${EOSDIR}
 echo "xrdcp output for condor"
 for FILE in *.root *.pdf *.txt #Residuals/*.pdf plots/*.pdf Fisher/*.txt ${SVJ_NAME}/*.txt

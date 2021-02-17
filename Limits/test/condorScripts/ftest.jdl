@@ -7,5 +7,5 @@ Output = datacardCreationFtest_pt1.stdout
 Error = datacardCreationFtest_pt1.stderr
 Log = datacardCreationFtest_pt1.log
 x509userproxy = $ENV(X509_USER_PROXY)
-Arguments = datacards_20Jan/ template
+Arguments = datacards_07tsb_sys/
 Queue 1

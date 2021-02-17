@@ -8,5 +8,5 @@ Error = allFits.stderr
 Log = allFits.log
 RequestCpus = 8
 x509userproxy = $ENV(X509_USER_PROXY)
-Arguments = datacards_20Jan/ 8
+Arguments = datacards_aCrit07/ 8
 Queue 1

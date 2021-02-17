@@ -14,13 +14,14 @@ eval `scramv1 runtime -sh`
 
 echo "CMSSW: "$CMSSW_BASE
 
+EOSDIR=/store/user/cfallon/${1}
+OUTDIR=root://cmseos.fnal.gov/${EOSDIR}
+
 ls -la Stat/Limits/python
 cd Stat/Limits/test
 echo "Arguments passed to this script are:"
 echo "Name of output directory : ${1}"
-echo "Mode: ${2}"
-
-cmd="python createFtest.py -d ${1} -m ${2} -t"
+cmd="python createFtest.py -i ${OUTDIR} -t -x -p"
 
 
 echo "combine commands:"
@@ -34,8 +35,6 @@ ls *.root
 echo "List all files"
 ls 
 echo "*******************************************"
-EOSDIR=/store/user/cfallon/${1}
-OUTDIR=root://cmseos.fnal.gov/${EOSDIR}
 echo "xrdcp output for condor"
 for FILE in *.root *.pdf *.txt #Residuals/*.pdf plots/*.pdf Fisher/*.txt ${SVJ_NAME}/*.txt
 do

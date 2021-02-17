@@ -90,10 +90,10 @@ for expSig in ["Sig0","Sig1"]:
 					varyA = True
 			for region in regions:
 				print("************************",region, "************************")
-				fileName = eosArea + SVJNAME + "/fitDiagnostics"+region+expSig+funcs+".root"
+				fileName = eosArea + SVJNAME + "/fitDiagnostics"+region+expSig+funcs+".mH120.123456.root"
 				# check if file exists, skipping if it doesnt
 				fileDir = subprocess.check_output(["eos","root://cmseos.fnal.gov","ls",eosArea.split("//")[2]+SVJNAME])
-				if not ("fitDiagnostics"+region+expSig+funcs+".root" in fileDir): continue
+				if not ("fitDiagnostics"+region+expSig+funcs+".mH120.123456.root" in fileDir): continue
 				fitDiagFile = rt.TFile.Open(fileName,"read")
 				if float(fitDiagFile.GetSize()) < 20000:
 					fitDiagFile.Close()

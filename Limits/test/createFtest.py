@@ -9,7 +9,7 @@ channels = ["lowSVJ2", "highSVJ2", "highCut", "lowCut"]
 sigpoints = []
 
 parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
-parser.add_argument('-i', '--input', dest='idir', type=str, default= "root://cmseos.fnal.gov//store/user/cfallon/datacards_20Jan/",help='Location of fit output files ws_allFits_{}.root, fitResults_{}.root')
+parser.add_argument('-i', '--input', dest='idir', type=str, default= "root://cmseos.fnal.gov//store/user/cfallon/datacards_2Feb/",help='Location of fit output files ws_allFits_{}.root, fitResults_{}.root')
 parser.add_argument("-t", "--test", dest="bias", action="store_true", default=False)
 parser.add_argument("-x", "--useChi2", dest="useChi2", action="store_true", default=False, help="use chi2 in F-test")
 parser.add_argument("-v", "--verbose", dest="verbose", action="store_true", default=False)

@@ -16,7 +16,8 @@ echo "CMSSW: "$CMSSW_BASE
 
 cd Stat/Limits/test
 
-source combine_fourStepBiasBF.sh "$@"
+#source combine_FourStepBiasBF.sh "$@"
+source combine_TwoStepBiasBF.sh "$@"
 
 # export items to EOS
 echo "List all root files = "
@@ -28,7 +29,7 @@ OUTDIR=root://cmseos.fnal.gov/${EOSDIR}
 echo "xrdcp output for condor"
 for FILE in *.root
 do
-  if ! [ ${DC_FILE} = ${FILE} ]
+  if ! [ "${DC_FILE}" = "${FILE}" ]
   then
     cmdXrd="xrdcp -f ${FILE} ${OUTDIR}/${FILE}"
     echo ${cmdXrd}

@@ -342,6 +342,7 @@ def drawTwoFuncs(ch, variable, modelA, modelB, dataset, fitRes, carddir,  norm =
        c.Update()
        c.Modified()
        c.SaveAs("Residuals_"+ch+"_"+name+"_TwoFuncs_14.pdf")
+       c.Delete()
 
 def fisherTest(RSS1, RSS2, o1, o2, N):
        print "Testing functions with parameters o1 ", o1, " and o2 ", o2, " with RSS RSS1 ", RSS1, " and RSS2 ", RSS2, " and N ", N
@@ -501,7 +502,7 @@ def getCard(ch, idir, bias = False, useChi2 = False, verbose = False, doplots = 
                      # BEGIN NEW WAY, tests in a 'single elimination' bracket
                      # begin with 1v2, test the `winner' vs 3, then test that winner vs 4. 
                      # which ever function wins the vs 4 test, is the function we use.
-                     aCrit = 0.05
+                     aCrit = 0.07
                      RTDict = {}
                      FDict = {}
                      for o1 in xrange(nParMin, nParMin+len(RSS)-1):
@@ -558,6 +559,7 @@ def getCard(ch, idir, bias = False, useChi2 = False, verbose = False, doplots = 
                      print "\\hline"
                      print "-"*25   
                      print "Order is", order, "("+ch+")"
+                     report+= "aCrit values is {}\n".format(aCrit)
                      report += "Order is %d (%s)\n" % (order, ch)
                      report += ("2 param: " + ", ".join(['%.2f']*len(RSS[nParMin]["parVals"])) + "\n") % tuple(RSS[nParMin]["parVals"])
                      report += ("3 param: " + ", ".join(['%.2f']*len(RSS[nParMin+1]["parVals"])) + "\n") % tuple(RSS[nParMin+1]["parVals"])
@@ -668,6 +670,7 @@ def getCard(ch, idir, bias = False, useChi2 = False, verbose = False, doplots = 
                      for i in range(len(modelBkg)):
                          if order==RSS[nParMin+i]['npar']:
                             modelBkgF = modelBkg[i]
+                            print "Model Bkg Saved is", order
                             break
                      if modelBkgF is None:
                             print "Main functions with", RSS[nParMin+3]['npar']+1, "or more parameters are needed to fit the background"
@@ -695,6 +698,7 @@ def getCard(ch, idir, bias = False, useChi2 = False, verbose = False, doplots = 
                         for i in range(len(modelAlt)):
                             if order_alt==RSS_alt[nParMin_alt+i]['npar']:
                                 modelAltF = modelAlt[i]
+                                print "Model Alt Saved is", order_alt
                                 break
                         if modelAltF is None:
                                print "Alt functions with", RSS_alt[nParMin_alt+3]['npar']+1, "or more parameters are needed to fit the background"

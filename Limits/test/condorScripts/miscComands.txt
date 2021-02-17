@@ -36,6 +36,25 @@ xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_
 xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/Residuals_lowSVJ2_2018_Bkg_lowSVJ2_20181_ratio_log.pdf ./plots
 
 
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_aCrit07/FisherTest_alt_lowCut_2018.txt ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_aCrit07/FisherTest_alt_lowSVJ2_2018.txt ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_aCrit07/FisherTest_alt_highCut_2018.txt ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_aCrit07/FisherTest_alt_highSVJ2_2018.txt ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_aCrit07/FisherTest_lowCut_2018.txt ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_aCrit07/FisherTest_lowSVJ2_2018.txt ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_aCrit07/FisherTest_highCut_2018.txt ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_aCrit07/FisherTest_highSVJ2_2018.txt ./plots
+
+
+xrdcp root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Datacards/fits/feb2/fitResults_highSVJ2.root root://cmseos.fnal.gov//store/user/cfallon/datacards_aCrit05_TSB/fitResults_highSVJ2.root
+xrdcp root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Datacards/fits/feb2/ws_allFits_highSVJ2.root root://cmseos.fnal.gov//store/user/cfallon/datacards_aCrit05_TSB/ws_allFits_highSVJ2.root
+xrdcp root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Datacards/fits/feb2/fitResults_highCut.root root://cmseos.fnal.gov//store/user/cfallon/datacards_aCrit05_TSB/fitResults_highCut.root
+xrdcp root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Datacards/fits/feb2/ws_allFits_highCut.root root://cmseos.fnal.gov//store/user/cfallon/datacards_aCrit05_TSB/ws_allFits_highCut.root
+xrdcp root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Datacards/fits/feb2/fitResults_lowSVJ2.root root://cmseos.fnal.gov//store/user/cfallon/datacards_aCrit05_TSB/fitResults_lowSVJ2.root
+xrdcp root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Datacards/fits/feb2/ws_allFits_lowSVJ2.root root://cmseos.fnal.gov//store/user/cfallon/datacards_aCrit05_TSB/ws_allFits_lowSVJ2.root
+xrdcp root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Datacards/fits/feb2/fitResults_lowCut.root root://cmseos.fnal.gov//store/user/cfallon/datacards_aCrit05_TSB/fitResults_lowCut.root
+xrdcp root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Datacards/fits/feb2/ws_allFits_lowCut.root root://cmseos.fnal.gov//store/user/cfallon/datacards_aCrit05_TSB/ws_allFits_lowCut.root
+
 #annapaola's plotting scripts, run in datacard folders
 combine -M FitDiagnostics -d SVJ_mZprime2000_mDark20_rinv03_alphapeak_hist.txt  --minos all --robustFit=1 --saveWithUncertainties --cminDefaultMinimizerStrategy 0
 text2workspace.py  SVJ_mZprime2000_mDark20_rinv03_alphapeak_hist.txt
