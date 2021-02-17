@@ -1,6 +1,8 @@
 import os,sys,subprocess,shlex
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from multiprocessing import Pool
+import getBiasArgs
+from Stat.Limits.bruteForce import makeVarInfoList
 
 # make status messages useful
 def fprint(msg):
@@ -16,47 +18,66 @@ def alpha_val(val):
     else: result = float(val)
     return result
 
+def get_signame(mass):
+    return "SVJ_mZprime{}_mDark20_rinv03_alphapeak".format(mass)
+
+def getInitFromBF(fname, pdfname):
+    import ROOT as r
+    r.gSystem.Load("libHiggsAnalysisCombinedLimit.so")
+    file = r.TFile.Open(fname)
+    ws = file.Get(default_ws)
+    pdf = ws.pdf(pdfname)
+
+    pars = makeVarInfoList(pdf.getPars())
+    setargs = ["{}={}".format(p.name,p.val) for p in pars]
+    return setargs
+
 with open('dict_xsec_Zprime.txt','r') as xfile:
     xsecs = {int(xline.split('\t')[0]): float(xline.split('\t')[1]) for xline in xfile}
+
+default_ws = "SVJ"
+
+default_masses = [
+1500,
+1700,
+1900,
+2100,
+2300,
+2500,
+2700,
+2900,
+3100,
+3300,
+3500,
+3700,
+3900,
+4100,
+4300,
+4500,
+4700,
+4900,
+5100,
+]
 
 parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
 parser.add_argument("-r", "--regions", dest="regions", type=str, default=["cut","bdt"], nargs="+", help="list of combined regions")
 parser.add_argument("-n", "--npool", dest="npool", type=int, default=6, help="number of processes")
 parser.add_argument("-D", "--dry-run", dest="dry_run", default=False, action='store_true', help="dry run (print commands but don't execute)")
 parser.add_argument("-f", "--freezeNorm", dest="freezeNorm", default=False, action="store_true", help="freeze bkg normalization to data")
-parser.add_argument("-m", "--mod", dest="mod", type=str, default=[], choices=["F12","Alt","Minfix","Robust","S0","Nostat","Calls"], nargs="*", help="modification(s)")
+parser.add_argument("-m", "--mod", dest="mod", type=str, default=[], choices=["Alt","S0","Nostat","Calls"], nargs="*", help="modification(s)")
 parser.add_argument("-j", "--just-hadd", dest="just_hadd", default=False, action="store_true", help="don't run any combine commands, just hadd")
 parser.add_argument("--no-hadd", dest="no_hadd", default=False, action="store_true", help="don't hadd")
 parser.add_argument("-M", "--manualCLs", dest="manualCLs", default=False, action='store_true', help="use manual CLs algorithm")
-parser.add_argument("-i", "--initCLs", dest="initCLs", default=False, action='store_true', help="use initialized CLs algorithm")
+init_group = parser.add_mutually_exclusive_group()
+init_group.add_argument("-i", "--initCLs", dest="initCLs", default=False, action='store_true', help="use initialized CLs algorithm")
+init_group.add_argument("-I", "--init", dest="init", default=False, action='store_true', help="use existing initial values of parameters")
 parser.add_argument("--extra", dest="extra", type=str, default="", help="extra args for manual CLs")
-parser.add_argument("--masses", dest="masses", type=int, default=[], nargs="*", help="masses (empty = all)")
-parser.add_argument("-R", "--reparam", dest="reparam", default=False, action='store_true', help="use reparameterized alt fns")
+parser.add_argument("--masses", dest="masses", type=int, default=default_masses, nargs="*", help="masses")
 parser.add_argument("-N", "--name", dest="name", type=str, default="Test", help="name for combine files")
+parser.add_argument("-s", "--suff", dest="suff", type=str, default="", help="suffix to pick different version of datacards")
 args = parser.parse_args()
 
 pwd = os.getcwd()
-
-main_params = {
-    "highCut": (4,5),
-    "lowCut": (1,2),
-    "highSVJ2": (1,2),
-    "lowSVJ2": (1,2),
-}
-alt_params = {
-    "highCut": (3,3),
-    "lowCut": (3,3),
-    "highSVJ2": (2,2),
-    "lowSVJ2": (2,2),
-}
-if args.reparam:
-    main_params["highSVJ2"] = (2,2)
-    main_params["lowSVJ2"] = (2,2)
-def get_params(region,pdict,suff=""):
-    order = pdict[region][0]
-    n = pdict[region][1]
-    params = ["{}_p{}_{}{}".format(region.replace("_2018",""),i+1,order,'_'+suff if len(suff)>0 else "") for i in range(n)]
-    return params
 
 def runCmd(args):
     output = ""
@@ -67,7 +88,9 @@ def runCmd(args):
     return output
 
 def doLimit(mass):
-    signame = "SVJ_mZprime{}_mDark20_rinv03_alphapeak".format(mass)
+    signame = get_signame(mass)
+    os.chdir(os.path.join(pwd,signame))
+
     params = {
         "xsec": xsecs[mass],
         "mZprime": mass,
@@ -85,37 +108,16 @@ def doLimit(mass):
         extargs = extargs+p+" extArg "+str(v)+"\n"
     frzargs = trkargs[:]
 
-    indarg = "pdf_index_{}_2018"
-    indparams = {
-        "cut": [indarg.format("highCut"),indarg.format("lowCut")],
-        "bdt": [indarg.format("highSVJ2"),indarg.format("lowSVJ2")],
-    }
-    if "Alt" in args.mod:
-        setargs.extend([p+"=1" for p in indparams[combo]])
-    else:
-        setargs.extend([p+"=0" for p in indparams[combo]])
-    frzargs.extend(indparams[combo])
-
-    fitparams = {
-        "cut": get_params("highCut",main_params)+get_params("lowCut",main_params),
-        "bdt": get_params("highSVJ2",main_params)+get_params("lowSVJ2",main_params),
-    }
-    altparams = {
-        "cut": get_params("highCut",alt_params,"alt")+get_params("lowCut",alt_params,"alt"),
-        "bdt": get_params("highSVJ2",alt_params,"alt")+get_params("lowSVJ2",alt_params,"alt"),
-    }
-    if "Alt" in args.mod:
-        trkargs.extend(altparams[combo])
-        treargs.extend(altparams[combo])
-        frzargs.extend(fitparams[combo])
-    else:
-        trkargs.extend(fitparams[combo])
-        treargs.extend(fitparams[combo])
-        frzargs.extend(altparams[combo])
-
-    if "F12" in args.mod and combo=="cut":
-        setargs.extend("highCut_p4_4=0,highCut_p5_4=0,lowCut_p3_4=0,lowCut_p4_4=0,lowCut_p5_4=0".split(','))
-        frzargs.extend("highCut_p4_4,highCut_p5_4,lowCut_p3_4,lowCut_p4_4,lowCut_p5_4".split(','))
+    fn = 1 if "Alt" in args.mod else 0
+    for region in regions:
+        fname = "ws_{}_{}_2018_template.root".format(signame, region)
+        biasargs = getBiasArgs.main(fname, default_ws, region, fn, verbose=False)
+        setargs.extend(biasargs['SetArg'])
+        frzargs.extend(biasargs['FrzArg'])
+        trkargs.extend(biasargs['TrkArg'])
+        treargs.extend(biasargs['TrkArg'])
+        if args.init:
+            setargs.extend(getInitFromBF(fname, "Bkg{}_{}_2018".format("_Alt" if "Alt" in args.mod else "", region)))
 
     for ch in ["ch1","ch2"]:
         normargs = ["n_exp_bin{}_proc_roomultipdf".format(ch),"shapeBkg_roomultipdf_{}__norm".format(ch),"n_exp_final_bin{}_proc_roomultipdf".format(ch),"n_exp_final_bin{}_proc_SVJ_mZprime{}_mDark20_rinv03_alphapeak".format(ch,mass)]
@@ -128,19 +130,13 @@ def doLimit(mass):
     if "Nostat" in args.mod:
         frzargs.append("rgx{mcstat_.*}")
 
-    os.chdir(os.path.join(pwd,signame))
     cargs = "--setParameters "+','.join(setargs)+" --freezeParameters "+','.join(frzargs)+" --trackParameters "+','.join(trkargs)+" --trackErrors "+','.join(treargs)+" --keyword-value ana="+combo+" -n "+cname
-    if "Minfix" in args.mod:
-        cargs += " --X-rtd improveFalseMinima"
-    if "Robust" in args.mod:
-        cargs += " --X-rtd allowRobustBisection1"
     if "Calls" in args.mod:
         cargs += " --X-rtd MINIMIZER_MaxCalls=100000"
     datacards = []
-    reparam_txt = "_reparam" if args.reparam else ""
     for region in regions:
-        datacards.append(signame+"_{}_2018_template_bias_toy{}.txt".format(region,reparam_txt))
-    dcfname = "datacard_{}_{}{}.txt".format(mass,combo,reparam_txt)
+        datacards.append(signame+"_{}_2018_template_bias{}.txt".format(region,args.suff))
+    dcfname = "datacard_{}_{}.txt".format(mass,combo)
 
     outputs = []
     fprint("Calculating limit for {}...".format(mass))
@@ -169,37 +165,14 @@ def doLimit(mass):
 
     return outputs
 
-if len(args.masses)==0:
-    args.masses = [
-1500,
-1700,
-1900,
-2100,
-2300,
-2500,
-2700,
-2900,
-3100,
-3300,
-3500,
-3700,
-3900,
-4100,
-4300,
-4500,
-4700,
-4900,
-5100,
-]
-
 cname = args.name[:]
 if len(args.mod)>0: cname += ''.join(args.mod)
 if args.freezeNorm: cname += "Frz"
 if args.manualCLs and not "-A" in args.extra: cname += "Manual"
+if args.init: cname += "BFInit"
 if args.initCLs: cname += "Init"
 if "-b" in args.extra: cname += "Bonly"
 if "-s" in args.extra: cname += "Syst"
-if args.reparam: cname += "Reparam"
 
 combos = {
 "cut": ["highCut","lowCut"],
@@ -208,15 +181,19 @@ combos = {
 for combo,regions in combos.iteritems():
     if not combo in args.regions: continue
     if not args.just_hadd:
-        p = Pool(args.npool if not args.dry_run else 1)
-        for outputs in p.imap_unordered(doLimit, args.masses):
-            fprint('\n'.join(outputs))
-        p.close()
-        p.join()
+        if args.npool==0:
+            for outputs in [doLimit(mass) for mass in args.masses]:
+                fprint('\n'.join(outputs))
+        else:
+            p = Pool(args.npool if not args.dry_run else 1)
+            for outputs in p.imap_unordered(doLimit, args.masses):
+                fprint('\n'.join(outputs))
+            p.close()
+            p.join()
 
     outfiles = []
     for mass in args.masses:
-        signame = "SVJ_mZprime{}_mDark20_rinv03_alphapeak".format(mass)
+        signame = get_signame(mass)
         mname = "ManualCLs" if args.manualCLs and not "-A" in args.extra else "AsymptoticLimits"
         sname = "StepA" if args.manualCLs and "-A" in args.extra else ""
         fname = signame+"/higgsCombine"+sname+cname+"."+mname+".mH120.ana"+combo+".root"
