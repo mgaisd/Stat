@@ -703,6 +703,10 @@ def manualCLs(args):
     # 5. make new limit tree from step 4 MDF runs
     products = step5(args, products)
 
+# usage notes:
+# patch Combine with https://github.com/kpedro88/HiggsAnalysis-CombinedLimit/commit/dc34ebf8bd4db11814e417d54c74514528bb6b47
+# also currently relies on https://github.com/kpedro88/HiggsAnalysis-CombinedLimit/commit/c56f7cac98b5ee90b293eb094bb797b34571b495,
+# but will be updated to https://github.com/cms-analysis/HiggsAnalysis-CombinedLimit/pull/642
 if __name__=="__main__":
     reusable_steps = ["step0","step1","step2","step4"]
     allowed_splines = {
