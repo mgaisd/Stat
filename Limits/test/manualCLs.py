@@ -12,6 +12,68 @@ def fprint(msg):
     print(msg)
     sys.stdout.flush()
 
+# common structure for interpolations
+class GenericInterpolator(object):
+    def __init__(self, x, y):
+        from array import array
+        self.x = array('d', x)
+        self.y = array('d', y)
+    def eval(self, val):
+        pass
+
+class LinearInterpolator(GenericInterpolator):
+    def __init__(self, x, y):
+        super(LinearInterpolator,self).__init__(x,y)
+        # just use TGraph
+        import ROOT as r
+        self.graph = r.TGraph(len(self.x),self.x,self.y)
+    def eval(self, val):
+        return self.graph.Eval(val,0,"")
+
+class CubicInterpolator(GenericInterpolator):
+    def __init__(self, x, y):
+        # use TSpline3 (requires sorted data)
+        self.x, self.y = zip(*sorted(zip(x,y),key=lambda p: p[0]))
+        super(CubicInterpolator,self).__init__(x,y)
+        import ROOT as r
+        self.spline = r.TSpline3("", self.x, self.y, len(self.x))
+    def eval(self, val):
+        return self.spline.Eval(val)
+
+class SteffenInterpolator(GenericInterpolator):
+    def __init__(self, x, y):
+        super(SteffenInterpolator,self).__init__(x,y)
+        # use gsl via ROOT pythonization
+        import ROOT as r
+        def pythonize_gsl():
+            try:
+                r.SteffenWrapper
+            except:
+                r.gROOT.ProcessLine("""#include <gsl/gsl_spline.h>
+class SteffenWrapper {
+public:
+SteffenWrapper(int n, double* x, double* y){
+    spline_ = gsl_spline_alloc(gsl_interp_steffen,n);
+    gsl_spline_init(spline_,x,y,n);
+}
+~SteffenWrapper() { gsl_spline_free(spline_); }
+double Eval(double x) { return gsl_spline_eval(spline_, x, 0); }
+gsl_spline* spline_;
+};""")
+        pythonize_gsl()
+        self.spline = r.SteffenWrapper(len(self.x), self.x, self.y)
+    def eval(self, val):
+        return self.spline.Eval(val)
+
+class PchipInterpolator(GenericInterpolator):
+    def __init__(self, x, y):
+        super(PchipInterpolator,self).__init__(x,y)
+        # use scipy
+        from scipy import interpolate
+        self.spline = interpolate.PchipInterpolator(x,y)
+    def eval(self, val):
+        return self.spline(val)
+
 # flags should be different representations of the same flag, e.g. -a/--args
 def updateArg(args, flags, val, sep=""):
     # make a copy
@@ -46,6 +108,12 @@ def removeArg(args, matches, before=0, after=0, exact=True):
                 toremove = ' '.join(argsplit[iarg-before:iarg+after+1])
                 break
     args = args.replace(toremove,"",1)
+    return args
+
+def removeToyArgs(args):
+    args = removeArg(args, "--toysFile", after=1)
+    args = removeArg(args, "-t", after=1)
+    args = removeArg(args, "--toysFrequentist")
     return args
 
 def runCmd(cmd, log, opt='w'):
@@ -209,12 +277,14 @@ def stepA(args, products):
 def step2impl(args, products, name, lname, ofname, extra=""):
     # rename file from previous r range
     ofname_old = None
-    if not args.dry_run and products[ofname] is not None:
+    if not args.dry_run and products[ofname] is not None and "step2" not in args.reuse:
         ofname_old = products[ofname].replace(".","0.",1)
         os.rename(products[ofname], ofname_old)
 
     # run MDF likelihood scan
     args2 = updateArg(args.args, ["-n","--name"], name)
+    if "toysFile" in extra:
+        args2 = removeToyArgs(args2)
     args2 = handleInitArgs(args2, products["init_args"])
     args2 = updateArg(args2, ['--setParameterRanges'], "r={},{}".format(products["rmin"],products["rmax"]), ':')
     # addl args for second r ranges
@@ -253,6 +323,7 @@ def step2(args, products):
 
         # get asimov dataset separately (for some reason, hadding MultiDimFit output files crashes if both --saveWorkspace and --saveToys are used)
         argsG = updateArg(args.args, ["-n","--name"], "Asimov")
+        argsG = removeToyArgs(argsG)
         argsG = handleInitArgs(argsG, products["init_args"])
         cmdG = "combine -M GenerateOnly {} --saveToys {}".format(asimov_args, argsG)
         fprint(cmdG)
@@ -279,8 +350,8 @@ def step2(args, products):
 
 def step3(args, products):
     # based on https://gitlab.cern.ch/cms-hcg/cadi/hig-19-003/-/blob/master/HJMINLO/plot_cls.py
-    interpolate = True
-    inter_npoints = 10
+    interpolate = args.spline is not None
+    inter_npoints = args.npoints
     quantiles = [0.025, 0.16, 0.50, 0.84, 0.975]
 
     if args.dry_run:
@@ -391,8 +462,11 @@ def step3(args, products):
 
     if interpolate:
         r_data_interp = []
+        cls_helper = args.spline(r_data,cls)
         cls = []
+        cls_exp_helpers = {}
         for q in quantiles:
+            cls_exp_helpers[q] = args.spline(r_data,cls_exp[q])
             cls_exp[q] = []
         # fill in more points between each pair of r values
         for rind in range(len(r_data)-1):
@@ -400,9 +474,9 @@ def step3(args, products):
             r2 = r_data[rind+1]
             for rval in np.linspace(r1, r2, inter_npoints+1):
                 r_data_interp.append(rval)
-                cls.append(cls_graph.Eval(rval,0,'S'))
+                cls.append(cls_helper.eval(rval))
                 for q in quantiles:
-                    cls_exp[q].append(cls_exp_graph[q].Eval(rval,0,'S'))
+                    cls_exp[q].append(cls_exp_helpers[q].eval(rval))
         r_data = r_data_interp
 
     products["limits"] = {}
@@ -508,7 +582,9 @@ def step4(args, products):
         extra = ""
         if q==-3 or q==-4:
             extra = "--X-rtd REMOVE_CONSTANT_ZERO_POINT=1 --saveNLL"
-            if q==-4: extra += " -t -1 --toysFreq --saveToys"
+            if q==-4:
+                extra += " -t -1 --toysFreq --saveToys"
+                args4 = removeToyArgs(args4)
         else:
             args4 = updateArg(args4, ["--setParameters"], "r={}".format(rval), ',')
             args4 = updateArg(args4, ["--freezeParameters"], "r", ',')
@@ -629,6 +705,13 @@ def manualCLs(args):
 
 if __name__=="__main__":
     reusable_steps = ["step0","step1","step2","step4"]
+    allowed_splines = {
+        "none" : None,
+        "linear" : LinearInterpolator,
+        "cubic" : CubicInterpolator,
+        "steffen" : SteffenInterpolator,
+        "pchip" : PchipInterpolator,
+    }
 
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument("-a", "--args", dest="args", type=str, required=True, help="input arguments for combine")
@@ -644,6 +727,8 @@ if __name__=="__main__":
     parser.add_argument("-I", "--initConstraints", dest="initConstraints", type=str, default=[], nargs='*', help="use errors from initCLs to constrain ranges for specified parameters")
     parser.add_argument("--robustHesse", dest="robustHesse", default=False, action='store_true', help="enable robustHesse for MDF")
     parser.add_argument("-A", "--asymptotic", dest="asymptotic", default=False, action="store_true", help="just run AsymptoticLimits after init step")
+    parser.add_argument("-S", "--spline", dest="spline", type=str, default="linear", choices=list(allowed_splines), help="spline to use for interpolation of CLs curves (none: disable interpolation)")
+    parser.add_argument("--npoints", dest="npoints", type=int, default=10, help="number of points to use in interpolation")
     args = parser.parse_args()
 
     if "all" in args.reuse: args.reuse = reusable_steps[:]
@@ -656,6 +741,9 @@ if __name__=="__main__":
         args.fitopts = '--setRobustFitStrategy 0 --setRobustFitTolerance 0.1 --robustFit 1 --cminPreScan --cminPreFit 1 --cminFallbackAlgo "Minuit2,0:0.2"  --cminFallbackAlgo "Minuit2,0:1.0" --cminFallbackAlgo "Minuit2,0:10.0" --cminOldRobustMinimize 0 --X-rtd FITTER_NEW_CROSSING_ALGO --X-rtd FITTER_NEVER_GIVE_UP --X-rtd FITTER_BOUND --X-rtd MINIMIZER_freezeDisassociatedParams --X-rtd MINIMIZER_MaxCalls=9999999'
     elif args.robustHesse:
         args.fitopts = '--robustHesse 1'
+
+    # get the class type directly
+    args.spline = allowed_splines[args.spline]
 
     manualCLs(args)
 

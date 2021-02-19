@@ -71,10 +71,12 @@ parser.add_argument("-M", "--manualCLs", dest="manualCLs", default=False, action
 init_group = parser.add_mutually_exclusive_group()
 init_group.add_argument("-i", "--initCLs", dest="initCLs", default=False, action='store_true', help="use initialized CLs algorithm")
 init_group.add_argument("-I", "--init", dest="init", default=False, action='store_true', help="use existing initial values of parameters")
+parser.add_argument("--newbf", dest="newbf", type=str, default="", help="file containing bf dict to import for initial values")
 parser.add_argument("--extra", dest="extra", type=str, default="", help="extra args for manual CLs")
 parser.add_argument("--masses", dest="masses", type=int, default=default_masses, nargs="*", help="masses")
 parser.add_argument("-N", "--name", dest="name", type=str, default="Test", help="name for combine files")
 parser.add_argument("-s", "--suff", dest="suff", type=str, default="", help="suffix to pick different version of datacards")
+parser.add_argument("-t", "--toyfile", dest="toyfile", type=str, default="", help="toy file ({} in filename will be substituted with combined region)")
 args = parser.parse_args()
 
 pwd = os.getcwd()
@@ -117,7 +119,8 @@ def doLimit(mass):
         trkargs.extend(biasargs['TrkArg'])
         treargs.extend(biasargs['TrkArg'])
         if args.init:
-            setargs.extend(getInitFromBF(fname, "Bkg{}_{}_2018".format("_Alt" if "Alt" in args.mod else "", region)))
+            if isinstance(args.init,dict): setargs.extend(args.init[region].split(','))
+            else: setargs.extend(getInitFromBF(fname, "Bkg{}_{}_2018".format("_Alt" if "Alt" in args.mod else "", region)))
 
     for ch in ["ch1","ch2"]:
         normargs = ["n_exp_bin{}_proc_roomultipdf".format(ch),"shapeBkg_roomultipdf_{}__norm".format(ch),"n_exp_final_bin{}_proc_roomultipdf".format(ch),"n_exp_final_bin{}_proc_SVJ_mZprime{}_mDark20_rinv03_alphapeak".format(ch,mass)]
@@ -131,8 +134,13 @@ def doLimit(mass):
         frzargs.append("rgx{mcstat_.*}")
 
     cargs = "--setParameters "+','.join(setargs)+" --freezeParameters "+','.join(frzargs)+" --trackParameters "+','.join(trkargs)+" --trackErrors "+','.join(treargs)+" --keyword-value ana="+combo+" -n "+cname
+    cargs = "--setParameters {} --freezeParameters {} --trackParameters {} --trackErrors {} --keyword-value ana={} -n {}".format(
+        ','.join(setargs), ','.join(frzargs), ','.join(trkargs), ','.join(treargs), combo, cname
+    )
     if "Calls" in args.mod:
         cargs += " --X-rtd MINIMIZER_MaxCalls=100000"
+    if len(args.toyfile)>0:
+        cargs += " --toysFile {} -t 1 --toysFrequentist".format(args.toyfile.format(combo))
     datacards = []
     for region in regions:
         datacards.append(signame+"_{}_2018_template_bias{}.txt".format(region,args.suff))
@@ -164,6 +172,10 @@ def doLimit(mass):
     os.chdir(pwd)
 
     return outputs
+
+if args.newbf:
+    sys.path.append(os.getcwd())
+    args.init = getattr(__import__(args.newbf,fromlist=["bf"]),"bf")
 
 cname = args.name[:]
 if len(args.mod)>0: cname += ''.join(args.mod)
@@ -197,6 +209,7 @@ for combo,regions in combos.iteritems():
         mname = "ManualCLs" if args.manualCLs and not "-A" in args.extra else "AsymptoticLimits"
         sname = "StepA" if args.manualCLs and "-A" in args.extra else ""
         fname = signame+"/higgsCombine"+sname+cname+"."+mname+".mH120.ana"+combo+".root"
+        if len(args.toyfile)>0: fname = fname.replace(".root",".123456.root")
         append = False
         if args.dry_run:
             append = True
