@@ -77,6 +77,7 @@ parser.add_argument("--masses", dest="masses", type=int, default=default_masses,
 parser.add_argument("-N", "--name", dest="name", type=str, default="Test", help="name for combine files")
 parser.add_argument("-s", "--suff", dest="suff", type=str, default="", help="suffix to pick different version of datacards")
 parser.add_argument("-t", "--toyfile", dest="toyfile", type=str, default="", help="toy file ({} in filename will be substituted with combined region)")
+parser.add_argument("--asimov", dest="asimov", default=False, action="store_true", help="toy file contains asimov dataset")
 args = parser.parse_args()
 
 pwd = os.getcwd()
@@ -140,7 +141,7 @@ def doLimit(mass):
     if "Calls" in args.mod:
         cargs += " --X-rtd MINIMIZER_MaxCalls=100000"
     if len(args.toyfile)>0:
-        cargs += " --toysFile {} -t 1 --toysFrequentist".format(args.toyfile.format(combo))
+        cargs += " --toysFile {} -t {} --toysFrequentist".format(args.toyfile.format(combo),-1 if args.asimov else 1)
     datacards = []
     for region in regions:
         datacards.append(signame+"_{}_2018_template_bias{}.txt".format(region,args.suff))
@@ -209,7 +210,7 @@ for combo,regions in combos.iteritems():
         mname = "ManualCLs" if args.manualCLs and not "-A" in args.extra else "AsymptoticLimits"
         sname = "StepA" if args.manualCLs and "-A" in args.extra else ""
         fname = signame+"/higgsCombine"+sname+cname+"."+mname+".mH120.ana"+combo+".root"
-        if len(args.toyfile)>0: fname = fname.replace(".root",".123456.root")
+        if len(args.toyfile)>0 and not args.asimov: fname = fname.replace(".root",".123456.root")
         append = False
         if args.dry_run:
             append = True

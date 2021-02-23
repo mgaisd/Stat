@@ -696,6 +696,9 @@ def manualCLs(args):
         products = step3(args, products)
         if products["at_upper"]: products["count_upper"] += 1
 
+        # stop loop if reusing step 2
+        if "step2" in args.reuse: products["at_upper"] = False
+
     # 4. run MDF for each r value to get fit params etc.
     if args.fit:
         products = step4(args, products)
