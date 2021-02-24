@@ -1,0 +1,99 @@
+universe = vanilla
+Executable = condor_LimitBias.sh
+Should_Transfer_Files = YES
+WhenToTransferOutput = ON_EXIT
+Transfer_Input_Files = condor_LimitBias.sh
+Output = SVJ_mZprime$(mZ)_mDark$(mD)_rinv$(rI)_alpha$(aD)_$(combo)_nToys$(nToys)_expSig$(expSig)_gen$(genFunc)fit$(fitFunc)opts$(svjOpts)_LimitBias.stdout
+Error = SVJ_mZprime$(mZ)_mDark$(mD)_rinv$(rI)_alpha$(aD)_$(combo)_nToys$(nToys)_expSig$(expSig)_gen$(genFunc)fit$(fitFunc)opts$(svjOpts)_LimitBias.stderr
+Log = SVJ_mZprime$(mZ)_mDark$(mD)_rinv$(rI)_alpha$(aD)_$(combo)_nToys$(nToys)_expSig$(expSig)_gen$(genFunc)fit$(fitFunc)opts$(svjOpts)_LimitBias.log
+x509userproxy = $ENV(X509_USER_PROXY)
+RequestCpus = 2
+mZ = 3000
+mD = 20
+rI = 03
+aD = peak
+combo = cut
+nToys = 300
+expSig = 0
+genFunc = 0
+fitFunc = 0
+svjOpts = 0
+Arguments = $(mZ) $(mD) $(rI) $(aD) $(combo) $(nToys) $(expSig) $(genFunc) $(fitFunc) $(RequestCpus) /store/user/pedrok/SVJ2017/Limits/datacards_07tsb_sys
+Queue mZ, mD, rI, aD, combo, expSig, genFunc, fitFunc from (
+1500, 20, 03, peak, cut, 0, 1, 1
+1500, 20, 03, peak, cut, 1, 1, 1
+1500, 20, 03, peak, bdt, 0, 1, 1
+1500, 20, 03, peak, bdt, 1, 1, 1
+1700, 20, 03, peak, cut, 0, 1, 1
+1700, 20, 03, peak, cut, 1, 1, 1
+1700, 20, 03, peak, bdt, 0, 1, 1
+1700, 20, 03, peak, bdt, 1, 1, 1
+1900, 20, 03, peak, cut, 0, 1, 1
+1900, 20, 03, peak, cut, 1, 1, 1
+1900, 20, 03, peak, bdt, 0, 1, 1
+1900, 20, 03, peak, bdt, 1, 1, 1
+2100, 20, 03, peak, cut, 0, 1, 1
+2100, 20, 03, peak, cut, 1, 1, 1
+2100, 20, 03, peak, bdt, 0, 1, 1
+2100, 20, 03, peak, bdt, 1, 1, 1
+2300, 20, 03, peak, cut, 0, 1, 1
+2300, 20, 03, peak, cut, 1, 1, 1
+2300, 20, 03, peak, bdt, 0, 1, 1
+2300, 20, 03, peak, bdt, 1, 1, 1
+2500, 20, 03, peak, cut, 0, 1, 1
+2500, 20, 03, peak, cut, 1, 1, 1
+2500, 20, 03, peak, bdt, 0, 1, 1
+2500, 20, 03, peak, bdt, 1, 1, 1
+2700, 20, 03, peak, cut, 0, 1, 1
+2700, 20, 03, peak, cut, 1, 1, 1
+2700, 20, 03, peak, bdt, 0, 1, 1
+2700, 20, 03, peak, bdt, 1, 1, 1
+2900, 20, 03, peak, cut, 0, 1, 1
+2900, 20, 03, peak, cut, 1, 1, 1
+2900, 20, 03, peak, bdt, 0, 1, 1
+2900, 20, 03, peak, bdt, 1, 1, 1
+3100, 20, 03, peak, cut, 0, 1, 1
+3100, 20, 03, peak, cut, 1, 1, 1
+3100, 20, 03, peak, bdt, 0, 1, 1
+3100, 20, 03, peak, bdt, 1, 1, 1
+3300, 20, 03, peak, cut, 0, 1, 1
+3300, 20, 03, peak, cut, 1, 1, 1
+3300, 20, 03, peak, bdt, 0, 1, 1
+3300, 20, 03, peak, bdt, 1, 1, 1
+3500, 20, 03, peak, cut, 0, 1, 1
+3500, 20, 03, peak, cut, 1, 1, 1
+3500, 20, 03, peak, bdt, 0, 1, 1
+3500, 20, 03, peak, bdt, 1, 1, 1
+3700, 20, 03, peak, cut, 0, 1, 1
+3700, 20, 03, peak, cut, 1, 1, 1
+3700, 20, 03, peak, bdt, 0, 1, 1
+3700, 20, 03, peak, bdt, 1, 1, 1
+3900, 20, 03, peak, cut, 0, 1, 1
+3900, 20, 03, peak, cut, 1, 1, 1
+3900, 20, 03, peak, bdt, 0, 1, 1
+3900, 20, 03, peak, bdt, 1, 1, 1
+4100, 20, 03, peak, cut, 0, 1, 1
+4100, 20, 03, peak, cut, 1, 1, 1
+4100, 20, 03, peak, bdt, 0, 1, 1
+4100, 20, 03, peak, bdt, 1, 1, 1
+4300, 20, 03, peak, cut, 0, 1, 1
+4300, 20, 03, peak, cut, 1, 1, 1
+4300, 20, 03, peak, bdt, 0, 1, 1
+4300, 20, 03, peak, bdt, 1, 1, 1
+4500, 20, 03, peak, cut, 0, 1, 1
+4500, 20, 03, peak, cut, 1, 1, 1
+4500, 20, 03, peak, bdt, 0, 1, 1
+4500, 20, 03, peak, bdt, 1, 1, 1
+4700, 20, 03, peak, cut, 0, 1, 1
+4700, 20, 03, peak, cut, 1, 1, 1
+4700, 20, 03, peak, bdt, 0, 1, 1
+4700, 20, 03, peak, bdt, 1, 1, 1
+4900, 20, 03, peak, cut, 0, 1, 1
+4900, 20, 03, peak, cut, 1, 1, 1
+4900, 20, 03, peak, bdt, 0, 1, 1
+4900, 20, 03, peak, bdt, 1, 1, 1
+5100, 20, 03, peak, cut, 0, 1, 1
+5100, 20, 03, peak, cut, 1, 1, 1
+5100, 20, 03, peak, bdt, 0, 1, 1
+5100, 20, 03, peak, bdt, 1, 1, 1
+)
