@@ -13,6 +13,7 @@ fitFunc=${9} # 0 for bkgFunc, 1 for altFunc
 cores=${10}
 eosArea=${11}
 
+SVJ_NAME="SVJ_mZprime${mZ}_mDark${mD}_rinv${rI}_alpha${aD}"
 if [ -n "$eosArea" ]; then
 	export EOSDIR=${eosArea}/${SVJ_NAME}
 fi
@@ -21,7 +22,6 @@ declare -A regions
 regions[cut]="highCut lowCut"
 regions[bdt]="highSVJ2 lowSVJ2"
 
-SVJ_NAME="SVJ_mZprime${mZ}_mDark${mD}_rinv${rI}_alpha${aD}"
 DC_NAMES=""
 WS_NAMES=""
 SetArgGenAll=""
@@ -48,7 +48,7 @@ for REGION in ${regions[$COMBO]}; do
 	FrzArgFitAll="${FrzArgFitAll}${FrzArgFitAll:+,}${FrzArgFit}"
 	TrkArgFitAll="${TrkArgFitAll}${TrkArgFitAll:+,}${TrkArgFit}"
 done
-DC_NAME_ALL=datacard_${mass}_${COMBO}.txt
+DC_NAME_ALL=datacard_${mZ}_${COMBO}.txt
 combineCards.py $DC_NAMES > $DC_NAME_ALL
 
 rMin=-10
