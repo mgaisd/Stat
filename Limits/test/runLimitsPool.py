@@ -78,6 +78,7 @@ parser.add_argument("-N", "--name", dest="name", type=str, default="Test", help=
 parser.add_argument("-s", "--suff", dest="suff", type=str, default="", help="suffix to pick different version of datacards")
 parser.add_argument("-t", "--toyfile", dest="toyfile", type=str, default="", help="toy file ({} in filename will be substituted with combined region)")
 parser.add_argument("--asimov", dest="asimov", default=False, action="store_true", help="toy file contains asimov dataset")
+parser.add_argument("-a", "--args", dest="args", type=str, default="", help="extra args for combine")
 args = parser.parse_args()
 
 pwd = os.getcwd()
@@ -134,8 +135,8 @@ def doLimit(mass):
     if "Nostat" in args.mod:
         frzargs.append("rgx{mcstat_.*}")
 
-    cargs = "--setParameters "+','.join(setargs)+" --freezeParameters "+','.join(frzargs)+" --trackParameters "+','.join(trkargs)+" --trackErrors "+','.join(treargs)+" --keyword-value ana="+combo+" -n "+cname
-    cargs = "--setParameters {} --freezeParameters {} --trackParameters {} --trackErrors {} --keyword-value ana={} -n {}".format(
+    cargs = args.args
+    cargs += " --setParameters {} --freezeParameters {} --trackParameters {} --trackErrors {} --keyword-value ana={} -n {}".format(
         ','.join(setargs), ','.join(frzargs), ','.join(trkargs), ','.join(treargs), combo, cname
     )
     if "Calls" in args.mod:
