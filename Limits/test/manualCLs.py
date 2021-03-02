@@ -582,9 +582,9 @@ def step4(args, products):
         extra = ""
         if q==-3 or q==-4:
             extra = "--X-rtd REMOVE_CONSTANT_ZERO_POINT=1 --saveNLL"
-            if q==-4:
-                extra += " -t -1 --toysFreq --saveToys"
-                args4 = removeToyArgs(args4)
+        if q==-4 or q>0:
+            extra += " -t -1 --toysFreq --saveToys"
+            args4 = removeToyArgs(args4)
         else:
             args4 = updateArg(args4, ["--setParameters"], "r={}".format(rval), ',')
             args4 = updateArg(args4, ["--freezeParameters"], "r", ',')
