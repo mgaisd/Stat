@@ -617,14 +617,19 @@ def step4(args, products):
         
     return products
     
-def step5(args, products):
+def step5(args, products, title="ManualCLs"):
     if not args.dry_run:
         import ROOT as r
-        r.gROOT.ProcessLine("struct quantile_t { Float_t quantile; Double_t limit; };")
+        try:
+            r.quantile_t
+        except:
+            r.gROOT.ProcessLine("struct quantile_t { Float_t quantile; Double_t limit; };")
         qobj = r.quantile_t()
         
         # combine trees, setting quantile values
-        if products["ofitnames"] is not None:
+        if title=="ManualCLsFit":
+            if products["ofitnames"] is None:
+                raise RuntimeError("Can't run step5 w/ title {} w/o step4 fits".format(title))
             trees = r.TList()
             for q,ofname in sorted(products["ofitnames"].iteritems()):
                 file_q = r.TFile.Open(ofname)
@@ -641,7 +646,7 @@ def step5(args, products):
                 trees.Add(tree_q_new)
             newtree = r.TTree.MergeTrees(trees)
         # reuse step1 tree
-        else:
+        elif title=="ManualCLs":
             file1 = r.TFile.Open(products["ofname1"])
             tree1 = file1.Get("limit")
             tree1.SetDirectory(0)
@@ -655,9 +660,11 @@ def step5(args, products):
                         qobj.limit = rval
                         break
                 newtree.Fill()
+        else:
+            raise ValueError("Unknown step5 title: {}".format(title))
         
         # output
-        products["ofname5"] = products["ofname1"].replace("AsymptoticLimits","ManualCLs").replace("Step1","")
+        products["ofname5"] = products["ofname1"].replace("AsymptoticLimits",title).replace("Step1","")
         ofile = r.TFile.Open(products["ofname5"], "RECREATE")
         ofile.cd()
         newtree.Write()
@@ -676,11 +683,10 @@ def manualCLs(args):
         products = step0(args, products)
 
     # 1. estimate r range (& params for initCLs)
-    if not (args.bonly and args.asymptotic):
+    if not args.asymptotic:
         products = step1(args, products, args.syst)
-
     # alternate path: just do asymptotic and exit
-    if args.asymptotic:
+    else:
         products = stepA(args, products)
         return
 
@@ -703,8 +709,10 @@ def manualCLs(args):
     if args.fit:
         products = step4(args, products)
     
-    # 5. make new limit tree from step 4 MDF runs
+    # 5. make new limit tree from step 1 + step 3 (and/or step 4 MDF runs, if available)
     products = step5(args, products)
+    if args.fit:
+        products = step5(args, products, "ManualCLsFit")
 
 # usage notes:
 # patch Combine with https://github.com/kpedro88/HiggsAnalysis-CombinedLimit/commit/dc34ebf8bd4db11814e417d54c74514528bb6b47
