@@ -1,22 +1,15 @@
 #!/bin/bash
 
+#DRYRUN=echo
+DRYRUN=""
+
 MASS=$1
 if [ -z "$MASS" ]; then
 	exit 1
 fi
 eosArea=$2
-TOYFILE=$3
+TOYARG=$3
 TOYNAME=$4
-
-toyArg=""
-if [ -n "$TOYFILE" ]; then
-	if [[ "$TOYFILE" == *"ASIMOV"* ]]; then
-		toyArg="-t -1"
-		TOYFILE=$(echo $TOYFILE | sed 's~ASIMOV~~')
-	else
-		toyArg="-t 1"
-	fi
-fi
 
 SVJ_NAME=SVJ_mZprime${MASS}_mDark20_rinv03_alphapeak
 if [ -n "$eosArea" ]; then
@@ -48,20 +41,20 @@ for COMBO in cut bdt; do
 		TrkArgAll="${TrkArgAll}${TrkArgAll:+,}${TrkArg}"
 	done
 	DC_NAME_ALL=datacard_${MASS}_${COMBO}
-	combineCards.py $DC_NAMES > ${DC_NAME_ALL}.txt
-	ARGS="--setParameters $SetArgAll --freezeParameters $FrzArgAll --trackParameters $TrkArgAll"
-	if [ -n "$TOYFILE" ]; then
-		ARGS="$ARGS --toysFile $(echo $TOYFILE | sed 's~COMBO~'${COMBO}'~') $toyArg --toysFrequentist"
+	$DRYRUN combineCards.py $DC_NAMES > ${DC_NAME_ALL}.txt
+	ARGS="-n Test${TOYNAME} --setParameters $SetArgAll --freezeParameters $FrzArgAll --trackParameters $TrkArgAll"
+	if [ -n "$TOYARG" ]; then
+		ARGS="$ARGS $(echo "$TOYARG" | sed 's~COMBO~'${COMBO}'~')"
 	fi
 
 	OUTNAME=impacts_${COMBO}${TOYNAME:+_}${TOYNAME}
-	text2workspace.py ${DC_NAME_ALL}.txt
-	combineTool.py -M Impacts -d ${DC_NAME_ALL}.root --doInitialFit --robustFit 1 -m 125 $ARGS
-	combineTool.py -M Impacts -d ${DC_NAME_ALL}.root --robustFit 1 -m 125 --doFits --parallel 8 $ARGS
-	combineTool.py -M Impacts -d ${DC_NAME_ALL}.root -o ${OUTNAME}.json -m 125
-	plotImpacts.py -i ${OUTNAME}.json  -o ${OUTNAME}
+	$DRYRUN text2workspace.py ${DC_NAME_ALL}.txt
+	$DRYRUN combineTool.py -M Impacts -d ${DC_NAME_ALL}.root --doInitialFit --robustFit 1 -m 125 $ARGS
+	$DRYRUN combineTool.py -M Impacts -d ${DC_NAME_ALL}.root --robustFit 1 -m 125 --doFits --parallel 8 $ARGS
+	$DRYRUN combineTool.py -M Impacts -d ${DC_NAME_ALL}.root -o ${OUTNAME}.json -m 125
+	$DRYRUN plotImpacts.py -i ${OUTNAME}.json  -o ${OUTNAME}
 	# subset
-	python excludeImpacts.py -i ${OUTNAME}.json -m mcstat -x $(echo $FrzArgAll | tr ',' ' ')
-	plotImpacts.py -i ${OUTNAME}_include.json  -o ${OUTNAME}_include
-    plotImpacts.py -i ${OUTNAME}_include.json -o ${OUTNAME}_include_multi --per-page 4 --height 300 --label-size -1 --width 400
+	$DRYRUN python excludeImpacts.py -i ${OUTNAME}.json -m mcstat -x $(echo $FrzArgAll | tr ',' ' ')
+	$DRYRUN plotImpacts.py -i ${OUTNAME}_include.json  -o ${OUTNAME}_include
+    $DRYRUN plotImpacts.py -i ${OUTNAME}_include.json -o ${OUTNAME}_include_multi --per-page 4 --height 300 --label-size -1 --width 400
 done
