@@ -1,17 +1,20 @@
-import ROOT as rt
+from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 import os,sys
 import subprocess
+
+parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
+parser.add_argument("-d", "--eosDir", dest="eosDir", type=str, required=True, help="eos directory for input files (/store/...)")
+parser.add_argument("-l", "--doLimit", dest="doLimit", default=False, action="store_true", help="limit mode (use combined regions)")
+args = parser.parse_args()
+
+# runover each SR to fit all 100 toys to the main function
+eosArea = "root://cmseos.fnal.gov/"+args.eosDir+"/"
+
+import ROOT as rt
 rt.gSystem.Load("libHiggsAnalysisCombinedLimit.so")
 rt.gStyle.SetOptStat(1)
 rt.gStyle.SetOptFit(1011)
-
-
-if len(sys.argv) < 2:
-	print("must include EOSDIR option. Try again. (/store/user/cfallon/<INPUT>/)")
-	exit()
-eosDir = sys.argv[1]
-# runover each SR to fit all 100 toys to the main function
-eosArea = "root://cmseos.fnal.gov//store/user/cfallon/"+eosDir+"/"
+rt.gROOT.SetBatch(True)
 
 listOfParams = [
 ['1500', '20', '03', 'peak'],
@@ -34,23 +37,35 @@ listOfParams = [
 ['4900', '20', '03', 'peak'],
 ['5100', '20', '03', 'peak']]
 
-choices = subprocess.check_output(["eos","root://cmseos.fnal.gov","ls",eosArea.split("//")[2]])
+choices = subprocess.check_output(["eos","root://cmseos.fnal.gov","ls",args.eosDir])
 
-regions = ["lowCut","lowSVJ2","highCut","highSVJ2"]
-#regions = ["lowSVJ2","highSVJ2"]
+if args.doLimit:
+	regions = ["cut","bdt"]
+else:
+	regions = ["lowCut","lowSVJ2","highCut","highSVJ2"]
 for expSig in ["Sig0","Sig1"]:
 	#for funcs in ["GenMainFitMain","GenAltFitMain"]:
 	for funcs in ["GenMainFitAlt","GenAltFitAlt"]:
 		#setup four TGraphErrors, one for each varying-variable
-		vZ_m = {"lowCut":[[],[],[]],"lowSVJ2":[[],[],[]],"highCut":[[],[],[]],"highSVJ2":[[],[],[]], "name":"varyZ_mean"}
-		vZ_s = {"lowCut":[[],[],[]],"lowSVJ2":[[],[],[]],"highCut":[[],[],[]],"highSVJ2":[[],[],[]], "name":"varyZ_stdev"}
-		vZ_c = {"lowCut":[[],[]],"lowSVJ2":[[],[]],"highCut":[[],[]],"highSVJ2":[[],[]], "name":"varyZ_chi2"}
-		vD_m = {"lowCut":[[],[],[]],"lowSVJ2":[[],[],[]],"highCut":[[],[],[]],"highSVJ2":[[],[],[]], "name":"varyD_mean"}
-		vD_s = {"lowCut":[[],[],[]],"lowSVJ2":[[],[],[]],"highCut":[[],[],[]],"highSVJ2":[[],[],[]], "name":"varyD_stdev"}
-		vR_m = {"lowCut":[[],[],[]],"lowSVJ2":[[],[],[]],"highCut":[[],[],[]],"highSVJ2":[[],[],[]], "name":"varyR_mean"}
-		vR_s = {"lowCut":[[],[],[]],"lowSVJ2":[[],[],[]],"highCut":[[],[],[]],"highSVJ2":[[],[],[]], "name":"varyR_stdev"}
-		vA_m = {"lowCut":[[],[],[]],"lowSVJ2":[[],[],[]],"highCut":[[],[],[]],"highSVJ2":[[],[],[]], "name":"varyA_mean"}
-		vA_s = {"lowCut":[[],[],[]],"lowSVJ2":[[],[],[]],"highCut":[[],[],[]],"highSVJ2":[[],[],[]], "name":"varyA_stdev"}
+		if args.doLimit:
+			vZ_m = {"cut":[[],[],[]],"bdt":[[],[],[]], "name":"varyZ_mean"}
+			vZ_s = {"cut":[[],[],[]],"bdt":[[],[],[]], "name":"varyZ_stdev"}
+			vD_m = {"cut":[[],[],[]],"bdt":[[],[],[]], "name":"varyD_mean"}
+			vD_s = {"cut":[[],[],[]],"bdt":[[],[],[]], "name":"varyD_stdev"}
+			vR_m = {"cut":[[],[],[]],"bdt":[[],[],[]], "name":"varyR_mean"}
+			vR_s = {"cut":[[],[],[]],"bdt":[[],[],[]], "name":"varyR_stdev"}
+			vA_m = {"cut":[[],[],[]],"bdt":[[],[],[]], "name":"varyA_mean"}
+			vA_s = {"cut":[[],[],[]],"bdt":[[],[],[]], "name":"varyA_stdev"}
+		else:
+			vZ_m = {"lowCut":[[],[],[]],"lowSVJ2":[[],[],[]],"highCut":[[],[],[]],"highSVJ2":[[],[],[]], "name":"varyZ_mean"}
+			vZ_s = {"lowCut":[[],[],[]],"lowSVJ2":[[],[],[]],"highCut":[[],[],[]],"highSVJ2":[[],[],[]], "name":"varyZ_stdev"}
+			vZ_c = {"lowCut":[[],[]],"lowSVJ2":[[],[]],"highCut":[[],[]],"highSVJ2":[[],[]], "name":"varyZ_chi2"}
+			vD_m = {"lowCut":[[],[],[]],"lowSVJ2":[[],[],[]],"highCut":[[],[],[]],"highSVJ2":[[],[],[]], "name":"varyD_mean"}
+			vD_s = {"lowCut":[[],[],[]],"lowSVJ2":[[],[],[]],"highCut":[[],[],[]],"highSVJ2":[[],[],[]], "name":"varyD_stdev"}
+			vR_m = {"lowCut":[[],[],[]],"lowSVJ2":[[],[],[]],"highCut":[[],[],[]],"highSVJ2":[[],[],[]], "name":"varyR_mean"}
+			vR_s = {"lowCut":[[],[],[]],"lowSVJ2":[[],[],[]],"highCut":[[],[],[]],"highSVJ2":[[],[],[]], "name":"varyR_stdev"}
+			vA_m = {"lowCut":[[],[],[]],"lowSVJ2":[[],[],[]],"highCut":[[],[],[]],"highSVJ2":[[],[],[]], "name":"varyA_mean"}
+			vA_s = {"lowCut":[[],[],[]],"lowSVJ2":[[],[],[]],"highCut":[[],[],[]],"highSVJ2":[[],[],[]], "name":"varyA_stdev"}
 
 
 		for sigPars in listOfParams:
@@ -98,7 +113,7 @@ for expSig in ["Sig0","Sig1"]:
 				if float(fitDiagFile.GetSize()) < 20000:
 					fitDiagFile.Close()
 					print("="*25)
-					print("{} could not be drawn".format(region))
+					print("{} could not be drawn".format(fileName))
 					print("="*25)
 					continue
 				tree = fitDiagFile.Get("tree_fit_sb")
@@ -133,8 +148,9 @@ for expSig in ["Sig0","Sig1"]:
 					vZ_m[region][0].append(zMass)
 					vZ_m[region][1].append(gaus.GetParameter(1))
 					vZ_m[region][2].append(gaus.GetParError(1))
-					vZ_c[region][0].append(zMass)
-					vZ_c[region][1].append(fitResult.Chi2()/fitResult.Ndf())
+					if not args.doLimit:
+						vZ_c[region][0].append(zMass)
+						vZ_c[region][1].append(fitResult.Chi2()/fitResult.Ndf())
 					vZ_s[region][0].append(zMass)
 					vZ_s[region][1].append(gaus.GetParameter(2))
 					vZ_s[region][2].append(gaus.GetParError(2))
@@ -163,7 +179,11 @@ for expSig in ["Sig0","Sig1"]:
 
 				fitDiagFile.Close()
 		for region in regions:
-			for vec in [vZ_m,vZ_s, vZ_c]:#[vZ_m,vD_m, vR_m, vA_m, vZ_s, vD_s, vR_s, vA_s]:
+			if args.doLimit:
+				vecs = [vZ_m,vZ_s]
+			else:
+				vecs = [vZ_m,vZ_s, vZ_c] #[vZ_m,vD_m, vR_m, vA_m, vZ_s, vD_s, vR_s, vA_s]
+			for vec in vecs:
 				out = open("./plots/"+vec["name"]+"_"+region+expSig+funcs+".txt","w")
 				out.write("#varVal mean/stdev error\n")
 				for i in range(len(vec[region][0])):
