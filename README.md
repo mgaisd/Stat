@@ -4,6 +4,8 @@
 
 For full functionality, https://github.com/kpedro88/HiggsAnalysis-CombinedLimit/tree/faster_para_plus should be used.
 
+For nuisance impact plotting, https://github.com/kpedro88/CombineHarvester/tree/fixes should be used.
+
 Fisher testing and datacard writing are split into three jobs.
 
 First, do all the fits:
@@ -35,6 +37,8 @@ make sure to change directories in the following files:
 * Stat/Limits/test/condorScripts/allFits.jdl : line 11 
 * Stat/Limits/test/condorScripts/datacardsOnly.sh : lines 7, 48 (the jdl doesn't require any change)
 * Stat/Limits/test/condorScripts/condor_FourStepBiasBF.jdl : line 21
+* Stat/Limits/test/condorScripts/condor_LimitBias.jdl : line 22
+* Stat/Limits/test/condorScripts/condor_LimitBias.sh : line 7
 
 step 1, do all fits:
 ```
@@ -54,4 +58,9 @@ condor_submit datacardsOnly.jdl
 step 4, run the combine commands to do the bias testing:
 ```
 condor_submit condor_FourStepBiasBF.jdl
+```
+
+step 5, run the limit bias tests:
+```
+condor_submit condor_LimitBias.jdl
 ```

@@ -15,7 +15,7 @@ def get_param_names(ws, region, fn):
         v = iter.Next()
     return names
 
-def main(fname, wsname, region, fn, suff):
+def main(fname, wsname, region, fn, suff="", verbose=True):
     from ROOT import TFile, RooWorkspace
     file = TFile.Open(fname)
     ws = file.Get(wsname)
@@ -27,12 +27,15 @@ def main(fname, wsname, region, fn, suff):
     frzargs = [indarg]+get_param_names(ws,region,other_fn)
     trkargs = get_param_names(ws,region,fn)
 
-    args = [
-        'SetArg{}="{}"'.format(suff,','.join(setargs)),
-        'FrzArg{}="{}"'.format(suff,','.join(frzargs)),
-        'TrkArg{}="{}"'.format(suff,','.join(trkargs)),
-    ]
-    print('\n'.join(args))
+    if verbose:
+        args = [
+            'SetArg{}="{}"'.format(suff,','.join(setargs)),
+            'FrzArg{}="{}"'.format(suff,','.join(frzargs)),
+            'TrkArg{}="{}"'.format(suff,','.join(trkargs)),
+        ]
+        print('\n'.join(args))
+    else:
+        return {'SetArg': setargs, 'FrzArg': frzargs, 'TrkArg': trkargs}
 
 if __name__=="__main__":
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)

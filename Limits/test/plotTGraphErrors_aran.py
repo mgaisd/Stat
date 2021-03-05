@@ -10,25 +10,27 @@
 #
 import sys
 import string
+from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from ROOT import TCanvas, gInterpreter, gROOT, TLegend, TGraph, TGraphErrors, TMultiGraph, TH1F
 
 gROOT.SetBatch(True)
 
 def main():
+	parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
+	parser.add_argument("-n", "--name", dest="name", type=str, required=True, help="name of pdf to be saved")
+	parser.add_argument("-f", "--files", dest="files", type=str, required=True, nargs='+', help="list of all the files to plot, each w/ columns x y [err]")
+	parser.add_argument("-l", "--doLimit", dest="doLimit", default=False, action="store_true", help="limit mode (use combined regions)")
+	args = parser.parse_args()
+
 	# Specify stuff to make pretty plots (color, marker and name for the legend)
 	color_list=[4,2,1,6,7]
 	marker_list=[20,21,22,23,24]
-	name_list=["lowCut", "lowSVJ2","highCut","highSVJ2"]
 	
-	# Check input:
-	if len(sys.argv[2:])<1:
-		usage()
-		return 100
+	if args.doLimit:
+		name_list=["cut", "bdt"]
 	else:
-		name = sys.argv[1] # save name
-		files = sys.argv[2:]
-
-	files_dim = len(files)
+		name_list=["lowCut", "lowSVJ2","highCut","highSVJ2"]
+	files_dim = len(args.files)
 	print " Will process %i files " % files_dim 
 	
 	# loop over files:
@@ -38,7 +40,7 @@ def main():
 	leg.SetTextSize(0.04)
 	leg.SetFillColor(0)
 	i=0
-	for f in files:
+	for f in args.files:
 		g=Get_Graph_from_file(f)
 		g.SetLineColor(color_list[i])
 		g.SetMarkerColor(color_list[i])
@@ -48,13 +50,13 @@ def main():
 		allGraphs.Add(g,"lp")
 		leg.AddEntry(g,name_list[i],"lp")
 		i=i+1
-	if "mean" in name:
+	if "mean" in args.name:
 		allGraphs.SetMaximum(1.5)
 		allGraphs.SetMinimum(-1.5)
-	elif "stdev" in name:
+	elif "stdev" in args.name:
 		allGraphs.SetMaximum(2.5)
 		allGraphs.SetMinimum(-0.5)
-	elif "chi2" in name:
+	elif "chi2" in args.name:
 		allGraphs.SetMaximum(5.0)
 		allGraphs.SetMinimum(0.0)
 	else:
@@ -71,42 +73,42 @@ def main():
 	#allGraphs.SetMinimum(0.0)
 	allGraphs.Draw("0AL")
 	leg.Draw()
-	if "1" in name:
+	if "Sig1" in args.name:
 		ring = 1
 	else:
 		ring = 0
-	if ("GenMainFitMain" in name) or ("GenAltFitAlt" in name):
+	if ("GenMainFitMain" in args.name) or ("GenAltFitAlt" in args.name):
 		extraTitle = ", Closure"
 	else:
 		extraTitle = ", Bias"
-	if "GenMain" in name:
+	if "GenMain" in args.name:
 		extraTitle += ", GenMain"
 	else:
 		extraTitle += ", GenAlt"
-	if "mean" in name:
+	if "mean" in args.name:
 		allGraphs.SetTitle("Mean of Gaus Fit to Pull Distribution, r = {}".format(ring) + extraTitle)
 		allGraphs.GetYaxis().SetTitle("Mean")
-	elif "stdev" in name:
+	elif "stdev" in args.name:
 		allGraphs.SetTitle("StdDev of Gaus Fit to Pull Distribution, r = {}".format(ring) + extraTitle)
 		allGraphs.GetYaxis().SetTitle("StdDev")
-	elif "chi2" in name:
+	elif "chi2" in args.name:
 		allGraphs.SetTitle("#chi^2 of Gaus Fit to Pull Distribution, r = {}".format(ring) + extraTitle)
 		allGraphs.GetYaxis().SetTitle("#chi^2")
 		
 	allGraphs.GetXaxis().SetAxisColor(17)
 	allGraphs.GetYaxis().SetAxisColor(17)
-	if "varyZ" in name:
+	if "varyZ" in args.name:
 		allGraphs.GetXaxis().SetTitle("m_{Z'} [GeV]")
-	if "varyD" in name:
+	if "varyD" in args.name:
 		allGraphs.GetXaxis().SetTitle("m_{D} [GeV]")
-	if "varyR" in name:
+	if "varyR" in args.name:
 		allGraphs.GetXaxis().SetTitle("r_{inv}")
-	if "varyA" in name:
+	if "varyA" in args.name:
 		allGraphs.GetXaxis().SetTitle("#alpha_{D}")
 	#allGraphs.GetYaxis().SetTitle("#sigma(p#bar{p}#rightarrow#phi) #times Br(#phi#rightarrow#tau#bar{#tau})) [pb]")
 	c1.RedrawAxis()
 	c1.Update()
-	c1.SaveAs(name+".pdf")
+	c1.SaveAs(args.name+".pdf")
 	
 def Get_Graph_from_file(filename="table.dat"):
 	from array import array
@@ -139,7 +141,7 @@ def Get_Graph_from_file(filename="table.dat"):
 	#print xx,yy,err_xx,err_yy
 	nlines=len(xx)
 	if cdim == 0:
-		print "File was empty or file DNE"
+		print "{} was empty or DNE".format(filename)
 		return TGraphErrors()
 	print " File %-20s read in with %i rows and %i columns " %(filename,nlines,cdim)	
 	
@@ -150,14 +152,4 @@ def Get_Graph_from_file(filename="table.dat"):
 	#gr.GetHistogram().SetYTitle("#sigma(#p#bar{p}#rightarrow#phi) #times Br(#phi#rightarrow#tau#bar{tau})) [pb]")
 	return gr
 		
-def usage():
-	print
-	print " You must give at least one input file!"
-	print " Usage: %s <saveName> <filenames>" % sys.argv[0]
-	print " where saveName is the name of the pdf to be saved"
-	print " where filenames is a list with all the files we want to plot."
-	print " Each file should have at least two columns: x y , or possibly x y yerr"
-#	print " Make sure none of the files have empty lines at the end, otherwise python will crash" 
-	print
-
 main()
