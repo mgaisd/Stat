@@ -7,7 +7,7 @@ rI=${3}
 aD=${4}
 COMBO=${5}
 nTOYS=${6}
-expSig=${7}
+expSig=${7} # 0, 1, or M (unsure if decimals are OK for naming scheme)
 genFunc=${8} # 0 for bkgFunc, 1 for altFunc
 fitFunc=${9} # 0 for bkgFunc, 1 for altFunc
 cores=${10}
@@ -95,6 +95,16 @@ if false && [ "$genFunc" -ne "$fitFunc" ]; then
 		echo "SetArgFitAll: $SetArgFitAll"
 	fi
 fi
+
+#setting expSig to median value if expSig equals M
+if [ ${expSig} = "M" ]; then
+    cmdRE="python readREXT.py -f limit_${COMBO}AltManualBFInitSyst.root"
+    ${cmdRE} >& rext.log
+    expSig=$(grep " ${mZ}" rext.log | cut -d "*" -f3 | tr -d " ")
+    echo $cmdRE
+    echo "Median Extracted R is ${expSig}"
+fi
+
 
 cmdGen="combine ${DC_NAME_ALL} -M GenerateOnly -n ${genName} -t ${nTOYS} --toysFrequentist --saveToys --expectSignal ${expSig} --bypassFrequentistFit --saveWorkspace -s 123456 -v -1 --setParameters $SetArgGenAll --freezeParameters $FrzArgGenAll"
 
