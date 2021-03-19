@@ -37,13 +37,13 @@ listOfParams = [
 ['4900', '20', '03', 'peak'],
 ['5100', '20', '03', 'peak']]
 
-choices = subprocess.check_output(["eos","root://cmseos.fnal.gov","ls",args.eosDir])
+choices = subprocess.check_output(["eos","root://cmseos.fnal.gov/","ls",args.eosDir])
 
 if args.doLimit:
 	regions = ["cut","bdt"]
 else:
 	regions = ["lowCut","lowSVJ2","highCut","highSVJ2"]
-for expSig in ["Sig0","Sig1"]:
+for expSig in ["SigM"]:#"Sig0","Sig1",
 	#for funcs in ["GenMainFitMain","GenAltFitMain"]:
 	for funcs in ["GenMainFitAlt","GenAltFitAlt"]:
 		#setup four TGraphErrors, one for each varying-variable
@@ -120,8 +120,16 @@ for expSig in ["Sig0","Sig1"]:
 				#print(tree.Print())
 				c1 = rt.TCanvas("c1","c1",1500,500)
 				c1.Divide(3,1)
-				selection = "fit_status==0" 
-				injSig = int(expSig[-1:])
+				selection = "fit_status==0"
+				if "M" in expSig:
+					_file = rt.TFile.Open("root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Limits/datacards_07tsb_sys/limit_{}AltManualBFInitSyst.root".format(region),"read")
+					limitTree = _file.Get("limit")
+					for event in limitTree:
+						if limitTree.trackedParam_mZprime == int(sigPars[0]) and limitTree.quantileExpected == 0.5:
+							injSig = limitTree.limit
+					_file.Close()
+				else:
+					injSig = int(expSig[-1:])
 				print("INJSIG CHECK ************ ", str(injSig))
 				c1.cd(3)
 				tree.Draw("(r-{})/rErr>>h3(50,-5,5)".format(injSig),selection)

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for SIG in Sig0 Sig1
+for SIG in Sig0 Sig1 SigM
 do
   for FUNCS in GenAltFitAlt
   do

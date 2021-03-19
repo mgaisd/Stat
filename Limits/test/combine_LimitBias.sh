@@ -98,17 +98,21 @@ fi
 
 #setting expSig to median value if expSig equals M
 if [ ${expSig} = "M" ]; then
-    cmdRE="python readREXT.py -f limit_${COMBO}AltManualBFInitSyst.root"
+    cmdRE="python readREXT.py -f limit_${COMBO}AltManualBFInitSyst.root -z ${mZ}"
     ${cmdRE} >& rext.log
-    expSig=$(grep " ${mZ}" rext.log | cut -d "*" -f3 | tr -d " ")
+    expSig=$(cat rext.log)
     echo $cmdRE
     echo "Median Extracted R is ${expSig}"
+    #if [ ${expSig%.*} -gt 9 ]; then
+    #    echo "Median Extracted R is ${expSig}. Setting to r_inj to 10."
+    #    expSig=10
+    #fi
 fi
 
 
 cmdGen="combine ${DC_NAME_ALL} -M GenerateOnly -n ${genName} -t ${nTOYS} --toysFrequentist --saveToys --expectSignal ${expSig} --bypassFrequentistFit --saveWorkspace -s 123456 -v -1 --setParameters $SetArgGenAll --freezeParameters $FrzArgGenAll"
 
-cmdFit="combine ${DC_NAME_ALL} -M FitDiagnostics -n ${fitName} --toysFile higgsCombine${genName}.GenerateOnly.mH120.123456.root -t ${nTOYS} --toysFrequentist --saveToys --expectSignal ${expSig} --rMin ${rMin} --rMax ${rMax} --savePredictionsPerToy --bypassFrequentistFit --X-rtd MINIMIZER_MaxCalls=100000 --setParameters $SetArgFitAll --freezeParameters $FrzArgFitAll --trackParameters $TrkArgFitAll"
+cmdFit="combine ${DC_NAME_ALL} -M FitDiagnostics -n ${fitName} --toysFile higgsCombine${genName}.GenerateOnly.mH120.123456.root -t ${nTOYS} -v -1 --toysFrequentist --saveToys --expectSignal ${expSig} --rMin ${rMin} --rMax ${rMax} --savePredictionsPerToy --bypassFrequentistFit --X-rtd MINIMIZER_MaxCalls=100000 --setParameters $SetArgFitAll --freezeParameters $FrzArgFitAll --trackParameters $TrkArgFitAll"
 
 echo "combine commands:"
 echo ${cmdGen} # | tee /dev/stderr

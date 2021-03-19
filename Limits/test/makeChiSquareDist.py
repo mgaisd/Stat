@@ -95,10 +95,10 @@ for sigPars in listOfParams1:
 				bigName = region+combineOpts+expSig
 				rGenCode = expSig[3]+expSig[7]
 				n = int(expSig[3])
-				print("/fitDiagnostics"+bigName+".root")
+				print("/fitDiagnostics"+bigName+".mH120.123456.root")
 				print("/higgsCombine"+bigName+".FitDiagnostics.mH120.123456.root")
 				print("/higgsCombine"+bigName.split("Fit")[0]+".MultiDimFit.mH120.root")
-				fitDiagFile = rt.TFile.Open(eosArea + SVJNAME + "/fitDiagnostics"+bigName+".root","read")
+				fitDiagFile = rt.TFile.Open(eosArea + SVJNAME + "/fitDiagnostics"+bigName+".mH120.123456.root","read")
 				fitOnlyFile = rt.TFile.Open(eosArea + SVJNAME + "/higgsCombine"+bigName+".FitDiagnostics.mH120.123456.root","read")
 				mdfFile = rt.TFile.Open(eosArea + SVJNAME + "/higgsCombine"+bigName.split("Fit")[0]+".MultiDimFit.mH120.root","read")
 				#dataObsFile = rt.TFile.Open(eosArea + SVJNAME + "/ws_"+SVJNAME+"_"+region+"_2018_template.root","read")
@@ -113,7 +113,7 @@ for sigPars in listOfParams1:
 				#genPdf = svjWs.pdf("Bkg_"+region+"_2018")
 				tree = fitDiagFile.Get("tree_fit_sb")
 				limit = fitOnlyFile.Get("limit")
-
+				limit.Print()
 				mT = rt.RooRealVar("mH"+region+"_2018","m_{T}", 1500., 8000., "GeV")
 				dataHist = data.createHistogram("histBkg",mT,rt.RooFit.Binning(65, 1500, 8000))
 				numNonZeroBinsInBkg = 0
@@ -124,14 +124,14 @@ for sigPars in listOfParams1:
 				chi2Div = 1.55
 
 
-				# updated nPar and nParAlt 25sept20
+				# updated nPar and nParAlt 2Feb21
 				#
 				#      | lC | l2 | hC | h2 
-				# main |  2 |  2 |  5 |  2
-				# alt  |  3 |  2 |  3 |  2
+				# main |  2 |  2 |  3 |  2
+				# alt  |  2 |  2 |  3 |  1
 				if region == "highCut":
 					regCode = "hc"
-					nPar = 5
+					nPar = 3
 					nParAlt = 3
 					eitLimitUp = 12000 # events in toy
 					eitLimitDown = 10000
@@ -180,7 +180,7 @@ for sigPars in listOfParams1:
 				elif region == "lowCut":
 					regCode = "lc"
 					nPar = 2
-					nParAlt = 3
+					nParAlt = 2
 					eitLimitUp = 80000 # events in toy
 					eitLimitDown = 70000
 					rDownLim = -5
@@ -393,6 +393,11 @@ for sigPars in listOfParams1:
 							p1 = getattr(limit,"trackedParam_"+region+"_p1_1")
 							p2 = getattr(limit,"trackedParam_"+region+"_p2_1")
 							listOfFuncs.append(rt.TF1("iToy_"+str(iEvt),"[0] * pow(1 - x/13000, [1]) * pow(x/13000, -[2])",1500,8000))
+						elif nPar == 3:
+							p1 = getattr(limit,"trackedParam_"+region+"_p1_2")
+							p2 = getattr(limit,"trackedParam_"+region+"_p2_2")
+							p3 = getattr(limit,"trackedParam_"+region+"_p3_2")
+							listOfFuncs.append(rt.TF1("iToy_"+str(iEvt),"[0] * pow(1 - x/13000, [1]) * pow(x/13000, -([2]+[3]*log(x/13000)))",1500,8000))
 						elif nPar == 5:
 							p1 = getattr(limit,"trackedParam_"+region+"_p1_4")
 							p2 = getattr(limit,"trackedParam_"+region+"_p2_4")
@@ -459,6 +464,7 @@ for sigPars in listOfParams1:
 					listOfFuncs[-1].Draw("same")
 					chi2 = 0
 					ndf = -nPar-2
+					print(ndf)
 					#ndf = 0
 					for iBin in range(toy.numEntries()):
 						toy.get(iBin)
@@ -467,8 +473,9 @@ for sigPars in listOfParams1:
 						#Ei = listOfFuncs[-1].Eval(x)
 						Oi = toy.weight()
 						#print(x, Ei, Oi)
-						if (Ei != 0) and (Oi > 0.001):
+						if (Ei > 0.) and (Oi > 0.):#Ei <= 0 means divide by 0, Oi <= 0 means bin is empty and should be excluded
 							ndf+=1
+							print(ndf, Ei, Oi, x)
 							chi2 += ((Oi-Ei)**2)/Ei
 					if ndf < 0:
 						continue

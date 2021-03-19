@@ -75,8 +75,10 @@ def main():
 	leg.Draw()
 	if "Sig1" in args.name:
 		ring = 1
-	else:
+	elif "Sig0" in args.name:
 		ring = 0
+	elif "SigM" in args.name:
+		ring = "median r_{exp}"
 	if ("GenMainFitMain" in args.name) or ("GenAltFitAlt" in args.name):
 		extraTitle = ", Closure"
 	else:
