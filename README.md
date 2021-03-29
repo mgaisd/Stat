@@ -37,6 +37,7 @@ make sure to change directories in the following files:
 * Stat/Limits/test/condorScripts/condor_FourStepBiasBF.jdl : line 21
 * Stat/Limits/test/condorScripts/condor_LimitBias.jdl : line 22
 * Stat/Limits/test/condorScripts/condor_LimitBias.sh : line 7
+* Stat/Limits/test/condorScripts/condor_runLimitsPool.sh : lines 13, 37 (the jdl doesn't require any change)
 
 step 1, do all fits:
 ```
@@ -61,4 +62,9 @@ condor_submit condor_FourStepBiasBF.jdl
 step 5, run the limit bias tests:
 ```
 condor_submit condor_LimitBias.jdl
+```
+
+step 6, run the limits:
+```
+condor_submit condor_runLimitsPool.jdl
 ```

@@ -3,9 +3,9 @@ Executable = condor_runLimitsPool.sh
 Should_Transfer_Files = YES
 WhenToTransferOutput = ON_EXIT
 Transfer_Input_Files = condor_runLimitsPool.sh
-Output = SVJ_mZprime$(mZ)_mDark$(mD)_rinv$(rI)_alpha$(aD)_runLimtsPool.stdout
-Error = SVJ_mZprime$(mZ)_mDark$(mD)_rinv$(rI)_alpha$(aD)_runLimtsPool.stderr
-Log = SVJ_mZprime$(mZ)_mDark$(mD)_rinv$(rI)_alpha$(aD)_runLimtsPool.log
+Output = SVJ_mZprime$(mZ)_mDark$(mD)_rinv$(rI)_alpha$(aD)_runLimitsPool.stdout
+Error = SVJ_mZprime$(mZ)_mDark$(mD)_rinv$(rI)_alpha$(aD)_runLimitsPool.stderr
+Log = SVJ_mZprime$(mZ)_mDark$(mD)_rinv$(rI)_alpha$(aD)_runLimitsPool.log
 x509userproxy = $ENV(X509_USER_PROXY)
 RequestCpus = 1
 RequestMemory = 3000
@@ -13,7 +13,6 @@ mZ = 3000
 mD = 20
 rI = 03
 aD = peak
-
 Arguments = $(mZ) $(mD) $(rI) $(aD)
 Queue mZ, mD, rI, aD from (
 1500, 20, 03, peak
