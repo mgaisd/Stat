@@ -4,7 +4,8 @@ echo "Running on: `uname -a`" #Condor job is running on this node
 echo "System software: `cat /etc/redhat-release`" #Operating System on that node
 source /cvmfs/cms.cern.ch/cmsset_default.sh
 
-xrdcp -s root://cmseos.fnal.gov//store/user/cfallon/CMSSW_10_2_13.tgz .
+EOSDIR=/store/user/pedrok/SVJ2017/Limits/datacards_Mar29
+xrdcp -s root://cmseos.fnal.gov/${EOSDIR}/CMSSW_10_2_13.tgz .
 tar -xf CMSSW_10_2_13.tgz
 rm CMSSW_10_2_13.tgz
 export SCRAM_ARCH=slc6_amd64_gcc700
@@ -17,18 +18,18 @@ echo "CMSSW: "$CMSSW_BASE
 ls -la Stat/Limits/python
 cd Stat/Limits/test
 echo "Arguments passed to this script are:"
-echo "Name of output directory : ${1}"
-echo "Mode: ${2}"
-echo "Doing Systematics. ${7}"
-if [ ${7} == "N" ]
+echo "Mode: ${1}"
+echo "Doing Systematics. ${6}"
+if [ ${6} == "N" ]
 then
   s="-s"
 else
   s=""
 fi
 
-echo "Signal Parameters: ${3} ${4} ${5} ${6}"
-cmd="python createDatacardsOnly.py -m ${2} -t -Z ${3} -D ${4} -R ${5} -A ${6} ${s}"
+echo "Signal Parameters: ${2} ${3} ${4} ${5}"
+SVJ_NAME="SVJ_mZprime${2}_mDark${3}_rinv${4}_alpha${5}"
+cmd="python createDatacardsOnly.py -m ${1} -t -Z ${2} -D ${3} -R ${4} -A ${5} ${s}"
 
 
 echo "combine commands:"
@@ -37,7 +38,6 @@ echo ${cmd} >/dev/stderr
 
 $cmd
 
-SVJ_NAME="SVJ_mZprime${3}_mDark${4}_rinv${5}_alpha${6}"
 
 # export items to EOS
 echo "List all root files = "
@@ -45,10 +45,10 @@ ls *.root
 echo "List all files"
 ls 
 echo "*******************************************"
-EOSDIR=/store/user/cfallon/datacards_07tsb_sys/${1}
-OUTDIR=root://cmseos.fnal.gov/${EOSDIR}
+EOSDIR=${EOSDIR}/${SVJ_NAME}
+OUTDIR=root://cmseos.fnal.gov/${EOSDIR}/
 echo "xrdcp output for condor"
-for FILE in *.root *.pdf *.txt #Residuals/*.pdf plots/*.pdf Fisher/*.txt ${SVJ_NAME}/*.txt
+for FILE in ws*.root SVJ*.txt
 do
   echo "xrdcp -f ${FILE} ${OUTDIR}${FILE}"
   xrdcp -f ${FILE} ${OUTDIR}${FILE} 2>&1

@@ -117,7 +117,7 @@ def doLimit(info):
             if args.manualCLs:
                 obs = len(args.toyfile)==0
                 dfile = "hists.{}.{}.root".format(getFromToyfile(args.toyfile,"higgsCombine").replace("/",""), getFromToyfile(args.toyfile,"#")) if not obs else ""
-                injected = int(getFromToyfile(args.toyfile,"mZprime")) if "sigtoy" in args.toyfile else 0
+                injected = int(getFromToyfile(args.toyfile,"mZprime",delim='_')) if "sigtoy" in args.toyfile else 0
                 for q in [-3, -2, -1]:
                     for region in args.combo_regions:
                         try:
@@ -220,11 +220,11 @@ if __name__=="__main__":
     parser.add_argument("--asimov", dest="asimov", default=False, action="store_true", help="toy file contains asimov dataset")
     parser.add_argument("-a", "--args", dest="args", type=str, default="", help="extra args for combine")
     parser.add_argument("-p", "--plots", dest="plots", default=False, action="store_true", help="make plots")
-    parser.add_argument("--datacards", dest="datacards", type=str, default="root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Datacards/trig4/sigfull/", help="datacard histogram location (for postfit plots)")
+    parser.add_argument("--datacards", dest="datacards", type=str, default="root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Datacards/trig5/sigfull/", help="datacard histogram location (for postfit plots)")
     args = parser.parse_args()
 
     args.seedname = None
-    if len(args.toyfile)>0 and not args.asimov:
+    if len(args.toyfile)>0:
         args.seedname = args.toyfile.split('.')[-2]
         args.args = "{}-s {}".format(" "*len(args.args), args.seedname)
 

@@ -285,6 +285,7 @@ def step2impl(args, products, name, lname, ofname, extra=""):
     args2 = updateArg(args.args, ["-n","--name"], name)
     if "toysFile" in extra:
         args2 = removeToyArgs(args2)
+    args2 = removeArg(args2, "--saveToys")
     args2 = handleInitArgs(args2, products["init_args"])
     args2 = updateArg(args2, ['--setParameterRanges'], "r={},{}".format(products["rmin"],products["rmax"]), ':')
     # addl args for second r ranges
@@ -324,6 +325,7 @@ def step2(args, products):
         # get asimov dataset separately (for some reason, hadding MultiDimFit output files crashes if both --saveWorkspace and --saveToys are used)
         argsG = updateArg(args.args, ["-n","--name"], "Asimov")
         argsG = removeToyArgs(argsG)
+        argsG = removeArg(argsG, "--saveToys")
         argsG = handleInitArgs(argsG, products["init_args"])
         cmdG = "combine -M GenerateOnly {} --saveToys {}".format(asimov_args, argsG)
         fprint(cmdG)
@@ -589,7 +591,7 @@ def step4(args, products):
         if q==-3 or q==-4:
             extra = "--X-rtd REMOVE_CONSTANT_ZERO_POINT=1 --saveNLL"
         if q==-4 or q>0:
-            extra += " -t -1 --toysFreq --saveToys"
+            extra += " -t -1 --toysFreq"
             args4 = removeToyArgs(args4)
         else:
             args4 = updateArg(args4, ["--setParameters"], "r={}".format(rval), ',')

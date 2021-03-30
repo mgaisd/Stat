@@ -10,7 +10,7 @@ mD=${2}
 rI=${3}
 aD=${4}
 
-xrdcp -s root://cmseos.fnal.gov//store/user/cfallon/CMSSW_10_2_13.tgz .
+xrdcp -s root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Limits/datacards_Mar29/CMSSW_10_2_13.tgz .
 tar -xf CMSSW_10_2_13.tgz
 rm CMSSW_10_2_13.tgz
 export SCRAM_ARCH=slc6_amd64_gcc700
@@ -34,7 +34,7 @@ SVJ_NAME="SVJ_mZprime${mZ}_mDark${mD}_rinv${rI}_alpha${aD}"
 mkdir ${SVJ_NAME}
 
 echo "Trying to copy files to local"
-EOSDIR=root://cmseos.fnal.gov//store/user/cfallon/datacards_07tsb_sys
+EOSDIR=root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Limits/datacards_Mar29/
 for REGION in ${REGIONS[@]}; do
 	xrdcp ${EOSDIR}/ws_${REGION}.root .
 	xrdcp ${EOSDIR}/fitResults_${REGION}.root .
@@ -59,7 +59,7 @@ echo "Signal Parameters: ${mZ} ${mD} ${rI} ${aD}"
 #-n 0 -m Alt -M --extra="-p -f -s" -I --signal 3100 20 03 peak
 
 (set -x
-python runLimitsPool.py -n 0 -m Alt -M --extra "-p -f -s" -I --no-hadd --signal ${mZ} ${mD} ${rI} ${aD}
+python runLimitsPool.py -n 0 -m Alt -M --extra="-f -p -s" -I -p --no-hadd --signal ${mZ} ${mD} ${rI} ${aD}
 )
 
 # export items to EOS
@@ -69,7 +69,7 @@ echo "*******************************************"
 echo "List files in SVJ subdir:"
 ls ${SVJ_NAME}
 echo "*******************************************"
-OUTDIR="$EOSDIR"
+OUTDIR=${EOSDIR}/
 cd ${SVJ_NAME}
 echo "xrdcp output for condor"
 for FILE in *.txt *.png *.pdf *.log *.root

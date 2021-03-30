@@ -29,12 +29,14 @@ def main(args):
         toyfname = getFname(toyname,"GenerateOnly",combo,seed=args.seed)
 
         # make the toy, put in base directory
+        if len(args.inject)==1: inject = args.inject[0]
+        else: inject = args.inject[0 if combo=="cut" else 1]
         command = "combineCards.py "+" ".join(datacards)+" > "+dcfname
         fprint(command)
         os.system(command)
         commands = [
             "combine -M GenerateOnly -n {} -t {} -s {} --setParameters {} --freezeParameters {} --keyword-value ana={} -d {} --expectSignal {} -v -1 --toysFrequentist --saveToys --bypassFrequentistFit --saveWorkspace".format(
-                toyname, -1 if args.asimov else 1, args.seed, ','.join(setargs), ','.join(frzargs), combo, dcfname, args.inject
+                toyname, -1 if args.asimov else 1, args.seed, ','.join(setargs), ','.join(frzargs), combo, dcfname, inject
             ),
             "mv {} ../".format(toyfname),
         ]
@@ -66,7 +68,7 @@ def main(args):
 if __name__=="__main__":
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument("-s", "--signal", dest="signal", metavar=tuple(getParamNames()), type=str, default=["3100","20","03","peak"], nargs=4, help="signal parameters")
-    parser.add_argument("-i", "--inject", dest="inject", type=float, default=0, help="injected signal strength")
+    parser.add_argument("-i", "--inject", dest="inject", type=float, default=[0], nargs='+', help="injected signal strength (two args: cut bdt)")
     parser.add_argument("-a", "--asimov", dest="asimov", default=False, action="store_true", help="use asimov dataset")
     parser.add_argument("-n", "--function", dest="function", type=int, required=True, choices=[0,1], help="function (0: main, 1: alt)")
     parser.add_argument("-S", "--seed", dest="seed", type=int, default=123456, help="random seed")
