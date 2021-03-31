@@ -244,7 +244,7 @@ def makePostfitPlot(sig, name, method, quantile, data_file, datacard_dir, obs, i
         dtype = dtype,
         dfile = sigfileorig if obs else "test/"+data_file if do_plot else data_file,
         hdir = hdir,
-        inj = "" if obs else " (no signal)" if injected==0 else " (^{}m_{{Z'}} = {:.1f} TeV)".format(float(injected)/1000.)
+        inj = "" if obs else " (no signal)" if injected==0 else " (^{{}}m_{{Z'}} = {:.1f} TeV)".format(float(injected)/1000.)
     )
 
     options = options_template.format(
