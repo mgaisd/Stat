@@ -10,12 +10,19 @@ def fprint(msg):
     sys.stdout.flush()
 
 # system interaction
-def runCmd(args):
+def runCmd(args,realtime=False):
     output = ""
-    try:
-        output += subprocess.check_output(shlex.split(args),stderr=subprocess.STDOUT)
-    except subprocess.CalledProcessError as e:
-        output += e.output
+    if realtime:
+        p = subprocess.Popen(shlex.split(args), stderr=subprocess.STDOUT, stdout=subprocess.PIPE, bufsize=1)
+        for line in iter(p.stdout.readline, b''):
+            fprint(line.rstrip())
+        p.stdout.close()
+        p.wait()
+    else:
+        try:
+            output += subprocess.check_output(shlex.split(args),stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError as e:
+            output += e.output
     return output
 
 def runCmds(commands):

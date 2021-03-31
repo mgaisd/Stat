@@ -25,6 +25,28 @@ def getFromToyfile(toyfile,match,replace=True,delim='.'):
     if replace and match!="#": result = result.replace(match,"")
     return result
 
+def append_or_print(outputs,line,append=True):
+    if append:
+        outputs.append(line)
+    else:
+        fprint(line)
+    return outputs
+
+def try_plot_command(func, repr, pargs, outputs, append):
+    # in order to restore stdout after capturing printouts from calls in plotting script/function
+    backup_stdout = sys.stdout
+    outputs = append_or_print(outputs, repr.format(','.join('"{}"'.format(p) if isinstance(p,str) else str(p) for p in pargs)), append)
+    sys.stdout = StringIO()
+    try:
+        func(*pargs)
+        this_output = sys.stdout.getvalue()
+        sys.stdout = backup_stdout
+        outputs = append_or_print(outputs, this_output, args.npool!=0)
+    except Exception as e:
+        sys.stdout = backup_stdout
+        outputs = append_or_print(outputs, traceback.format_exc(), args.npool!=0)
+    return outputs
+
 def doLimit(info):
     args = info["args"]
     sig = info["sig"]
@@ -83,7 +105,7 @@ def doLimit(info):
     fprint("Calculating limit for {}...".format(signame))
     # combine cards
     command = "combineCards.py "+" ".join(datacards)+" > "+dcfname
-    outputs.append(command)
+    outputs = append_or_print(outputs, command, args.npool!=0)
     if not args.dry_run:
         os.system(command)
         # add ext args
@@ -99,20 +121,14 @@ def doLimit(info):
         command = 'python ../manualCLs.py {} -a="{}" -n {}'.format(extra,cargs,args.combo+"_"+args.cname)
     else:
         command = "combine -M AsymptoticLimits "+cargs
-    outputs.append(command)
+    outputs = append_or_print(outputs, command, args.npool!=0)
     if not args.dry_run:
-        outputs.append(runCmd(command))
+        # in this case, runCmd will print directly if not in pool mode, so just append to output (which will go unused)
+        outputs = append_or_print(outputs, runCmd(command, args.npool==0))
         if args.plots:
-            # capture all printouts
-            backup_stdout = sys.stdout
-            sys.stdout = StringIO()
             for step in ["Asimov","Observed"]:
-                try:
-                    pargs = [sig,args.cname,step,args.combo,args.seedname,args.init]
-                    outputs.append("plotParamsScan.main({})".format(','.join('"{}"'.format(p) if isinstance(p,str) else str(p) for p in pargs)))
-                    plotParamsScan.main(*pargs)
-                except Exception as e:
-                    outputs.append(traceback.format_exc())
+                pargs = [sig,args.cname,step,args.combo,args.seedname,args.init]
+                try_plot_command(plotParamsScan.main, "plotParamsScan.main({})", pargs, outputs, args.npool!=0)
             # currently, postfit files only created for ManualCLs
             if args.manualCLs:
                 obs = len(args.toyfile)==0
@@ -120,15 +136,8 @@ def doLimit(info):
                 injected = int(getFromToyfile(args.toyfile,"mZprime",delim='_')) if "sigtoy" in args.toyfile else 0
                 for q in [-3, -2, -1]:
                     for region in args.combo_regions:
-                        try:
-                            pargs = [sig,args.cname,"ManualCLsFit",q,dfile,args.datacards,obs,injected,args.combo,region,None,None,True]
-                            outputs.append("makePostfitPlot({})".format(','.join('"{}"'.format(p) if isinstance(p,str) else str(p) for p in pargs)))
-                            makePostfitPlot(*pargs)
-                        except Exception as e:
-                            outputs.append(traceback.format_exc())
-            # restore stdout
-            outputs.append(sys.stdout.getvalue())
-            sys.stdout = backup_stdout
+                        pargs = [sig,args.cname,"ManualCLsFit",q,dfile,args.datacards,obs,injected,args.combo,region,None,None,True]
+                        try_plot_command(makePostfitPlot, "makePostfitPlot({})", pargs, outputs, args.npool!=0)
     os.chdir(args.pwd)
 
     return outputs
@@ -156,8 +165,9 @@ def main(args):
 
         if not args.just_hadd:
             if args.npool==0:
-                for outputs in [doLimit({"args":args,"sig":sig}) for sig in args.signals]:
-                    fprint('\n'.join(outputs))
+                for sig in args.signals:
+                    # in non-pool mode, outputs are printed as they occur
+                    doLimit({"args":args,"sig":sig})
             else:
                 p = Pool(args.npool if not args.dry_run else 1)
                 for outputs in p.imap_unordered(doLimit, [{"args":args,"sig":sig} for sig in args.signals]):
@@ -226,7 +236,7 @@ if __name__=="__main__":
     args.seedname = None
     if len(args.toyfile)>0:
         args.seedname = args.toyfile.split('.')[-2]
-        args.args = "{}-s {}".format(" "*len(args.args), args.seedname)
+        args.args = " ".join([args.args,"-s {}".format(args.seedname)])
 
     # parse signal info
     with open('dict_xsec_Zprime.txt','r') as xfile:
