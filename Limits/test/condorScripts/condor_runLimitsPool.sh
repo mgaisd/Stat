@@ -59,7 +59,7 @@ echo "Signal Parameters: ${mZ} ${mD} ${rI} ${aD}"
 #-n 0 -m Alt -M --extra="-p -f -s" -I --signal 3100 20 03 peak
 
 (set -x
-python runLimitsPool.py -n 0 -m Alt -M --extra="-f -p -s" -I -p --no-hadd --signal ${mZ} ${mD} ${rI} ${aD}
+python runLimitsPool.py -n 0 -m Alt -M --extra="-f -p -s" -I -p --no-hadd --signal ${mZ} ${mD} ${rI} ${aD} -a="-v -1"
 )
 
 # export items to EOS
