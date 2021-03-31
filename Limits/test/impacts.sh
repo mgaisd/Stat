@@ -10,6 +10,12 @@ fi
 eosArea=$2
 TOYARG=$3
 TOYNAME=$4
+COMBOIN=$5
+if [ -z "$COMBOIN" ]; then
+	COMBOS=(cut bdt)
+else
+	COMBOS=($COMBOIN)
+fi
 
 SVJ_NAME=SVJ_mZprime${MASS}_mDark20_rinv03_alphapeak
 if [ -n "$eosArea" ]; then
@@ -20,7 +26,14 @@ declare -A regions
 regions[cut]="highCut lowCut"
 regions[bdt]="highSVJ2 lowSVJ2"
 
-for COMBO in cut bdt; do
+remove_seed_name(){
+	for i in higgsCombine*.root; do
+		j=$(echo $i | sed 's/.123456.root/.root/')
+		mv $i $j
+	done
+}
+
+for COMBO in ${COMBOS[@]}; do
 	DC_NAMES=""
 	WS_NAMES=""
 	SetArgAll=""
@@ -48,13 +61,18 @@ for COMBO in cut bdt; do
 	fi
 
 	OUTNAME=impacts_${COMBO}${TOYNAME:+_}${TOYNAME}
+	(set -x
 	$DRYRUN text2workspace.py ${DC_NAME_ALL}.txt
 	$DRYRUN combineTool.py -M Impacts -d ${DC_NAME_ALL}.root --doInitialFit --robustFit 1 -m 125 $ARGS
+	# easier to undo "more consistent naming convention" here than propagate update throughout CombineHarvester
+	remove_seed_name
 	$DRYRUN combineTool.py -M Impacts -d ${DC_NAME_ALL}.root --robustFit 1 -m 125 --doFits --parallel 8 $ARGS
-	$DRYRUN combineTool.py -M Impacts -d ${DC_NAME_ALL}.root -o ${OUTNAME}.json -m 125
-	$DRYRUN plotImpacts.py -i ${OUTNAME}.json  -o ${OUTNAME}
+	remove_seed_name
+	$DRYRUN combineTool.py -M Impacts -d ${DC_NAME_ALL}.root -o ${OUTNAME}.json -m 125 -n Test${TOYNAME}
+	$DRYRUN plotImpacts.py -i ${OUTNAME}.json -o ${OUTNAME}
 	# subset
 	$DRYRUN python excludeImpacts.py -i ${OUTNAME}.json -m mcstat -x $(echo $FrzArgAll | tr ',' ' ')
-	$DRYRUN plotImpacts.py -i ${OUTNAME}_include.json  -o ${OUTNAME}_include
-    $DRYRUN plotImpacts.py -i ${OUTNAME}_include.json -o ${OUTNAME}_include_multi --per-page 4 --height 300 --label-size -1 --width 400
+	$DRYRUN plotImpacts.py -i ${OUTNAME}_include.json -o ${OUTNAME}_include
+	$DRYRUN plotImpacts.py -i ${OUTNAME}_include.json -o ${OUTNAME}_include_multi --per-page 4 --height 300 --label-size -1 --width 400
+	)
 done
