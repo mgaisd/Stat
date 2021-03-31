@@ -26,13 +26,6 @@ declare -A regions
 regions[cut]="highCut lowCut"
 regions[bdt]="highSVJ2 lowSVJ2"
 
-remove_seed_name(){
-	for i in higgsCombine*.root; do
-		j=$(echo $i | sed 's/.123456.root/.root/')
-		mv $i $j
-	done
-}
-
 for COMBO in ${COMBOS[@]}; do
 	DC_NAMES=""
 	WS_NAMES=""
@@ -64,10 +57,7 @@ for COMBO in ${COMBOS[@]}; do
 	(set -x
 	$DRYRUN text2workspace.py ${DC_NAME_ALL}.txt
 	$DRYRUN combineTool.py -M Impacts -d ${DC_NAME_ALL}.root --doInitialFit --robustFit 1 -m 125 $ARGS
-	# easier to undo "more consistent naming convention" here than propagate update throughout CombineHarvester
-	remove_seed_name
 	$DRYRUN combineTool.py -M Impacts -d ${DC_NAME_ALL}.root --robustFit 1 -m 125 --doFits --parallel 8 $ARGS
-	remove_seed_name
 	$DRYRUN combineTool.py -M Impacts -d ${DC_NAME_ALL}.root -o ${OUTNAME}.json -m 125 -n Test${TOYNAME}
 	$DRYRUN plotImpacts.py -i ${OUTNAME}.json -o ${OUTNAME}
 	# subset

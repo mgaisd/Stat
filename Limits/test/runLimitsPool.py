@@ -236,7 +236,7 @@ if __name__=="__main__":
     args.seedname = None
     if len(args.toyfile)>0:
         args.seedname = args.toyfile.split('.')[-2]
-        args.args = " ".join([args.args,"-s {}".format(args.seedname)])
+        args.args = " ".join([args.args,"-s {}".format(args.seedname),"--seedInName"])
 
     # parse signal info
     with open('dict_xsec_Zprime.txt','r') as xfile:
