@@ -582,6 +582,14 @@ def step4(args, products):
     #          bestfit (obs) as quantile=-3
     #          bestfit (asimov) as quantile=-4
     products["limits"][-2] = 0.
+
+    def checkFitRes(ofname,success):
+        if not success: return success
+        import ROOT as r
+        ofname = ofname.replace("MultiDimFit.","").replace("higgsCombine","multidimfit")
+        f = r.TFile.Open(ofname)
+        fitres = f.Get("fit_mdf")
+        return fitres!=None
     
     products["ofitnames"] = {}
     no_reuse = "step4" not in args.reuse
@@ -607,6 +615,7 @@ def step4(args, products):
         if not args.dry_run:
             if no_reuse: runCmd(cmd4,logfname4)
             ofname4, success = getOutfile(logfname4)
+            success = checkFitRes(ofname4,success)
             retries = 0
             max_retries = 10
             rval_old = rval
@@ -619,6 +628,7 @@ def step4(args, products):
                 cmd4 = cmd4.replace("r={}".format(rval_old),"r={}".format(rval_new))
                 runCmd(cmd4,logfname4)
                 ofname4, success = getOutfile(logfname4)
+                success = checkFitRes(ofname4,success)
             if not success:
                 fprint("WARNING: MultiDimFit failed {} times, giving up".format(retries))
             products["ofitnames"][q] = ofname4
