@@ -69,6 +69,8 @@ isData = True
 def getRate(ch, process, ifile):
        hName = ch + "/"+ process
        h = ifile.Get(hName)
+       if h==None:
+           raise RuntimeError("Could not get {} from file {}".format(hName,ifile))
        return h.Integral(1,h.GetXaxis().GetNbins()-1)
 
 def getHist(ch, process, ifile):
@@ -293,7 +295,8 @@ def getCard(sig, ch, ifilename, wsdir, doModelling, mode = "histo", bias = False
                             if("sig" in sysValue[1]):
                                    try:
                                           if(getRate(ch, sig, ifile) != 0.): sigSys = abs((getRate(ch, sig+hsysNameUp, ifile) - getRate(ch, sig+hsysNameDown, ifile))/ (2* getRate(ch, sig, ifile)))
-                                   except AttributeError:
+                                          else: sigSys = sysValue[2]
+                                   except:
                                           sigSys = sysValue[2]
                                    if(sigSys < 1. and sigSys > 0.): sigSys = sigSys + 1
                                    card += "%-20s" % (sigSys)
