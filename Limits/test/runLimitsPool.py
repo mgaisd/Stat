@@ -188,13 +188,13 @@ def main(args):
                 # check if limit converged
                 from ROOT import TFile, TTree
                 f = TFile.Open(fname)
-                if f==None: continue
-                t = f.Get("limit")
-                if t==None: continue
-                # 5 expected + 1 observed (+ prefit sometimes)
-                append = t.GetEntries() >= 6
+                if f!=None:
+                    t = f.Get("limit")
+                    if t!=None:
+                        # 5 expected + 1 observed (+ prefit sometimes)
+                        append = t.GetEntries() >= 6
             if append: outfiles.append(fname)
-            else: fprint("Warning: {} limit for {} did not converge".format(combo, signame))
+            else: fprint("Warning: {} limit for {} did not converge".format(combo, getSigname(sig)))
 
         # combine outfiles
         if not args.no_hadd:
