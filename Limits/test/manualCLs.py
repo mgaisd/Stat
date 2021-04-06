@@ -396,6 +396,9 @@ def step3(args, products):
     rmax = max(r_data)
     dnll_data = [r_dict[k][0] for k in r_data]
     dnll_asimov = [r_dict[k][1] for k in r_data]
+    len_r_data = len(r_data)
+    if products["count_upper"]>0 and len_r_data==products["len_r_data"]:
+        raise RuntimeError("ERROR: no fits converged when extending r range to avoid limits at boundary")
 
     clsb = []
     clb = []
@@ -508,6 +511,7 @@ def step3(args, products):
     products["at_upper"] = len(quantiles_at_upper_boundary)>0
     if products["at_upper"]:
         fprint("WARNING: found limits for quantiles {} at boundary".format(','.join([str(q) for q in quantiles_at_upper_boundary])))
+        products["len_r_data"] = len_r_data
 
     # draw plots
     if args.plots:
