@@ -9,6 +9,8 @@ mZ=${1}
 mD=${2}
 rI=${3}
 aD=${4}
+combo=${5}
+mod=${6}
 
 xrdcp -s root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Limits/datacards_Mar29/CMSSW_10_2_13.tgz .
 tar -xf CMSSW_10_2_13.tgz
@@ -23,25 +25,22 @@ echo "python subdir"
 ls -la Stat/Limits/python
 cd Stat/Limits/test
 
-REGIONS=(
-highCut \
-lowCut \
-highSVJ2 \
-lowSVJ2 \
-)
+declare -A regions
+regions[cut]="highCut lowCut"
+regions[bdt]="highSVJ2 lowSVJ2"
 
 SVJ_NAME="SVJ_mZprime${mZ}_mDark${mD}_rinv${rI}_alpha${aD}"
 mkdir ${SVJ_NAME}
 
 echo "Trying to copy files to local"
 EOSDIR=root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Limits/datacards_Mar29/
-for REGION in ${REGIONS[@]}; do
+for REGION in ${regions[$combo]}; do
 	xrdcp ${EOSDIR}/ws_${REGION}.root .
 	xrdcp ${EOSDIR}/fitResults_${REGION}.root .
 done
 
 EOSDIR=${EOSDIR}/${SVJ_NAME}
-for REGION in ${REGIONS[@]}; do
+for REGION in ${regions[$combo]}; do
 	DC_NAME="${SVJ_NAME}_${REGION}_2018_template_bias.txt"
 	WS_NAME="ws_${SVJ_NAME}_${REGION}_2018_template.root"
 	echo ${EOSDIR}
@@ -54,12 +53,23 @@ done
 pwd
 ls -la
 
+echo "Combo: ${combo}"
 echo "Signal Parameters: ${mZ} ${mD} ${rI} ${aD}"
 #example of current good args to use - Kevin, 3/9/21
 #-n 0 -m Alt -M --extra="-p -f -s" -I --signal 3100 20 03 peak
 
+# modifications to handle failing fits
+EXTRA="-v -1"
+if [ "$mod" -eq 1 ]; then
+	if [ "$combo" = "cut" ]; then
+		EXTRA="$EXTRA --setParameterRanges highCut_p1_3_alt=-75,75"
+	else
+		EXTRA="$EXTRA --setParameterRanges highSVJ2_p1_2_alt=-75,75"
+	fi
+fi
+
 (set -x
-python runLimitsPool.py -n 0 -m Alt -M --extra="-f -p -s" -I -p --no-hadd --signal ${mZ} ${mD} ${rI} ${aD} -a="-v -1"
+python runLimitsPool.py -n 0 -m Alt -M --extra="-f -p -s" -I -p --no-hadd --signal ${mZ} ${mD} ${rI} ${aD} -a="$EXTRA" -r ${combo}
 )
 
 # export items to EOS
