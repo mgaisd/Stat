@@ -49,7 +49,7 @@ for COMBO in ${COMBOS[@]}; do
 	DC_NAME_ALL=datacard_${MASS}_${COMBO}
 	$DRYRUN combineCards.py $DC_NAMES > ${DC_NAME_ALL}.txt
 	TESTNAME=Test${TOYNAME}${COMBO}
-	ARGS="-n ${TESTNAME} --setParameters $SetArgAll --freezeParameters $FrzArgAll --trackParameters $TrkArgAll"
+	ARGS="--rmin -10 -n ${TESTNAME} --setParameters $SetArgAll --freezeParameters $FrzArgAll --trackParameters $TrkArgAll"
 	if [ -n "$TOYARG" ]; then
 		ARGS="$ARGS $(echo "$TOYARG" | sed 's~COMBO~'${COMBO}'~')"
 	fi
@@ -57,8 +57,8 @@ for COMBO in ${COMBOS[@]}; do
 	OUTNAME=impacts_${COMBO}${TOYNAME:+_}${TOYNAME}
 	(set -x
 	$DRYRUN text2workspace.py ${DC_NAME_ALL}.txt
-	$DRYRUN combineTool.py -M Impacts -d ${DC_NAME_ALL}.root --doInitialFit --robustFit 1 -m 125 $ARGS
-	$DRYRUN combineTool.py -M Impacts -d ${DC_NAME_ALL}.root --robustFit 1 -m 125 --doFits --parallel 8 $ARGS
+	$DRYRUN combineTool.py -M Impacts -d ${DC_NAME_ALL}.root --doInitialFit -m 125 $ARGS
+	$DRYRUN combineTool.py -M Impacts -d ${DC_NAME_ALL}.root -m 125 --doFits --parallel 16 $ARGS
 	$DRYRUN combineTool.py -M Impacts -d ${DC_NAME_ALL}.root -o ${OUTNAME}.json -m 125 -n ${TESTNAME}
 	$DRYRUN plotImpacts.py -i ${OUTNAME}.json -o ${OUTNAME}
 	# subset
