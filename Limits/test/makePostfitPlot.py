@@ -9,7 +9,7 @@ from Stat.Limits.bruteForce import silence
 input_template = """INPUT
 input/input_svj_stack_dijetmtdetahad_2017.txt
 input/input_svj_mt_postfit_options.txt
-input/input_svj_mt_hist_full.txt
+input/input_svj_mt_hist_full{}.txt
 """
 
 ofile_prefix = "test/fit"
@@ -23,6 +23,7 @@ vstring+:chosensets[{signames}]
 vstring+:numers[{signames}]
 string:rootfile[{ofile}]
 bool:treesuffix[0]
+string:prelim_text[{prelim}]
 """
 
 fit_template = "{fitname}\ts:fn[{fnname}]\tvd:pars[1,{pvals}]\td:yield[{yieldval}]\ts:legname[{legname}]\tin:input[input/input_svj_mt_fit_opt.txt]\tb:legpars[0]\tc:linecolor[{fitcol}]\ts:bandfile[test/{signame}/{bandfile}]\ts:bandname[{bandname}]\tc:glinecolor[{fitcol}]\tc:gfillcolor[kGray + 1]"
@@ -254,11 +255,12 @@ def makePostfitPlot(sig, name, method, quantile, data_file, datacard_dir, obs, i
         fitlist = ','.join(fits),
         signames = ','.join(sigs),
         ofile = "{}_{}_{}_{}_{}_{}".format(ofile_prefix,dtype,signamesafe,region,name,quantile_info[quantile]["name"]),
+        prelim = "" if obs else "Simulation",
     )
 
     with open(iname,'w') as ifile:
         lines = [
-            input_template,
+            input_template.format("_bdt" if combo=="bdt" else ""),
             options,
             "FIT",
             '\n'.join(fits.values()),
