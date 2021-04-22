@@ -26,7 +26,8 @@ bool:treesuffix[0]
 string:prelim_text[{prelim}]
 """
 
-fit_template = "{fitname}\ts:fn[{fnname}]\tvd:pars[1,{pvals}]\td:yield[{yieldval}]\ts:legname[{legname}]\tin:input[input/input_svj_mt_fit_opt.txt]\tb:legpars[0]\tc:linecolor[{fitcol}]\ts:bandfile[test/{signame}/{bandfile}]\ts:bandname[{bandname}]\tc:glinecolor[{fitcol}]\tc:gfillcolor[kGray + 1]"
+fit_template = "{fitname}\ts:fn[{fnname}]\tvd:pars[1,{pvals}]\td:yield[{yieldval}]\ts:legname[{legname}]\tin:input[input/input_svj_mt_fit_opt.txt]\tb:legpars[0]\tc:linecolor[{fitcol}]"
+band_template = "\ts:bandfile[test/{signame}/{bandfile}]\ts:bandname[{bandname}]\tc:glinecolor[{fitcol}]\tc:gfillcolor[kGray + 1]"
 
 set_template = """hist\tmc\t{signamefull}\ts:legname[{legname}]\tc:color[{sigcol}]\ti:linestyle[7]\ti:panel[0]\tvs:fits[]\t{signorm}
 \tbase\text\t{signamefull}\ts:extfilename[{sigfile}]\ts:exthisto_dir[{hdir}]\tvs:exthisto_in[{signamesafe}]\tvs:exthisto_out[MTAK8]"""
@@ -192,7 +193,12 @@ def makePostfitPlot(sig, name, method, quantile, data_file, datacard_dir, obs, i
             fitres = pftmp.Get("fit_mdf")
 
         # get error band
-        bandfname = makeErrorBand(iname,ws,fitres,region,ftype,norm)
+        bandfname = None
+        try:
+            bandfname = makeErrorBand(iname,ws,fitres,region,ftype,norm)
+        except TypeError:
+            # in case of: "[#0] ERROR:Eval -- RooFitResult::createHessePdf() ERROR: covariance matrix is not positive definite (|V|=0) cannot construct p.d.f"
+            pass
 
         # common stuff
         pfit = {p:v for p,v in params.iteritems() if region in p}
@@ -208,10 +214,14 @@ def makePostfitPlot(sig, name, method, quantile, data_file, datacard_dir, obs, i
             yieldval = str(norm*100),
             legname = "{}, {}".format(finfo["legname"],qinfo["legname"]),
             fitcol = qinfo["color"],
-            bandfile = bandfname,
-            bandname = bandname,
-            signame = signamesafe,
         )
+        if bandfname is not None:
+            fits[fitname] += band_template.format(
+                fitcol = qinfo["color"],
+                bandfile = bandfname,
+                bandname = bandname,
+                signame = signamesafe,
+            )
 
         # no need to show signal for b-only
 #        if qinfo["name"]=="bonly": continue
