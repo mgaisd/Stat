@@ -9,6 +9,8 @@ parser.add_argument("-d","--dir", dest="dir", type=str, default="root://cmseos.f
 parser.add_argument("-r","--region", dest="region", type=str, required=True, help="signal region")
 parser.add_argument("-u","--unc", dest="unc", type=str, default="", help="systematic uncertainty")
 parser.add_argument("-y","--actualyield", dest="actualyield", default=False, action="store_true", help="use actual rather than interpolated yield, if available")
+parser.add_argument("-i","--hist", dest="hist", type=str, default="", help="file to provide shapes from histograms instead of workspace")
+parser.add_argument("-f","--suff", dest="suff", type=str, default="", help="suffix for output filename")
 args = parser.parse_args()
 
 import ROOT as r
@@ -19,17 +21,32 @@ sigdicts[1][args.param[0]] = args.param[2]
 
 signals = [getSigname(sig) for sig in sigdicts]
 yields = []
+hists = []
 pdfs = []
+mT = None
 for i in range(len(signals)):
-    file = r.TFile.Open("{0}/{1}/ws_{1}_{2}_2018_template.root".format(args.dir,signals[i],args.region))
     signals[i] += ("_"+args.unc if len(args.unc)>0 else "")
-    if file==None:
-        pdfs.append(None)
-        continue
-    ws = file.Get("SVJ")
     sig = signals[i]
-    hist = ws.data(sig)
-    mT = ws.var("mH{}_2018".format(args.region))
+    if args.hist:
+        file = r.TFile.Open("{}/{}".format(args.dir,args.hist))
+        fdir = file.Get("{}_2018".format(args.region))
+        htmp = fdir.Get(sig)
+        htmp.SetDirectory(0)
+        # workaround for double free in ~MorphCacheElem() if histogram is empty
+        if htmp.GetEntries()==0: htmp.SetBinContent(1,1)
+        if mT is None:
+            mT = r.RooRealVar("mH{}_2018".format(args.region), "m_{T}", 1500, 8000, "GeV")
+            mT.setBins(65)
+        hist = r.RooDataHist(sig,sig,r.RooArgList(mT), htmp, 1.)
+    else:
+        file = r.TFile.Open("{0}/{1}/ws_{1}_{2}_2018_template.root".format(args.dir,signals[i],args.region))
+        if file==None:
+            pdfs.append(None)
+            continue
+        ws = file.Get("SVJ")
+        hist = ws.data(sig)
+        mT = ws.var("mH{}_2018".format(args.region))
+    hists.append(hist)
     pdfs.append(r.RooHistPdf(sig,sig,r.RooArgSet(mT),hist))
     yields.append(hist.sum(0))
 
@@ -69,9 +86,9 @@ for b in range(h_result.GetNbinsX()):
     bin = b+1
     h_result.SetBinError(bin, r.TMath.Sqrt(h_result.GetBinContent(bin)))
 
-ofile = r.TFile.Open("{}_{}.root".format(oname,args.region),"RECREATE")
+ofile = r.TFile.Open("{}_{}{}.root".format(oname,args.region,args.suff),"RECREATE")
 ofile.cd()
-hdir = ofile.mkdir(args.region)
+hdir = ofile.mkdir("{}_2018".format(args.region))
 hdir.cd()
 h_result.Write(oname)
 

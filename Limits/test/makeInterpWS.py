@@ -12,7 +12,7 @@ import ROOT as r
 r.gSystem.Load("libHiggsAnalysisCombinedLimit.so")
 
 infile = r.TFile.Open(args.file)
-rdir = infile.Get(args.region)
+rdir = infile.Get("{}_2018".format(args.region))
 names = [k.GetName() for k in rdir.GetListOfKeys()]
 
 xvarmin = 1500.
