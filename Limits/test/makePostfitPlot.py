@@ -40,6 +40,7 @@ quantile_info = {
     -3: {"legname": "bestfit", "name": "bestfit", "color": "kOrange + 2", "sigcolor": "kCyan + 2"},
     -2: {"legname": "b-only", "name": "bonly", "color": "kRed", "sigcolor": "kCyan + 2"},
     -1: {"legname": "postfit (obs)", "name": "postfitobs", "color": "kBlue", "sigcolor": "kCyan + 2"},
+    0.5: {"legname": "median exp.", "name": "medexp", "color": "kMagenta + 2", "sigcolor": "kCyan + 2"},
 }
 
 function_info = {

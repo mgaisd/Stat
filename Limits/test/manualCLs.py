@@ -611,6 +611,8 @@ def step4(args, products):
         args4 = updateArg(args4, ["-n","--name"], "Postfit{:.3f}".format(q))
         # not needed when params already known
         args4 = removeArg(args4,"MINIMIZER_MaxCalls",before=1,exact=False)
+        # avoid default cutoff
+        args4 += " --rMax {}".format(rval*2)
         args4 = handleInitArgs(args4, products["init_args"])
         cmd4 = "combine -M MultiDimFit --saveShapes --saveWorkspace --saveFitResult {} {} {}".format(extra,args4,args.fitopts)
         fprint(cmd4)

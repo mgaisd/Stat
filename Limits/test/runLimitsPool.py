@@ -134,7 +134,7 @@ def doLimit(info):
                 obs = len(args.toyfile)==0
                 dfile = "hists.{}.{}.root".format(getFromToyfile(args.toyfile,"higgsCombine").replace("/",""), getFromToyfile(args.toyfile,"#")) if not obs else ""
                 injected = int(getFromToyfile(args.toyfile,"mZprime",delim='_')) if "sigtoy" in args.toyfile else 0
-                for q in [-3, -2, -1]:
+                for q in [-3, -2, -1, 0.5]:
                     for region in args.combo_regions:
                         pargs = [sig,args.cname,"ManualCLsFit",q,dfile,args.datacards,obs,injected,args.combo,region,None,None,True]
                         try_plot_command(makePostfitPlot, "makePostfitPlot({})", pargs, outputs, args.npool!=0)
