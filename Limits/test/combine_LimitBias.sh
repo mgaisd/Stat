@@ -12,11 +12,19 @@ genFunc=${8} # 0 for bkgFunc, 1 for altFunc
 fitFunc=${9} # 0 for bkgFunc, 1 for altFunc
 cores=${10}
 eosArea=${11}
+rVal=${12}
 
 SVJ_NAME="SVJ_mZprime${mZ}_mDark${mD}_rinv${rI}_alpha${aD}"
 if [ -n "$eosArea" ]; then
 	export EOSDIR=${eosArea}/${SVJ_NAME}
 fi
+if [ -z "$rVal" ]; then
+#	rVal=10
+	rVal=50000
+fi
+
+rMin=-${rVal}
+rMax=${rVal}
 
 declare -A regions
 regions[cut]="highCut lowCut"
@@ -39,11 +47,11 @@ for REGION in ${regions[$COMBO]}; do
 		xrdcp -s root://cmseos.fnal.gov/${EOSDIR}/${DC_NAME} .
 		xrdcp -s root://cmseos.fnal.gov/${EOSDIR}/${WS_NAME} .
 	fi
-	eval $(./getBiasArgs.py -r ${REGION} -n ${genFunc} -s Gen -f ${WS_NAME})
+	eval $($CMSSW_BASE/src/Stat/Limits/test/getBiasArgs.py -r ${REGION} -n ${genFunc} -s Gen -f ${WS_NAME})
 	SetArgGenAll="${SetArgGenAll}${SetArgGenAll:+,}${SetArgGen}"
 	FrzArgGenAll="${FrzArgGenAll}${FrzArgGenAll:+,}${FrzArgGen}"
 	TrkArgGenAll="${TrkArgGenAll}${TrkArgGenAll:+,}${TrkArgGen}"
-	eval $(./getBiasArgs.py -r ${REGION} -n ${fitFunc} -s Fit -f ${WS_NAME})
+	eval $($CMSSW_BASE/src/Stat/Limits/test/getBiasArgs.py -r ${REGION} -n ${fitFunc} -s Fit -f ${WS_NAME})
 	SetArgFitAll="${SetArgFitAll}${SetArgFitAll:+,}${SetArgFit}"
 	FrzArgFitAll="${FrzArgFitAll}${FrzArgFitAll:+,}${FrzArgFit}"
 	TrkArgFitAll="${TrkArgFitAll}${TrkArgFitAll:+,}${TrkArgFit}"
@@ -51,8 +59,6 @@ done
 DC_NAME_ALL=datacard_${mZ}_${COMBO}.txt
 combineCards.py $DC_NAMES > $DC_NAME_ALL
 
-rMin=-10
-rMax=10
 
 #print obtained variables
 echo "SetArgGenAll: $SetArgGenAll"
@@ -97,18 +103,25 @@ if false && [ "$genFunc" -ne "$fitFunc" ]; then
 fi
 
 #setting expSig to median value if expSig equals M
+maxValrinj=10
 if [ ${expSig} = "M" ]; then
-    cmdRE="python readREXT.py -f limit_${COMBO}AltManualBFInitSyst.root -z ${mZ}"
+    cmdRE="python readREXT.py -f limit_${COMBO}AltManualBFInitSyst.root -z ${mZ} -m ${maxValrinj}"
     ${cmdRE} >& rext.log
     expSig=$(cat rext.log)
     echo $cmdRE
-    echo "Median Extracted R is ${expSig}"
+    echo "Median Extracted R is ${expSig} max ${maxValrinj}"
     #if [ ${expSig%.*} -gt 9 ]; then
     #    echo "Median Extracted R is ${expSig}. Setting to r_inj to 10."
     #    expSig=10
     #fi
 fi
 
+smallMax=$(bc <<< "${rMax}*1.0 < 3.0*${expSig}")
+if [[ ${smallMax} > 0 ]]; then
+    rMax=$(bc <<< "3.0*${expSig}")
+fi
+
+rMin=-${rMax}
 
 cmdGen="combine ${DC_NAME_ALL} -M GenerateOnly -n ${genName} -t ${nTOYS} --toysFrequentist --saveToys --expectSignal ${expSig} --bypassFrequentistFit --saveWorkspace -s 123456 -v -1 --setParameters $SetArgGenAll --freezeParameters $FrzArgGenAll"
 

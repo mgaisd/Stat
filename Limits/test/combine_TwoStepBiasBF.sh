@@ -12,6 +12,7 @@ genFunc=${8} # 0 for bkgFunc, 1 for altFunc
 fitFunc=${9} # 0 for bkgFunc, 1 for altFunc
 cores=${10}
 eosArea=${11}
+rVal=${12}
 
 SVJ_NAME="SVJ_mZprime${mZ}_mDark${mD}_rinv${rI}_alpha${aD}"
 DC_NAME="${SVJ_NAME}_${REGION}_2018_template_bias.txt"
@@ -23,16 +24,21 @@ if [ -n "$eosArea" ]; then
 	xrdcp -s root://cmseos.fnal.gov/${EOSDIR}/${WS_NAME} .
 fi
 
-rMin=-10
-rMax=10
+if [ -z "$rVal" ]; then
+#	rVal=10
+	rVal=50000
+fi
+
+rMin=-${rVal}
+rMax=${rVal}
 
 #parOptsMain is for using the Main function, we want to ignore the Alt parameters
 #parOptsAlt is the opposite
 #parOptsTrack<X> is used in the FitDiag Command to track the parameters we use
 #  i.e., if we use parOptsMain, we should also use parOptsTrackMain, but only in FitDiag
 
-eval $(./getBiasArgs.py -r ${REGION} -n ${genFunc} -s Gen -f ${WS_NAME})
-eval $(./getBiasArgs.py -r ${REGION} -n ${fitFunc} -s Fit -f ${WS_NAME})
+eval $($CMSSW_BASE/src/Stat/Limits/test/getBiasArgs.py -r ${REGION} -n ${genFunc} -s Gen -f ${WS_NAME})
+eval $($CMSSW_BASE/src/Stat/Limits/test/getBiasArgs.py -r ${REGION} -n ${fitFunc} -s Fit -f ${WS_NAME})
 
 #print obtained variables
 echo "SetArgGen: $SetArgGen"
@@ -62,7 +68,17 @@ then
   pdfName="Bkg_Alt_${REGION}_2018"
 fi
 
+declare -A InitVals
+InitVals["highCut"]="highCut_p1_3_alt=26.6638050328,highCut_p2_3_alt=-23.6201008859,highCut_p3_3_alt=0.146132892342"
+InitVals["lowCut"]="lowCut_p1_2_alt=-9.91152443735,lowCut_p2_2_alt=-5.75832620307"
+InitVals["highSVJ2"]="highSVJ2_p1_2_alt=-3.37387807418,highSVJ2_p2_2_alt=-6.59422151231"
+InitVals["lowSVJ2"]="lowSVJ2_p1_2_alt=-11.1315816159,lowSVJ2_p2_2_alt=-6.43882169901"
 if [ "$genFunc" -ne "$fitFunc" ]; then
+	echo "Using precomputed brute force initial values"
+	SetArgFit="${SetArgFit},${InitVals[$REGION]}"
+	echo "SetArgFit: $SetArgFit"
+fi
+if false; then
 	echo "Running brute force to get initial parameter values"
 	cmdBF="python $CMSSW_BASE/src/Stat/Limits/python/bruteForce.py -f ${WS_NAME} -p ${pdfName} -n ${cores} -g ${genPdfName}"
 	echo ${cmdBF}

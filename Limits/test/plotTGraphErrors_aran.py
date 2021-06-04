@@ -11,7 +11,7 @@
 import sys
 import string
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-from ROOT import TCanvas, gInterpreter, gROOT, TLegend, TGraph, TGraphErrors, TMultiGraph, TH1F
+from ROOT import TCanvas, gInterpreter, gROOT, TLegend, TGraph, TGraphErrors, TMultiGraph, TH1F, nullptr
 
 gROOT.SetBatch(True)
 
@@ -20,6 +20,7 @@ def main():
 	parser.add_argument("-n", "--name", dest="name", type=str, required=True, help="name of pdf to be saved")
 	parser.add_argument("-f", "--files", dest="files", type=str, required=True, nargs='+', help="list of all the files to plot, each w/ columns x y [err]")
 	parser.add_argument("-l", "--doLimit", dest="doLimit", default=False, action="store_true", help="limit mode (use combined regions)")
+	parser.add_argument("-x", "--extra", dest="extra", type=str, default="", help="extra text for legend")
 	args = parser.parse_args()
 
 	# Specify stuff to make pretty plots (color, marker and name for the legend)
@@ -40,6 +41,8 @@ def main():
 	leg.SetTextSize(0.04)
 	leg.SetFillColor(0)
 	i=0
+	if len(args.extra)>0:
+		leg.AddEntry(nullptr,args.extra,"")
 	for f in args.files:
 		g=Get_Graph_from_file(f)
 		g.SetLineColor(color_list[i])

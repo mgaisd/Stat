@@ -5,6 +5,13 @@ import subprocess
 parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
 parser.add_argument("-d", "--eosDir", dest="eosDir", type=str, required=True, help="eos directory for input files (/store/...)")
 parser.add_argument("-l", "--doLimit", dest="doLimit", default=False, action="store_true", help="limit mode (use combined regions)")
+parser.add_argument("-m", "--maxVal", dest="maxVal", type=float, default=0, required=False, help="maximum allowed output (default = 0, no max value)")
+parser.add_argument("-v", "--varyParam", dest="varyParam", type=str, default="mZ", required=False, help="Which param to vary? (mZ, mD, rI, aD)")
+parser.add_argument("-Z", "--baselineZ", dest="baselineZ", type=str, default="3100", required=False, help="If mZ isn't varied, what value to use? (default 3100)")
+parser.add_argument("-D", "--baselineD", dest="baselineD", type=str, default="20", required=False, help="If mD isn't varied, what value to use? (default 20)")
+parser.add_argument("-R", "--baselineR", dest="baselineR", type=str, default="03", required=False, help="If rI isn't varied, what value to use? (default 03)")
+parser.add_argument("-A", "--baselineA", dest="baselineA", type=str, default="peak", required=False, help="If aD isn't varied, what value to use? (default peak)")
+
 args = parser.parse_args()
 
 # runover each SR to fit all 100 toys to the main function
@@ -16,36 +23,49 @@ rt.gStyle.SetOptStat(1)
 rt.gStyle.SetOptFit(1011)
 rt.gROOT.SetBatch(True)
 
-listOfParams = [
-['1500', '20', '03', 'peak'],
-['1700', '20', '03', 'peak'],
-['1900', '20', '03', 'peak'],
-['2100', '20', '03', 'peak'],
-['2300', '20', '03', 'peak'],
-['2500', '20', '03', 'peak'],
-['2700', '20', '03', 'peak'],
-['2900', '20', '03', 'peak'],
-['3100', '20', '03', 'peak'],
-['3300', '20', '03', 'peak'],
-['3500', '20', '03', 'peak'],
-['3700', '20', '03', 'peak'],
-['3900', '20', '03', 'peak'],
-['4100', '20', '03', 'peak'],
-['4300', '20', '03', 'peak'],
-['4500', '20', '03', 'peak'],
-['4700', '20', '03', 'peak'],
-['4900', '20', '03', 'peak'],
-['5100', '20', '03', 'peak']]
+#generate list of parameters to run over.
+# only available for mZ and rI at the moment
+
+if args.varyParam == "mZ":
+	listOfParams = [
+	["1500", args.baselineD, args.baselineR, args.baselineA],
+	["1700", args.baselineD, args.baselineR, args.baselineA],
+	["1900", args.baselineD, args.baselineR, args.baselineA],
+	["2100", args.baselineD, args.baselineR, args.baselineA],
+	["2300", args.baselineD, args.baselineR, args.baselineA],
+	["2500", args.baselineD, args.baselineR, args.baselineA],
+	["2700", args.baselineD, args.baselineR, args.baselineA],
+	["2900", args.baselineD, args.baselineR, args.baselineA],
+	["3100", args.baselineD, args.baselineR, args.baselineA],
+	["3300", args.baselineD, args.baselineR, args.baselineA],
+	["3500", args.baselineD, args.baselineR, args.baselineA],
+	["3700", args.baselineD, args.baselineR, args.baselineA],
+	["3900", args.baselineD, args.baselineR, args.baselineA],
+	["4100", args.baselineD, args.baselineR, args.baselineA],
+	["4300", args.baselineD, args.baselineR, args.baselineA],
+	["4500", args.baselineD, args.baselineR, args.baselineA],
+	["4700", args.baselineD, args.baselineR, args.baselineA],
+	["4900", args.baselineD, args.baselineR, args.baselineA],
+	["5100", args.baselineD, args.baselineR, args.baselineA]]
+if args.varyParam == "rI":
+	listOfParams = [
+	[args.baselineZ, args.baselineD, "01", args.baselineA],
+	[args.baselineZ, args.baselineD, "03", args.baselineA],
+	[args.baselineZ, args.baselineD, "05", args.baselineA],
+	[args.baselineZ, args.baselineD, "07", args.baselineA],
+	[args.baselineZ, args.baselineD, "09", args.baselineA]]
 
 choices = subprocess.check_output(["eos","root://cmseos.fnal.gov/","ls",args.eosDir])
 
 if args.doLimit:
 	regions = ["cut","bdt"]
+	sigList = ["Sig0","Sig1"] #"SigM"
 else:
 	regions = ["lowCut","lowSVJ2","highCut","highSVJ2"]
-for expSig in ["SigM"]:#"Sig0","Sig1",
+	sigList = ["Sig0","Sig1"]
+for expSig in sigList:#["Sig1","Sig1.5","Sig2","Sig3","Sig5","Sig7","Sig10"]:#,"SigM"]:#["SigM"]:#"Sig0","Sig1",
 	#for funcs in ["GenMainFitMain","GenAltFitMain"]:
-	for funcs in ["GenMainFitAlt","GenAltFitAlt"]:
+	for funcs in ["GenAltFitAlt", "GenMainFitAlt"]:
 		#setup four TGraphErrors, one for each varying-variable
 		if args.doLimit:
 			vZ_m = {"cut":[[],[],[]],"bdt":[[],[],[]], "name":"varyZ_mean"}
@@ -73,10 +93,10 @@ for expSig in ["SigM"]:#"Sig0","Sig1",
 			if not (SVJNAME in choices): continue
 			print("************************",SVJNAME,"************************")
 			#(re)set varyBools to all be false
-			varyZ = False
-			varyD = False
-			varyR = False
-			varyA = False
+			varyZ = args.varyParam=="mZ"
+			varyD = args.varyParam=="mD"
+			varyR = args.varyParam=="rI"
+			varyA = args.varyParam=="aD"
 			zMass = int(sigPars[0])
 			dMass = int(sigPars[1])
 			rInvs = 1 if sigPars[2] == "1" else int(sigPars[2])*0.1
@@ -86,23 +106,6 @@ for expSig in ["SigM"]:#"Sig0","Sig1",
 				aDark = 0.5
 			elif sigPars[3] == "high":
 				aDark = 1.5
-			# baseline signal should be in every plot
-			# NOTE: This only works because in listOfParams we explicitly only
-			# vary one parameter at a time.
-			if [sigPars[0],sigPars[1],sigPars[2],sigPars[3]] == ['3100', '20', '03', 'peak']:
-				varyZ = True
-				varyD = True
-				varyR = True
-				varyA = True
-			else: # if one parameter doesn't match baseline, then we're varying that parameter
-				if sigPars[0] != "3100":
-					varyZ = True
-				if sigPars[1] != "20":
-					varyD = True
-				if sigPars[2] != "03":
-					varyR = True
-				if sigPars[3] != "peak":
-					varyA = True
 			for region in regions:
 				print("************************",region, "************************")
 				fileName = eosArea + SVJNAME + "/fitDiagnostics"+region+expSig+funcs+".mH120.123456.root"
@@ -128,27 +131,38 @@ for expSig in ["SigM"]:#"Sig0","Sig1",
 						if limitTree.trackedParam_mZprime == int(sigPars[0]) and limitTree.quantileExpected == 0.5:
 							injSig = limitTree.limit
 					_file.Close()
+					if args.maxVal>0 and injSig>args.maxVal: injSig = args.maxVal
 				else:
-					injSig = int(expSig[-1:])
+					try:
+						injSig = int(expSig[3:])
+					except ValueError:
+						injSig = float(expSig[3:])
 				print("INJSIG CHECK ************ ", str(injSig))
 				c1.cd(3)
-				tree.Draw("(r-{})/rErr>>h3(50,-5,5)".format(injSig),selection)
+				minPull,maxPull = -5,5
+				nToys = tree.GetEntries()
+				nBins = int((nToys/5.0))
+				tree.Draw("(r-{})/rErr>>h3({},{},{})".format(injSig,nBins,minPull,maxPull),selection)
+				#tree.Draw("(r-{})/rErr>>h4({},{},{})".format(injSig,nBins,minPull,maxPull),selection+"&&rErr<100","same")
 				#tree.Draw("(r-{})/rErr>>h4(50,-5,5)".format(injSig),"fit_status==0","same")
 				#rt.gDirectory.Get("h4").SetLineColor(rt.kRed)
 				rt.gDirectory.Get("h3").SetLineColor(rt.kBlack)
 				rt.gDirectory.Get("h3").SetLineWidth(2)
 				rt.gDirectory.Get("h3").SetAxisRange(0,rt.gDirectory.Get("h3").GetMaximum()*1.1,"Y")
+				#rt.gDirectory.Get("h4").SetLineColor(rt.kRed)
+				#rt.gDirectory.Get("h4").SetLineWidth(2)
+				#rt.gDirectory.Get("h4").SetAxisRange(0,rt.gDirectory.Get("h4").GetMaximum()*1.1,"Y")
 				rt.gPad.Update()
-				gaus = rt.TF1("gaus","gaus(0)", -5, 5)
+				gaus = rt.TF1("gaus","gaus(0)",minPull,maxPull)
 				fitResult = rt.gDirectory.Get("h3").Fit("gaus","RS")
 				gaus.SetLineColor(rt.kBlue)
 				gaus.Draw("same")
 				c1.cd(1)
-				tree.Draw("r>>h1(50,-5,5)".format(injSig),selection)
+				tree.Draw("r>>h1({0},-{1},{1})".format(nBins, max(injSig*3,5000)),selection)
 				#tree.Draw("r>>h5(160,-40,40)".format(injSig),"fit_status==0","same")
 				#rt.gDirectory.Get("h5").SetLineColor(rt.kRed)
 				c1.cd(2)
-				tree.Draw("rErr>>h2(50,0,5)".format(injSig),selection)
+				tree.Draw("rErr>>h2({},0,{})".format(nBins, max(5000,injSig*5)),selection)
 				c1.SaveAs("./plots/"+SVJNAME+"_"+region+expSig+funcs+"_3PlotsR.pdf")
 				if gaus.GetNDF() == 0:
 					continue
@@ -188,11 +202,17 @@ for expSig in ["SigM"]:#"Sig0","Sig1",
 				fitDiagFile.Close()
 		for region in regions:
 			if args.doLimit:
-				vecs = [vZ_m,vZ_s]
-			else:
-				vecs = [vZ_m,vZ_s, vZ_c] #[vZ_m,vD_m, vR_m, vA_m, vZ_s, vD_s, vR_s, vA_s]
+				BASELINE = ""
+				vecs = [vZ_m, vZ_s]
+			if args.varyParam == "mZ":
+				BASELINE = args.baselineR+"_"
+				vecs = [vZ_m, vZ_s]
+			elif args.varyParam == "rI":
+				BASELINE = args.baselineZ+"_"
+				vecs = [vR_m, vR_s]
+
 			for vec in vecs:
-				out = open("./plots/"+vec["name"]+"_"+region+expSig+funcs+".txt","w")
+				out = open("./plots/"+vec["name"].replace("_","/")+"_"+BASELINE+region+expSig+funcs+".txt","w")
 				out.write("#varVal mean/stdev error\n")
 				for i in range(len(vec[region][0])):
 					if len(vec[region]) == 3:
@@ -200,9 +220,6 @@ for expSig in ["SigM"]:#"Sig0","Sig1",
 					if len(vec[region]) == 2:
 						out.write("{} {}\n".format(vec[region][0][i], vec[region][1][i]))
 				out.close()
-
-
-
 
 
 
