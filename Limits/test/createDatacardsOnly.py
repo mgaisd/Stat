@@ -24,7 +24,7 @@ sys.argv.append('-b')
 import ROOT
 from Stat.Limits.datacardsOnly import *
 
-ifilename = opt.ifile + "datacard_final_SVJ_"+opt.mZ+"_"+opt.mD+"_"+(opt.rI if len(opt.rI)==1 else opt.rI[0]+"."+opt.rI[1])+"_"+opt.aD+".root"
+ifilename = opt.ifile + "datacard_final_SVJ_"+opt.mZ+"_"+opt.mD+"_"+(opt.rI if len(opt.rI)==1 else opt.rI[0]+"."+opt.rI[1:])+"_"+opt.aD+".root"
 
 signals = []
 

@@ -10,7 +10,6 @@ parser.add_argument("-r","--region", dest="region", type=str, required=True, hel
 parser.add_argument("-u","--unc", dest="unc", type=str, default="", help="systematic uncertainty")
 parser.add_argument("-y","--actualyield", dest="actualyield", default=False, action="store_true", help="use actual rather than interpolated yield, if available")
 parser.add_argument("-i","--hist", dest="hist", type=str, default="", help="file to provide shapes from histograms instead of workspace")
-parser.add_argument("-f","--suff", dest="suff", type=str, default="", help="suffix for output filename")
 args = parser.parse_args()
 
 import ROOT as r
@@ -25,8 +24,11 @@ hists = []
 pdfs = []
 mT = None
 for i in range(len(signals)):
-    signals[i] += ("_"+args.unc if len(args.unc)>0 else "")
+    osig = signals[i][:]
+    if i < 2: unc = args.unc.replace(signals[2],osig) if i < 2 else args.unc
+    signals[i] += ("_"+unc if len(args.unc)>0 else "")
     sig = signals[i]
+    print sig
     if args.hist:
         file = r.TFile.Open("{}/{}".format(args.dir,args.hist))
         fdir = file.Get("{}_2018".format(args.region))
@@ -39,13 +41,17 @@ for i in range(len(signals)):
             mT.setBins(65)
         hist = r.RooDataHist(sig,sig,r.RooArgList(mT), htmp, 1.)
     else:
-        file = r.TFile.Open("{0}/{1}/ws_{1}_{2}_2018_template.root".format(args.dir,signals[i],args.region))
+        file = r.TFile.Open("{0}/{1}/ws_{1}_{2}_2018_template.root".format(args.dir,osig,args.region))
         if file==None:
             pdfs.append(None)
             continue
         ws = file.Get("SVJ")
         hist = ws.data(sig)
         mT = ws.var("mH{}_2018".format(args.region))
+        # workaround for empty histogram
+        if hist.sum(0)==0:
+            mT.setVal(1500+1)
+            hist.add(r.RooArgSet(mT),1.0);
     hists.append(hist)
     pdfs.append(r.RooHistPdf(sig,sig,r.RooArgSet(mT),hist))
     yields.append(hist.sum(0))
@@ -66,7 +72,7 @@ elif args.method=="moment":
     pvec[1] = pmax
     interp = r.RooMomentMorph(signals[2],signals[2],pvar,r.RooArgList(mT),r.RooArgList(pdfs[0],pdfs[1]),pvec)
 
-oname = "{}_{}".format(signals[2],args.method)
+oname = "{}".format(signals[2])
 h_result = interp.createHistogram(oname, mT)
 
 # interpolate yield
@@ -86,9 +92,8 @@ for b in range(h_result.GetNbinsX()):
     bin = b+1
     h_result.SetBinError(bin, r.TMath.Sqrt(h_result.GetBinContent(bin)))
 
-ofile = r.TFile.Open("{}_{}{}.root".format(oname,args.region,args.suff),"RECREATE")
+ofile = r.TFile.Open("{}_{}_{}.root".format(oname,args.region,args.method),"RECREATE")
 ofile.cd()
 hdir = ofile.mkdir("{}_2018".format(args.region))
 hdir.cd()
 h_result.Write(oname)
-

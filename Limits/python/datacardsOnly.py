@@ -75,9 +75,11 @@ def getRate(ch, process, ifile):
 
 def getHist(ch, process, ifile):
        hName = ch + "/"+ process
-       print "Histo Name ", hName
        h = ifile.Get(hName)
-       h.SetDirectory(0)
+       if h!=None:
+          h.SetDirectory(0)
+          print "Histo Name ", hName
+       else: print "could not get histo: ", hName
        return h
 
 
@@ -183,8 +185,8 @@ def getCard(sig, ch, ifilename, wsdir, doModelling, mode = "histo", bias = False
                      for year in ["2016","2017","2018"]:
                             mcstatSysName = "mcstat_%s_%s_MC%sbin%d"  % (ch, sig, year, i+1)
                             mcstatSigUp = getHist(ch, sig + "_" + mcstatSysName + "Up", ifile)
-
                             mcstatSigDown = getHist(ch, sig + "_" + mcstatSysName + "Down", ifile)
+                            if mcstatSigUp==None or mcstatSigDown==None: continue
                             mcstatSigHistUp = RooDataHist(sig + "_" + mcstatSysName + "Up", "Data (MC sig)",  RooArgList(mT), mcstatSigUp, 1.)
                             mcstatSigHistDown = RooDataHist(sig + "_" + mcstatSysName + "Down", "Data (MC sig)",  RooArgList(mT), mcstatSigDown, 1.)
                             getattr(w, "import")(mcstatSigHistUp, RooFit.Rename(sig + "_" + mcstatSysName + "Up") )
@@ -196,6 +198,7 @@ def getCard(sig, ch, ifilename, wsdir, doModelling, mode = "histo", bias = False
                      if(sysValue[0]=="shape" and "mcstat" not in sysName):              
                             sysUp =  getHist(ch, sig + "_" + sysName + "Up", ifile)
                             sysDown =  getHist(ch, sig + "_" + sysName + "Down", ifile)
+                            if sysUp==None or sysDown==None: continue
                             sysSigHistUp = RooDataHist(sig + "_" + sysName + "Up", sysName + " uncertainty",  RooArgList(mT), sysUp, 1.)
                             sysSigHistDown = RooDataHist(sig + "_" + sysName + "Down", sysName + " uncertainty",  RooArgList(mT), sysDown, 1.)
                             getattr(w, "import")(sysSigHistUp, RooFit.Rename(sig + "_" + sysName + "Up") )
