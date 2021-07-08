@@ -7,7 +7,7 @@ rI=${3}
 aD=${4}
 COMBO=${5}
 nTOYS=${6}
-expSig=${7} # 0, 1, or M (unsure if decimals are OK for naming scheme)
+expSig="${7}" # 0, 1, or M (unsure if decimals are OK for naming scheme)
 genFunc=${8} # 0 for bkgFunc, 1 for altFunc
 fitFunc=${9} # 0 for bkgFunc, 1 for altFunc
 cores=${10}
@@ -68,13 +68,15 @@ echo "SetArgFitAll: $SetArgFitAll"
 echo "FrzArgFitAll: $FrzArgFitAll"
 echo "TrkArgFitAll: $TrkArgFitAll"
 
+expSigName=$(echo "$expSig" | sed 's/*//')
+
 if [ ${genFunc} -eq 0 ]
 then
-  genName="${COMBO}${optName}Sig${expSig}GenMain"
+  genName="${COMBO}${optName}Sig${expSigName}GenMain"
   genPdfName="Bkg_${REGION}_2018"
 elif [ ${genFunc} -eq 1 ]
 then
-  genName="${COMBO}${optName}Sig${expSig}GenAlt"
+  genName="${COMBO}${optName}Sig${expSigName}GenAlt"
   genPdfName="Bkg_Alt_${REGION}_2018"
 fi
 
@@ -103,25 +105,14 @@ if false && [ "$genFunc" -ne "$fitFunc" ]; then
 fi
 
 #setting expSig to median value if expSig equals M
-maxValrinj=10
-if [ ${expSig} = "M" ]; then
-    cmdRE="python readREXT.py -f limit_${COMBO}AltManualBFInitSyst.root -z ${mZ} -m ${maxValrinj}"
+maxValrinj=20
+if [[ "${expSig}" == *"M"* ]]; then
+    cmdRE="python readREXT.py -f limit_${COMBO}AltManualBFInitSyst.root -z ${mZ} -m ${maxValrinj} -x ${expSig}"
     ${cmdRE} >& rext.log
     expSig=$(cat rext.log)
     echo $cmdRE
     echo "Median Extracted R is ${expSig} max ${maxValrinj}"
-    #if [ ${expSig%.*} -gt 9 ]; then
-    #    echo "Median Extracted R is ${expSig}. Setting to r_inj to 10."
-    #    expSig=10
-    #fi
 fi
-
-smallMax=$(bc <<< "${rMax}*1.0 < 3.0*${expSig}")
-if [[ ${smallMax} > 0 ]]; then
-    rMax=$(bc <<< "3.0*${expSig}")
-fi
-
-rMin=-${rMax}
 
 cmdGen="combine ${DC_NAME_ALL} -M GenerateOnly -n ${genName} -t ${nTOYS} --toysFrequentist --saveToys --expectSignal ${expSig} --bypassFrequentistFit --saveWorkspace -s 123456 -v -1 --setParameters $SetArgGenAll --freezeParameters $FrzArgGenAll"
 

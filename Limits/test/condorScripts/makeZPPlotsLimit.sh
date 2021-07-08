@@ -1,9 +1,9 @@
 #!/bin/bash
 
 
-rI=09
+rI=03
 #for SIG in Sig0 Sig1 SigM
-for SIG in Sig0 Sig1
+for SIG in Sig3M
 do
   for FUNCS in GenAltFitAlt
   do

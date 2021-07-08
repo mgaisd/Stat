@@ -82,6 +82,8 @@ def main():
 		ring = 0
 	elif "SigM" in args.name:
 		ring = "median r_{exp}"
+	elif "Sig3M" in args.name:
+		ring = "3 * median r_{exp}"
 	if ("GenMainFitMain" in args.name) or ("GenAltFitAlt" in args.name):
 		extraTitle = ", Closure"
 	else:

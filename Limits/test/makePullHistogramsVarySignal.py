@@ -59,7 +59,7 @@ choices = subprocess.check_output(["eos","root://cmseos.fnal.gov/","ls",args.eos
 
 if args.doLimit:
 	regions = ["cut","bdt"]
-	sigList = ["Sig0","Sig1"] #"SigM"
+	sigList = ["Sig3M"]
 else:
 	regions = ["lowCut","lowSVJ2","highCut","highSVJ2"]
 	sigList = ["Sig0","Sig1"]
@@ -131,6 +131,7 @@ for expSig in sigList:#["Sig1","Sig1.5","Sig2","Sig3","Sig5","Sig7","Sig10"]:#,"
 						if limitTree.trackedParam_mZprime == int(sigPars[0]) and limitTree.quantileExpected == 0.5:
 							injSig = limitTree.limit
 					_file.Close()
+					if expSig=="Sig3M": injSig *= 3
 					if args.maxVal>0 and injSig>args.maxVal: injSig = args.maxVal
 				else:
 					try:
