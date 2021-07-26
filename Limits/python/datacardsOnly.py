@@ -51,7 +51,7 @@ syst["MC2018puunc"] = ("shape",["sig"])
 syst["MC2018trigfnunc"] = ("shape",["sig"])
 
 syst["MCRun2JES"] = ("shape",["sig"])
-syst["MCRun2pdfallunc"] = ("shape",["sig"])
+syst["MCRun2pdfunc"] = ("shape",["sig"])
 syst["MCRun2psfsrunc"] = ("shape",["sig"])
 syst["MCRun2psisrunc"] = ("shape",["sig"])
 

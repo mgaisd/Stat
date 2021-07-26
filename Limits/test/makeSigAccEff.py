@@ -3,7 +3,7 @@ from paramUtils import alphaVal, getParamNames, makeSigDict, getSigname, getSign
 
 parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
 parser.add_argument("-r", "--region", dest="region", type=str, required=True, help="region name")
-parser.add_argument("-d", "--dir", dest="dir", type=str, default="root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Datacards/trig5/sigfull", help="datacard directory")
+parser.add_argument("-d", "--dir", dest="dir", type=str, default="root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Datacards/trig6/sigfull", help="datacard directory")
 parser.add_argument("-s", "--signals", dest="signals", type=str, required=True, help="file w/ list of signals")
 args = parser.parse_args()
 
