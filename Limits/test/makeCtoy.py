@@ -10,7 +10,7 @@ def main(args):
     current_dir = os.getcwd()
     signame = getSigname(args.signal) if len(args.signal)>0 else ""
     combos = getCombos()
-    toyname = "{}{}toy{}".format("a" if args.asimov else "b", "sig" if args.inject!=0 else "", "_"+signame if args.inject!=0 else "")
+    toyname = "{}{}toy{}".format("a" if args.asimov else "b", "sig" if len(args.inject)!=0 else "", "_"+signame if len(args.inject)!=0 else "")
     outname = "hists.{}.{}.root".format(toyname,args.seed)
     outfile = r.TFile.Open(outname,"RECREATE")
     outputs = []
@@ -29,7 +29,8 @@ def main(args):
         toyfname = getFname(toyname,"GenerateOnly",combo,seed=args.seed)
 
         # make the toy, put in base directory
-        if len(args.inject)==1: inject = args.inject[0]
+        if len(args.inject)==0: inject = 0
+        elif len(args.inject)==1: inject = args.inject[0]
         else: inject = args.inject[0 if combo=="cut" else 1]
         command = "combineCards.py "+" ".join(datacards)+" > "+dcfname
         fprint(command)
@@ -68,7 +69,7 @@ def main(args):
 if __name__=="__main__":
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument("-s", "--signal", dest="signal", metavar=tuple(getParamNames()), type=str, default=["3100","20","03","peak"], nargs=4, help="signal parameters")
-    parser.add_argument("-i", "--inject", dest="inject", type=float, default=[0], nargs='+', help="injected signal strength (two args: cut bdt)")
+    parser.add_argument("-i", "--inject", dest="inject", type=float, default=[], nargs='+', help="injected signal strength (one arg, or two args: cut bdt)")
     parser.add_argument("-a", "--asimov", dest="asimov", default=False, action="store_true", help="use asimov dataset")
     parser.add_argument("-n", "--function", dest="function", type=int, required=True, choices=[0,1], help="function (0: main, 1: alt)")
     parser.add_argument("-S", "--seed", dest="seed", type=int, default=123456, help="random seed")
