@@ -49,7 +49,7 @@ for COMBO in ${COMBOS[@]}; do
 	DC_NAME_ALL=datacard_${MASS}_${COMBO}
 	$DRYRUN combineCards.py $DC_NAMES > ${DC_NAME_ALL}.txt
 	TESTNAME=Test${TOYNAME}${COMBO}
-	ARGS="--rmin -10 -n ${TESTNAME} --setParameters $SetArgAll --freezeParameters $FrzArgAll --trackParameters $TrkArgAll"
+	ARGS="--rMin -10 -n ${TESTNAME} --setParameters $SetArgAll --freezeParameters $FrzArgAll --trackParameters $TrkArgAll"
 	if [ -n "$TOYARG" ]; then
 		ARGS="$ARGS $(echo "$TOYARG" | sed 's~COMBO~'${COMBO}'~')"
 	fi
