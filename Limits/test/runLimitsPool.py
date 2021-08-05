@@ -4,7 +4,7 @@ from multiprocessing import Pool
 from StringIO import StringIO
 import getBiasArgs
 from Stat.Limits.bruteForce import makeVarInfoList
-from paramUtils import fprint, runCmd, alphaVal, makeSigDict, getParamNames, getSigname, getFname, getWname, getDname, getDCname, getPname, getCombos, getInitFromBF, paramVal
+from paramUtils import fprint, runCmd, alphaVal, makeSigDict, getParamNames, getSigname, getSignameCheck, getFname, getWname, getDname, getDCname, getPname, getCombos, getInitFromBF, paramVal
 import plotParamsScan
 from makePostfitPlot import makePostfitPlot
 
@@ -175,34 +175,43 @@ def main(args):
                 p.close()
                 p.join()
 
-        outfiles = []
+        from ROOT import TFile, TTree, TList
+        outtrees = []
+        outtreesroot = TList()
         for sig in args.signals:
             mname = "ManualCLs" if args.manualCLs and not "-A" in args.extra else "AsymptoticLimits"
             sname = "StepA" if args.manualCLs and "-A" in args.extra else ""
             fname = getFname(sname+cname,mname,combo,sig=sig,seed=args.seedname)
             if len(args.hadd_dir)>0: fname = args.hadd_dir+"/"+fname
-            append = False
             if args.dry_run:
-                append = True
+                outtrees.append(fname)
             else:
                 # check if limit converged
-                from ROOT import TFile, TTree
                 f = TFile.Open(fname)
                 if f!=None:
                     t = f.Get("limit")
                     if t!=None:
                         # 5 expected + 1 observed (+ prefit sometimes)
-                        append = t.GetEntries() >= 6
-            if append: outfiles.append(fname)
-            else: fprint("Warning: {} limit for {} did not converge".format(combo, getSigname(sig)))
+                        if t.GetEntries() >= 6:
+                            t.SetDirectory(0)
+                            # disable signal normalization branches: won't hadd properly
+                            t.SetBranchStatus("*{}".format(getSignameCheck(sig)),0)
+                            t.SetBranchStatus("ana",0)
+                            outtrees.append(t)
+                            outtreesroot.Add(t)
+                        else:
+                            fprint("Warning: {} limit for {} did not converge".format(combo, getSigname(sig)))
 
-        # combine outfiles
+        # combine trees
         if not args.no_hadd:
-            os.chdir(args.pwd)
-            outname = "limit_"+combo+cname[4:]+".root"
-            command = "hadd -f2 "+outname+''.join(" "+ofn for ofn in outfiles)
-            fprint(command)
-            if not args.dry_run: os.system(command)
+            if args.dry_run: fprint(outtrees)
+            else:
+                os.chdir(args.pwd)
+                outname = "limit_"+combo+cname[4:]+".root"
+                outfile = TFile.Open(outname,"RECREATE")
+                outtree = TTree.MergeTrees(outtreesroot)
+                outtree.Write()
+                outfile.Close()
 
 if __name__=="__main__":
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
