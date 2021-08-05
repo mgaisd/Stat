@@ -7,6 +7,11 @@ from string import Template
 from paramUtils import fprint, runCmd, alphaVal, makeSigDict, getParamNames, getSignameShort, OpenFile, paramVal
 from Stat.Limits.bruteForce import silence
 
+def getXsecs(fname):
+    with open(fname,'r') as xfile:
+        xsecs = {xline.split('\t')[0]: float(xline.split('\t')[1]) for xline in xfile}
+    return xsecs
+
 def fill_template(inname, outname, **kwargs):
     if inname==outname:
         raise ValueError("Attempt to overwrite template file: "+inname)
@@ -136,32 +141,61 @@ def main(args):
             p.close()
             p.join()
 
-    outfiles = []
+    import ROOT as r
+    if len(args.updateXsec)>0:
+        xsecs = getXsecs(args.updateXsec[0])
+        try:
+            r.xsec_t
+        except:
+            r.gROOT.ProcessLine("struct xsec_t { Float_t mZprime; Float_t xsec; Double_t limit; };")
+    outtrees = []
+    outtreesroot = r.TList()
     for sig in args.signals:
         signame = getSignameShort(sig)
         fname = "higgsCombine{}.AsymptoticLimits.mH120.sig{}.root".format(cname,signame)
         if len(args.hadd_dir)>0: fname = args.hadd_dir+"/"+fname
-        append = False
         if args.dry_run:
-            append = True
+            outtrees.append(fname)
         else:
             # check if limit converged
-            from ROOT import TFile, TTree
-            f = TFile.Open(fname)
-            if f==None: continue
-            t = f.Get("limit")
-            if t==None: continue
-            # 5 expected + 1 observed (+ prefit sometimes)
-            append = t.GetEntries() >= 6
-        if append: outfiles.append(fname)
-        else: fprint("Warning: limit for {} did not converge".format(signame))
+            f = r.TFile.Open(fname)
+            if f!=None:
+                t = f.Get("limit")
+                if t!=None:
+                    # 5 expected + 1 observed (+ prefit sometimes)
+                    if t.GetEntries() >= 6:
+                        t.SetDirectory(0)
+                        # can't update hadded tree because of ROOT bug, so update first
+                        if len(args.updateXsec)>0:
+                            xobj = r.xsec_t()
+                            t.SetBranchAddress("trackedParam_mZprime",r.AddressOf(xobj,'mZprime'))
+                            t.SetBranchAddress("trackedParam_xsec",r.AddressOf(xobj,'xsec'))
+                            t.SetBranchAddress("limit",r.AddressOf(xobj,'limit'))
+                            nt = t.CloneTree(0)
+                            nt.SetDirectory(0)
+                            for i in range(t.GetEntries()):
+                                t.GetEntry(i)
+                                xsec_orig = xobj.xsec
+                                xobj.xsec = xsecs[str(int(xobj.mZprime))]
+                                xobj.limit = xobj.limit*xsec_orig/xobj.xsec
+                                nt.Fill()
+                            outtrees.append(nt)
+                            outtreesroot.Add(nt)
+                        else:
+                            outtrees.append(t)
+                            outtreesroot.Add(t)
+                    else:
+                        fprint("Warning: limit for {} did not converge".format(signame))
 
     # combine outfiles
     if not args.no_hadd:
-        outname = "limit_dijet{}.root".format("_"+cname[4:] if len(cname[4:])>0 else "")
-        command = "hadd -f2 "+outname+''.join(" "+ofn for ofn in outfiles)
-        fprint(command)
-        if not args.dry_run: os.system(command)
+        if args.dry_run: fprint(outtrees)
+        else:
+            outname = "limit_dijet{}{}.root".format("_"+cname[4:] if len(cname[4:])>0 else "",args.updateXsec[1] if len(args.updateXsec)>0 else "")
+            outfile = r.TFile.Open(outname,"RECREATE")
+            outtree = r.TTree.MergeTrees(outtreesroot)
+            outtree.Write()
+            outfile.Close()
 
 if __name__=="__main__":
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
@@ -177,11 +211,11 @@ if __name__=="__main__":
     parser.set_defaults(signals="default_signals.txt")
     parser.add_argument("-N", "--name", dest="name", type=str, default="Test", help="name for combine files")
     parser.add_argument("-a", "--args", dest="args", type=str, default="", help="extra args for combine")
+    parser.add_argument("-u", "--update-xsec", dest="updateXsec", type=str, metavar=('filename','suffix'), default=[], nargs=2, help="info to update cross sections when hadding")
     args = parser.parse_args()
 
     # parse signal info
-    with open('dict_xsec_Zprime.txt','r') as xfile:
-        xsecs = {xline.split('\t')[0]: float(xline.split('\t')[1]) for xline in xfile}
+    xsecs = getXsecs('dict_xsec_Zprime.txt')
     param_names = getParamNames()+["xsec"]
     param_values = []
     if isinstance(args.signals,list):
