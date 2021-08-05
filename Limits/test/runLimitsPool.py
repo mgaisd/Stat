@@ -8,6 +8,11 @@ from paramUtils import fprint, runCmd, alphaVal, makeSigDict, getParamNames, get
 import plotParamsScan
 from makePostfitPlot import makePostfitPlot
 
+def getXsecs(fname):
+    with open(fname,'r') as xfile:
+        xsecs = {xline.split('\t')[0]: float(xline.split('\t')[1]) for xline in xfile}
+    return xsecs
+
 def getFromToyfile(toyfile,match,replace=True,delim='.'):
     def match_text(item,match):
         return match in item
@@ -175,9 +180,15 @@ def main(args):
                 p.close()
                 p.join()
 
-        from ROOT import TFile, TTree, TList
+        import ROOT as r
+        if len(args.updateXsec)>0:
+            xsecs = getXsecs(args.updateXsec[0])
+            try:
+                r.xsec_t
+            except:
+                r.gROOT.ProcessLine("struct xsec_t { Float_t mZprime; Float_t xsec; Double_t limit; };")
         outtrees = []
-        outtreesroot = TList()
+        outtreesroot = r.TList()
         for sig in args.signals:
             mname = "ManualCLs" if args.manualCLs and not "-A" in args.extra else "AsymptoticLimits"
             sname = "StepA" if args.manualCLs and "-A" in args.extra else ""
@@ -187,7 +198,7 @@ def main(args):
                 outtrees.append(fname)
             else:
                 # check if limit converged
-                f = TFile.Open(fname)
+                f = r.TFile.Open(fname)
                 if f!=None:
                     t = f.Get("limit")
                     if t!=None:
@@ -197,8 +208,25 @@ def main(args):
                             # disable signal normalization branches: won't hadd properly
                             t.SetBranchStatus("*{}".format(getSignameCheck(sig)),0)
                             t.SetBranchStatus("ana",0)
-                            outtrees.append(t)
-                            outtreesroot.Add(t)
+                            # can't update hadded tree because of ROOT bug, so update first
+                            if len(args.updateXsec)>0:
+                                xobj = r.xsec_t()
+                                t.SetBranchAddress("trackedParam_mZprime",r.AddressOf(xobj,'mZprime'))
+                                t.SetBranchAddress("trackedParam_xsec",r.AddressOf(xobj,'xsec'))
+                                t.SetBranchAddress("limit",r.AddressOf(xobj,'limit'))
+                                nt = t.CloneTree(0)
+                                nt.SetDirectory(0)
+                                for i in range(t.GetEntries()):
+                                    t.GetEntry(i)
+                                    xsec_orig = xobj.xsec
+                                    xobj.xsec = xsecs[str(int(xobj.mZprime))]
+                                    xobj.limit = xobj.limit*xsec_orig/xobj.xsec
+                                    nt.Fill()
+                                outtrees.append(nt)
+                                outtreesroot.Add(nt)
+                            else:
+                                outtrees.append(t)
+                                outtreesroot.Add(t)
                         else:
                             fprint("Warning: {} limit for {} did not converge".format(combo, getSigname(sig)))
 
@@ -207,9 +235,9 @@ def main(args):
             if args.dry_run: fprint(outtrees)
             else:
                 os.chdir(args.pwd)
-                outname = "limit_"+combo+cname[4:]+".root"
-                outfile = TFile.Open(outname,"RECREATE")
-                outtree = TTree.MergeTrees(outtreesroot)
+                outname = "limit_"+combo+cname[4:]+(args.updateXsec[1] if len(args.updateXsec)>0 else "")+".root"
+                outfile = r.TFile.Open(outname,"RECREATE")
+                outtree = r.TTree.MergeTrees(outtreesroot)
                 outtree.Write()
                 outfile.Close()
 
@@ -240,6 +268,7 @@ if __name__=="__main__":
     parser.add_argument("-a", "--args", dest="args", type=str, default="", help="extra args for combine")
     parser.add_argument("-p", "--plots", dest="plots", default=False, action="store_true", help="make plots")
     parser.add_argument("--datacards", dest="datacards", type=str, default="root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Datacards/trig6/sigfull/", help="datacard histogram location (for postfit plots)")
+    parser.add_argument("-u", "--update-xsec", dest="updateXsec", type=str, metavar=('filename','suffix'), default=[], nargs=2, help="info to update cross sections when hadding")
     args = parser.parse_args()
 
     args.seedname = None
@@ -248,8 +277,7 @@ if __name__=="__main__":
         args.args = " ".join([args.args,"-s {}".format(args.seedname),"--seedInName"])
 
     # parse signal info
-    with open('dict_xsec_Zprime.txt','r') as xfile:
-        xsecs = {xline.split('\t')[0]: float(xline.split('\t')[1]) for xline in xfile}
+    xsecs = getXsecs('dict_xsec_Zprime.txt')
     param_names = getParamNames()+["xsec"]
     param_values = []
     if isinstance(args.signals,list):
