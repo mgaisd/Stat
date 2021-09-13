@@ -4,7 +4,7 @@ echo "Running on: `uname -a`" #Condor job is running on this node
 echo "System software: `cat /etc/redhat-release`" #Operating System on that node
 source /cvmfs/cms.cern.ch/cmsset_default.sh
 
-EOSDIR=/store/user/pedrok/SVJ2017/Limits/datacards_Jul26
+EOSDIR=/store/user/pedrok/SVJ2017/Limits/datacards_Sep13
 xrdcp -s root://cmseos.fnal.gov/${EOSDIR}/CMSSW_10_2_13.tgz .
 tar -xf CMSSW_10_2_13.tgz
 rm CMSSW_10_2_13.tgz

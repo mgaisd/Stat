@@ -294,7 +294,7 @@ if __name__=="__main__":
     parser.add_argument("-d", "--data", dest="data", type=str, default="", help="data file name (taken from datacards if obs)")
     parser.add_argument("-o", "--obs", dest="obs", default=False, action="store_true", help="using observed rather than toy data")
     parser.add_argument("-i", "--injected", dest="injected", type=int, default=0, help="injected Zprime mass")
-    parser.add_argument("-D", "--datacards", dest="datacards", type=str, default="root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Datacards/trig6/sigfull/", help="datacard histogram location (for prefit)")
+    parser.add_argument("-D", "--datacards", dest="datacards", type=str, default="root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Datacards/trig7/sigfull/", help="datacard histogram location (for prefit)")
     parser.add_argument("-q", "--quantile", dest="quantile", type=float, default=-1, choices=list(quantile_info), help="quantile to plot fits")
     parser.add_argument("-c", "--combo", dest="combo", type=str, required=True, choices=sorted(list(getCombos())), help="combo to plot")
     parser.add_argument("-I", "--use-init", dest="init", type=str, metavar=("dir","fit"), default=[], nargs=2, help="directory from which to use initial fits (outside combine) and fit type (alt or main)")

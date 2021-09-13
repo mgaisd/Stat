@@ -31,7 +31,6 @@ syst = collections.OrderedDict()
 # and the uncertainties on the fit parameters take care of that
 syst["lumi"] = ("lnN", "sig", 1.026)
 syst["trig"] = ("lnN", "sig", 1.020)
-syst["scale"] = ("lnN", "sig", 1.15)
 
 syst["mcstat"] = ("shape", ["sig"])
 
@@ -54,6 +53,7 @@ syst["MCRun2JES"] = ("shape",["sig"])
 syst["MCRun2pdfunc"] = ("shape",["sig"])
 syst["MCRun2psfsrunc"] = ("shape",["sig"])
 syst["MCRun2psisrunc"] = ("shape",["sig"])
+syst["MCRun2scaleunc"] = ("shape", ["sig"])
 
 
 processes = ["QCD"]
