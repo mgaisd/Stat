@@ -141,7 +141,7 @@ def getOutfile(log):
     if len(ofname)==0: raise RuntimeError("Could not find output file name from log: {}".format(log))
     return ofname, success
 
-def getRange(dry_run, ofname1, nuisances):
+def getRange(dry_run, ofname1, nuisances, permissive):
     # get r range
     # (default vals provided for dryrun printouts)
     rmin = 0.
@@ -155,9 +155,15 @@ def getRange(dry_run, ofname1, nuisances):
         import ROOT as r
         file1 = r.TFile.Open(ofname1)
         limit1 = file1.Get("limit")
+        entries = limit1.GetEntries()
         n = limit1.Draw("limit","abs(quantileExpected-0.975)<0.001||abs(quantileExpected-0.025)<0.001","goff")
-        if n!=2: raise RuntimeError("Malformed limit tree in "+ofname1)
-        vals = [limit1.GetVal(0)[0],limit1.GetVal(0)[1]]
+        vals = []
+        if n!=2:
+            if not permissive or entries==0: raise RuntimeError("Malformed limit tree in "+ofname1)
+            elif permissive:
+                n = limit1.Draw("limit","","goff")
+                vals = [limit1.GetVal(0)[0]]
+        if len(vals)==0: vals = [limit1.GetVal(0)[0],limit1.GetVal(0)[1]]
         rmax = max(vals)*factor
 
     return rmin,rmax,npts
@@ -320,7 +326,7 @@ def step2(args, products):
 
     if products["count_upper"]==0:
         # get rmin, rmax from step1
-        products["rmin"], products["rmax"], products["npts"] = getRange(args.dry_run, products["ofname1"], args.syst)
+        products["rmin"], products["rmax"], products["npts"] = getRange(args.dry_run, products["ofname1"], args.syst, args.permissive)
 
         # get asimov dataset separately (for some reason, hadding MultiDimFit output files crashes if both --saveWorkspace and --saveToys are used)
         argsG = updateArg(args.args, ["-n","--name"], "Asimov")
@@ -677,6 +683,7 @@ def step5(args, products, title="ManualCLs"):
             tree1.SetBranchAddress("quantileExpected",r.AddressOf(qobj,'quantile'))
             tree1.SetBranchAddress("limit",r.AddressOf(qobj,'limit'))
             newtree = tree1.CloneTree(0)
+            # todo: handle permissive case here
             for i in range(tree1.GetEntries()):
                 tree1.GetEntry(i)
                 for q,rval in products["limits"].iteritems():
@@ -768,6 +775,7 @@ if __name__=="__main__":
     parser.add_argument("-A", "--asymptotic", dest="asymptotic", default=False, action="store_true", help="just run AsymptoticLimits after init step")
     parser.add_argument("-S", "--spline", dest="spline", type=str, default="linear", choices=list(allowed_splines), help="spline to use for interpolation of CLs curves (none: disable interpolation)")
     parser.add_argument("--npoints", dest="npoints", type=int, default=10, help="number of points to use in interpolation")
+    parser.add_argument("--permissive", dest="permissive", default=False, action='store_true', help="be more permissive about finding range in step1")
     args = parser.parse_args()
 
     if "all" in args.reuse: args.reuse = reusable_steps[:]
