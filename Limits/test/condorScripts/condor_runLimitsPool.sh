@@ -59,17 +59,20 @@ echo "Signal Parameters: ${mZ} ${mD} ${rI} ${aD}"
 #-n 0 -m Alt -M --extra="-p -f -s" -I --signal 3100 20 03 peak
 
 # modifications to handle failing fits
-EXTRA="-v -1"
+EXTRA="-p -f -s"
+CARGS="-v -1"
 if [ "$mod" -eq 1 ]; then
 	if [ "$combo" = "cut" ]; then
-		EXTRA="$EXTRA --setParameterRanges highCut_p1_3_alt=-75,75"
+		CARGS="$CARGS --setParameterRanges highCut_p1_3_alt=-75,75"
 	else
-		EXTRA="$EXTRA --setParameterRanges highSVJ2_p1_2_alt=-75,75"
+		CARGS="$CARGS --setParameterRanges highSVJ2_p1_2_alt=-75,75"
 	fi
+elif [ "$mod" -eq 2 ]; then
+	EXTRA="$EXTRA --permissive"
 fi
 
 (set -x
-python runLimitsPool.py -n 0 -m Alt -M --extra="-f -p -s" -I -p --no-hadd --signal ${mZ} ${mD} ${rI} ${aD} -a="$EXTRA" -r ${combo}
+python runLimitsPool.py -n 0 -m Alt -M --extra="$EXTRA" -I -p --no-hadd --signal ${mZ} ${mD} ${rI} ${aD} -a="$CARGS" -r ${combo}
 )
 
 # export items to EOS
