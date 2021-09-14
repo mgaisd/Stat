@@ -61,6 +61,12 @@ echo "Signal Parameters: ${mZ} ${mD} ${rI} ${aD}"
 # modifications to handle failing fits
 EXTRA="-p -f -s"
 CARGS="-v -1"
+if [ -n "$REUSE_STEP1" ]; then
+	for FILE in log_step1_${combo}_TestAltManualBFInitSyst.log higgsCombineStep1TestAltManualBFInitSyst.AsymptoticLimits.mH120.ana${combo}.root; do
+		xrdcp ${EOSDIR}/${FILE} ${SVJ_NAME}/.
+	done
+	EXTRA="$EXTRA -r step1"
+fi
 if [ "$mod" -eq 1 ]; then
 	if [ "$combo" = "cut" ]; then
 		CARGS="$CARGS --setParameterRanges highCut_p1_3_alt=-75,75"
