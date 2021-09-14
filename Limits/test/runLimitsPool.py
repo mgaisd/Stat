@@ -194,7 +194,9 @@ def main(args):
             sname = "StepA" if args.manualCLs and "-A" in args.extra else ""
             fname = getFname(sname+cname,mname,combo,sig=sig,seed=args.seedname)
             if len(args.hadd_dir)>0: fname = args.hadd_dir+"/"+fname
+            append = False
             if args.dry_run:
+                append = True
                 outtrees.append(fname)
             else:
                 # check if limit converged
@@ -204,6 +206,7 @@ def main(args):
                     if t!=None:
                         # 5 expected + 1 observed (+ prefit sometimes)
                         if t.GetEntries() >= 6:
+                            append = True
                             t.SetDirectory(0)
                             # disable signal normalization branches: won't hadd properly
                             t.SetBranchStatus("*{}".format(getSignameCheck(sig)),0)
@@ -227,8 +230,7 @@ def main(args):
                             else:
                                 outtrees.append(t)
                                 outtreesroot.Add(t)
-                        else:
-                            fprint("Warning: {} limit for {} did not converge".format(combo, getSigname(sig)))
+                if not append: fprint("Warning: {} limit for {} did not converge".format(combo, getSigname(sig)))
 
         # combine trees
         if not args.no_hadd:
