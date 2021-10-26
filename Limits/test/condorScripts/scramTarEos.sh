@@ -17,7 +17,7 @@ tar --exclude-caches-all --exclude-vcs -zcf CMSSW_10_2_13.tgz CMSSW_10_2_13 --ex
 ls -la
 
 #move said tarball to eos space so that condor can access it
-xrdcp -f CMSSW_10_2_13.tgz root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Limits/datacards_Sep13
+xrdcp -f CMSSW_10_2_13.tgz root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Limits/datacards_Oct26
 
 #move back to original directory
 cd ${orgDir}

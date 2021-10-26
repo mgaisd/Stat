@@ -29,7 +29,7 @@ syst = collections.OrderedDict()
 # data doesn't get any (cause its data)
 # and MC bkg is indirectly used (via the fits)
 # and the uncertainties on the fit parameters take care of that
-syst["lumi"] = ("lnN", "sig", 1.026)
+syst["lumi"] = ("lnN", "sig", 1.016)
 syst["trig"] = ("lnN", "sig", 1.020)
 
 syst["mcstat"] = ("shape", ["sig"])

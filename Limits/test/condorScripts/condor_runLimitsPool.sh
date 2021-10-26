@@ -12,7 +12,7 @@ aD=${4}
 combo=${5}
 mod=${6}
 
-xrdcp -s root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Limits/datacards_Sep13/CMSSW_10_2_13.tgz .
+xrdcp -s root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Limits/datacards_Oct26/CMSSW_10_2_13.tgz .
 tar -xf CMSSW_10_2_13.tgz
 rm CMSSW_10_2_13.tgz
 export SCRAM_ARCH=slc6_amd64_gcc700
@@ -33,7 +33,7 @@ SVJ_NAME="SVJ_mZprime${mZ}_mDark${mD}_rinv${rI}_alpha${aD}"
 mkdir ${SVJ_NAME}
 
 echo "Trying to copy files to local"
-EOSDIR=root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Limits/datacards_Sep13/
+EOSDIR=root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Limits/datacards_Oct26/
 for REGION in ${regions[$combo]}; do
 	xrdcp ${EOSDIR}/ws_${REGION}.root .
 	xrdcp ${EOSDIR}/fitResults_${REGION}.root .

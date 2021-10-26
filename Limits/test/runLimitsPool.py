@@ -269,7 +269,7 @@ if __name__=="__main__":
     parser.add_argument("--asimov", dest="asimov", default=False, action="store_true", help="toy file contains asimov dataset")
     parser.add_argument("-a", "--args", dest="args", type=str, default="", help="extra args for combine")
     parser.add_argument("-p", "--plots", dest="plots", default=False, action="store_true", help="make plots")
-    parser.add_argument("--datacards", dest="datacards", type=str, default="root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Datacards/trig7/sigfull/", help="datacard histogram location (for postfit plots)")
+    parser.add_argument("--datacards", dest="datacards", type=str, default="root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Datacards/trig8/sigfull/", help="datacard histogram location (for postfit plots)")
     parser.add_argument("-u", "--update-xsec", dest="updateXsec", type=str, metavar=('filename','suffix'), default=[], nargs=2, help="info to update cross sections when hadding")
     args = parser.parse_args()
 

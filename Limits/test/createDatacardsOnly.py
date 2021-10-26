@@ -9,8 +9,8 @@ channels = ["lowSVJ2", "highSVJ2", "highCut", "lowCut"]
 sigpoints = []
 
 parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
-parser.add_argument('-i', '--input', dest='ifile', type=str, default= "root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Datacards/trig7/sigfull/",help='Where can I find input histos? trig7/sigfull = new (13 Sep 2021) files created by Kevin')
-parser.add_argument('-w', '--workspaceDir', dest='workspaceDir', type=str, default="root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Limits/datacards_Sep13/",help='Location of F-test output files ws_{}.root')
+parser.add_argument('-i', '--input', dest='ifile', type=str, default= "root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Datacards/trig8/sigfull/",help='Where can I find input histos? trig8/sigfull = new (26 Oct 2021) files created by Kevin')
+parser.add_argument('-w', '--workspaceDir', dest='workspaceDir', type=str, default="root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Limits/datacards_Oct26/",help='Location of F-test output files ws_{}.root')
 parser.add_argument("-m","--mode",dest="mode",type=str,default="hist",help="Kind of shape analysis: parametric fit or fit to histos?")
 parser.add_argument("-Z", "--zMass", dest="mZ", type=str,help="Mass [GeV] of the Z' in MC signal. range: [500, 4400] in steps of 100, inclusive", default='2900')
 parser.add_argument("-D", "--dMass", dest="mD", type=str, help="Mass [GeV] of dark quarks in MC signal", default = '20')
