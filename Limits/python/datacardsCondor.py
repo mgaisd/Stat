@@ -1,16 +1,20 @@
 import ROOT
 import json
 
+#changed to no longer need the settings.py file
+# -syst list is created here
+# -rateParams list is created here
+# -processes list is created here
+# files now saved to base directory and exported to EOS after jobs completion
+
 
 from ROOT import RooRealVar, RooDataHist, RooArgList, RooGenericPdf, RooBernstein, RooExtendPdf, RooCmdArg, RooWorkspace, RooFit, RooDataSet, RooArgSet, RooCategory, RooFitResult, RooCurve, RooParametricShapeBinPdf
 import os, sys
 from array import array
 import copy, math, pickle
-
+import collections
 import numpy as np
 from numpy import ndarray
-
-from Stat.Limits.settings import *
 
 ROOT.TH1.SetDefaultSumw2()
 ROOT.TH1.AddDirectory(False)
@@ -18,6 +22,20 @@ ROOT.gROOT.SetStyle('Plain')
 ROOT.gROOT.SetBatch()
 ROOT.gStyle.SetPadBorderMode(0)
 ROOT.gStyle.SetPadColor(0)
+
+
+syst = collections.OrderedDict()
+syst["lumi"] = ("lnN", "sig", 1.10) # lumi should only apply to 'sig', not 'all'
+
+rateParams = {}
+rateParams["lowSVJ1_2018"] = "TMath::Power(TMath::Range(0.01,0.99,@0),1)*TMath::Power(1-TMath::Range(0.01,0.99,@0*%s),1)/(TMath::Power(1-%s,1))"
+rateParams["lowSVJ2_2018"] = "TMath::Power(TMath::Range(0.01,0.99,@0),2)*TMath::Power(1-TMath::Range(0.01,0.99,@0*%s),0)/(TMath::Power(1-%s,0))"
+rateParams["highSVJ1_2018"] = "TMath::Power(TMath::Range(0.01,0.99,@0),1)*TMath::Power(1-TMath::Range(0.01,0.99,@0*%s),1)/(TMath::Power(1-%s,1))"
+rateParams["highSVJ2_2018"] = "TMath::Power(TMath::Range(0.01,0.99,@0),2)*TMath::Power(1-TMath::Range(0.01,0.99,@0*%s),0)/(TMath::Power(1-%s,0))"
+
+
+processes = ["QCD"]
+
 #ROOT.Math.MinimizerOptions.SetDefaultTolerance(1e-3); 
 #ROOT.Math.MinimizerOptions.SetDefaultPrecision(1e-8)
 #*****************************************************
@@ -38,7 +56,6 @@ ROOT.gStyle.SetPadColor(0)
 isData = True
 
 def getRate(ch, process, ifile):
-       #print(ch, process, ifile)
        hName = ch + "/"+ process
        h = ifile.Get(hName)
        #return h.Integral()
@@ -121,8 +138,8 @@ def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label
        residuals = frame.residHist(dataset.GetName(), model.GetName(), False, True) # this is y_i - f(x_i)
     
        roochi2 = frame.chiSquare(model.GetName(), dataset.GetName(),npar)#dataset.GetName(), model.GetName()) #model.GetName(), dataset.GetName()
-       print "forcing bins: 65"
-       nbins = 65
+       print "forcing bins: 130"
+       nbins = 130
        chi = roochi2 * ( nbins - npar)
        print "pls: ", chi,  nbins
        roopro = ROOT.TMath.Prob(chi, nbins - npar)
@@ -210,7 +227,7 @@ def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label
               line.SetLineWidth(2)
               line.Draw("same")
                             
-              c.SaveAs(carddir + "Residuals/Residuals_"+ch+"_"+name+"_log.pdf")              
+              c.SaveAs("Residuals_"+ch+"_"+name+"_log.pdf")              
               '''             
               c2 = ROOT.TCanvas("c2_"+ch+model.GetName(), ch, 800, 800)
               c2.cd()
@@ -329,7 +346,6 @@ def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label
               print(iPar)
               parValList.append((fitRes[0].floatParsFinal().at(iPar)).getValV())
        out = {"chiSquared":roochi2,"chi2" : chi2, "chi1" : chi1, "rss" : rss, "res" : res, "nbins" : hist.GetN(), "npar" : npar, "parVals": parValList}
-       #c.SaveAs(carddir + "/plots/Residuals_"+ch+"_"+name+".pdf")
        length=1
        if(length<2):
 
@@ -406,7 +422,7 @@ def getRSS(sig, ch, variable, model, dataset, fitRes, carddir,  norm = -1, label
               line2.Draw("same")
               frame.SetTitle("")
 
-              c2.SaveAs(carddir + "Residuals/Residuals_"+ch+"_"+name + "_ratio_log.pdf")
+              c2.SaveAs("Residuals_"+ch+"_"+name + "_ratio_log.pdf")
 
        return out
 
@@ -450,17 +466,19 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
 
 
        print "BIAS?", bias
-       workdir_ = ifilename.split("/")[:-1]
-       WORKDIR = "/".join(workdir_) + "/"
+       #workdir_ = ifilename.split("/")[:-1]
+       #WORKDIR = "/".join(workdir_) + "/"
        carddir = outdir+  sig + "/"
-       if not os.path.isdir(outdir): os.system('mkdir ' +outdir)
-       if not os.path.isdir(outdir + "/" + sig): os.system('mkdir ' +carddir) 
-       if not os.path.isdir(outdir + carddir + "plots/"): os.system('mkdir ' +carddir + "plots/") 
-       if not os.path.isdir(outdir + carddir + "Fisher/"): os.system('mkdir ' +carddir + "Fisher/") 
-       if not os.path.isdir(outdir + carddir + "Residuals/"): os.system('mkdir ' + carddir + "Residuals/") 
+       #if not os.path.isdir(outdir): os.system('mkdir ' +outdir)
+       #if not os.path.isdir(outdir + "/" + sig): os.system('mkdir ' +carddir) 
+       #if not os.path.isdir(outdir + carddir + "plots/"): os.system('mkdir ' +carddir + "plots/") 
+       #if not os.path.isdir(outdir + carddir + "Fisher/"): os.system('mkdir ' +carddir + "Fisher/") 
+       #if not os.path.isdir(outdir + carddir + "Residuals/"): os.system('mkdir ' + carddir + "Residuals/") 
 
        hist_filename = os.getcwd()+"/"+ifilename
        hist = getHist(ch, sig, ifile)
+
+       
 
 
        #*******************************************************#
@@ -483,6 +501,7 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
               xvarmin = 1500.
               xvarmax = 8000.
               mT = RooRealVar(  "mH",    "m_{T}", xvarmin, xvarmax, "GeV")
+              binMin = histData.FindBin(xvarmin)
               binMax = histData.FindBin(xvarmax)
               bkgData = RooDataHist("bkgdata", "MC Bkg",  RooArgList(mT), histBkgData, 1.)
               obsData = RooDataHist("data_obs", "Data",  RooArgList(mT), histData, 1.)
@@ -490,9 +509,9 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
               print "SUM ENTRIES: ", sigData.sumEntries()
               print "Bkg Integral: ", histData.Integral() 
               #nBkgEvts = histBkgData.Integral(1, histBkgData.GetXaxis().GetNbins()-1) 
-              nBkgEvts = histBkgData.Integral(1, binMax)
-              nDataEvts = histData.Integral(1, binMax)
-              nSigEvts = histSig.Integral(1, binMax)
+              nBkgEvts = histBkgData.Integral(binMin, binMax)
+              nDataEvts = histData.Integral(binMin, binMax)
+              nSigEvts = histSig.Integral(binMin, binMax)
 #              nBkgEvts = histData.Integral(1, histData.GetXaxis().GetNbins()-1)
 #              nDataEvts = histData.Integral(1, histData.GetXaxis().GetNbins()-1) 
               #print "Bkg Events: ", nBkgEvts
@@ -528,7 +547,7 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                      # model NM has N params on 1-x and M params on x. exponents are (p_i + p_{i+1} * log(x))
                      # these are the RooGenericPdf verisons, convert to RooParametricShapeBinPdf below
                      modelBkg1_rgp = RooGenericPdf(modelName+"1_rgp", "Thry. fit (01)", "pow(@0/13000, -@1)", RooArgList(mT, p1_1))
-                     modelBkg2_rgp = RooGenericPdf(modelName+"2_rgp", "Thry. fit (11)", "pow(1 - @0/13000, @2) *pow(@0/13000, -@1)", RooArgList(mT, p1_2, p2_2))
+                     modelBkg2_rgp = RooGenericPdf(modelName+"2_rgp", "Thry. fit (11)", "pow(1 - @0/13000, @2) * pow(@0/13000, -@1)", RooArgList(mT, p1_2, p2_2))
                      modelBkg3_rgp = RooGenericPdf(modelName+"3_rgp", "Thry. fit (12)", "pow(1 - @0/13000, @2) * pow(@0/13000, -@1-@3*log(@0/13000))", RooArgList(mT, p1_3, p2_3, p3_3))
                      modelBkg4_rgp = RooGenericPdf(modelName+"4_rgp", "Thry. fit (22)", "pow(1 - @0/13000, @2+@4*log(@0/13000)) * pow(@0/13000, -@1-@3*log(@0/13000))", RooArgList(mT, p1_4, p2_4, p3_4, p4_4))
 
@@ -543,7 +562,7 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                      fitRes1 = modelBkg1.fitTo(obsData, RooFit.Extended(True), RooFit.Save(1), RooFit.SumW2Error(True), RooFit.Strategy(2), RooFit.Minimizer("Minuit2"), RooFit.PrintLevel(2), RooFit.Range(fitrange))
                      fitRes2 = modelBkg2.fitTo(obsData, RooFit.Extended(True), RooFit.Save(1), RooFit.SumW2Error(True), RooFit.Strategy(2), RooFit.Minimizer("Minuit2"), RooFit.PrintLevel(2), RooFit.Range(fitrange))
                      fitRes3 = modelBkg3.fitTo(obsData, RooFit.Extended(True), RooFit.Save(1), RooFit.SumW2Error(True), RooFit.Strategy(2), RooFit.Minimizer("Minuit2"), RooFit.PrintLevel(2), RooFit.Range(fitrange))
-                     fitRes4 = modelBkg4.fitTo(obsData, RooFit.Extended(True), RooFit.Save(1), RooFit.SumW2Error(True), RooFit.Strategy(2), RooFit.Minimizer("Minuit2"), RooFit.PrintLevel(2), RooFit.Range(fitrange))
+                     fitRes4 = modelBkg4.fitTo(obsData, RooFit.Extended(True), RooFit.Save(1), RooFit.SumW2Error(True), RooFit.Strategy(2), RooFit.Minimizer("Minuit"), RooFit.PrintLevel(2), RooFit.Range(fitrange))
                      orderBkg = [len(fitRes1.floatParsFinal()),len(fitRes2.floatParsFinal()),len(fitRes3.floatParsFinal()),len(fitRes4.floatParsFinal())]
                      
                      xframe = mT.frame(ROOT.RooFit.Title("extended ML fit example"))
@@ -591,7 +610,7 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                      txt4.Draw()
 
                      c1.SetLogy()
-                     c1.SaveAs(carddir+"/plots/TestAfterFit_"+ch+".pdf")
+                     c1.SaveAs("TestAfterFit_"+ch+".pdf")
 
                      RSS[1] = getRSS(sig, ch, mT, modelBkg1, obsData,  [fitRes1], carddir, nDataEvts)
                      RSS[2] = getRSS(sig, ch, mT, modelBkg2, obsData,  [fitRes2], carddir, nDataEvts)
@@ -621,7 +640,7 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                             p3_3_alt = RooRealVar(ch_red + "_p3_3_alt", "p3", 1., -50., 50.)
                             p3_4_alt = RooRealVar(ch_red + "_p3_4_alt", "p3", 1., -50., 50.)
 
-                            p4_4_alt = RooRealVar(ch_red + "_p4_4_alt", "p4", 1., -50., 50.)  
+                            p4_4_alt = RooRealVar(ch_red + "_p4_4_alt", "p4", 1., -50., 50.) 
 
 
 
@@ -676,7 +695,7 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                                    xframeAlt.Draw()
 
                                    c2.SetLogy()
-                                   c2.SaveAs(carddir+"/plots/TestAfterFit_"+ch+"_Alt.pdf")
+                                   c2.SaveAs("TestAfterFit_"+ch+"_Alt.pdf")
 
 
 
@@ -687,7 +706,7 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                      #*******************************************************#
 
 
-                     ofile = open(carddir+"/Fisher/FisherTest_%s.txt"%(ch),"w")
+                     ofile = open("FisherTest_%s.txt"%(ch),"w")
                      report = "Results from Fisher Test for category %s \n" % (ch)
                      #{"chiSquared":roochi2,"chi2" : chi2, "chi1" : chi1, "rss" : rss, "res" : res, "nbins" : hist.GetN(), "npar" : npar}
                      report += "func\tchi2\trss\tnBins\tnPar \n"
@@ -775,7 +794,7 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                      if bias: 
                             print "Running in BIAS mode"
 
-                            ofile_alt = open(carddir+"/Fisher/FisherTest_alt_%s.txt"%(ch),"w")
+                            ofile_alt = open("FisherTest_alt_%s.txt"%(ch),"w")
                             report = "Results from Fisher Test on the alternative function for category %s \n" % (ch)
                             report += "func\tchi2\trss\tnBins\tnPar \n"
                             for i in range(1,len(RSS)+1):
@@ -860,8 +879,12 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
 
                             ofile_alt.write(report)
                             ofile_alt.close()
-                     #temporarily change to force order 2
-                     #order = 3
+                     #temporarily change order based on which ever one is higher
+                     if (order_alt > order):
+                            order = order_alt
+                     else:
+                            order_alt = order
+
                      if order==1:
                             modelBkg = modelBkg1#.Clone("Bkg")
                             #normzBkg = normzBkg2#.Clone("Bkg_norm")
@@ -890,9 +913,9 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                      if not w_.__nonzero__() :  w_ = RooWorkspace("BackgroundWS", "workspace")
                      else:  w_ =  wfile_.Get("BackgroundWS")
                      print "Storing ", modelName
-                     getattr(w_, "import")(modelBkg, RooFit.Rename(modelBkg.GetName()))
+                     getattr(w_, "import")(modelBkg, RooFit.Rename(modelBkg.GetName())) #Bkg func with optimal num Paras
 
-                     getattr(w_, "import")(obsData, RooFit.Rename("data_obs"))
+                     getattr(w_, "import")(obsData, RooFit.Rename("data_obs")) # data_obs histogram
 
 
                      if bias:
@@ -919,7 +942,7 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                                    exit()
                             modelAlt.SetName(modelAltName)
                             normAlt.SetName(modelAltName+"_norm")
-                            getattr(w_, "import")(modelAlt, RooFit.Rename(modelAlt.GetName()))
+                            getattr(w_, "import")(modelAlt, RooFit.Rename(modelAlt.GetName())) # Alt func with optimal num Paras
 
                      wstatus = w_.writeToFile(wsfilename, False)
 
@@ -970,6 +993,7 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                      pdfs.add(modelBkg)
                      pdfs.add(modelAlt)
                      roomultipdf = RooMultiPdf("roomultipdf", "All Pdfs", cat, pdfs)
+                     #normulti = RooRealVar("roomultipdf_norm", "Number of background events", nDataEvts, 0., 1.e6)
                      normulti = RooRealVar("roomultipdf_norm", "Number of background events", 1.0, 0., 1.e6)
 
               # create workspace
@@ -1094,8 +1118,10 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
 
 
        for sysName,sysValue  in syst.iteritems():
-
-              if(sysValue[0]=="lnN"): 
+              print(sysName, sysValue, "testSystematicValues")
+              if sysName == "lumi":
+                     card += "%-20s%-20s%-20s%-20s" % (sysName, sysValue[0], sysValue[2], "-")
+              elif(sysValue[0]=="lnN"): 
                      card += "%-20s%-20s" % (sysName, sysValue[0])
                      if(sysValue[1]=="all"and len(sysValue)>2):
                             if(mode == "template"): card += "%-20s" % (sysValue[2]) * (2)
@@ -1111,17 +1137,17 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
                             hsysNameDown = "_" + sysName + "DOWN" 
                                                         #print "Applying syst on ", sysValue[1]
                             if("sig" in sysValue[1]):
-                                   if len(sysValue) == 3: sigSys = sysValue[2]
-                                   elif(getRate(ch, sig, ifile) != 0.): sigSys = abs((getRate(ch, sig+hsysNameUp, ifile) - getRate(ch, sig+hsysNameDown, ifile))/ (2* getRate(ch, sig, ifile)))
+                                   if(getRate(ch, sig, ifile) != 0.): sigSys = abs((getRate(ch, sig+hsysNameUp, ifile) - getRate(ch, sig+hsysNameDown, ifile))/ (2* getRate(ch, sig, ifile)))
                                    else: sigSys = 1
                                    if(sigSys<1.and sigSys >0.): sigSys = sigSys + 1
                                    card += "%-20s" % (sigSys)
                             else:  card += "%-20s" % ("-")
                             for p in processes:
+                                   print(p, processes)
                                    if (p in sysValue[1]):
                                           if (getRate(ch, p, ifile) != 0.): bkgSys = abs((getRate(ch, p+hsysNameUp, ifile) - getRate(ch, p+hsysNameDown, ifile))/ (2* getRate(ch, p, ifile)) )
                                           else: bkgSys = 1
-                                          if(bkgSys<1.and bkgSys >0.): bkgSys = bkgSys + 1
+                                          if(bkgSys<1. and bkgSys >0.): bkgSys = bkgSys + 1
                                           card += "%-20s" % (bkgSys)
                                    else:  card += "%-20s" % ("-")
 
@@ -1173,6 +1199,7 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
 
               card += "\n"
        
+
        for par in parNames: card += "%-20s%-20s\n" % (par, "flatParam")
 
        #card += "SF            extArg     1 [0.75,1.25]\n"
@@ -1184,7 +1211,7 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
 
       # card += "\n"
 
-       outname =  "%s%s_%s_%s.txt" % (carddir, sig, ch, mode)
+       outname =  "%s_%s_%s.txt" % (sig, ch, mode)
        cardfile = open(outname, 'w')
        cardfile.write(card)
        cardfile.close()
@@ -1194,7 +1221,7 @@ def getCard(sig, ch, ifilename, outdir, doModelling, mode = "histo", bias = Fals
               card = card.replace(modelBkg.GetName(), "roomultipdf")
               card.replace("rate                                    %-20.6f%-20.6f\n" % (1, 1), "rate                                    %-20.6f%-20.6f\n" % (10, 1))
               card += "%-35s     discrete\n" % (pdf_index_string)
-              outname = "%s%s_%s_%s_bias.txt" % (carddir, sig, ch, mode)
+              outname = "%s_%s_%s_bias.txt" % (sig, ch, mode)
               cardfile = open(outname, 'w')
               cardfile.write(card)
               cardfile.close()

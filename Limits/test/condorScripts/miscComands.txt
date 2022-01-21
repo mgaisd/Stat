@@ -1,0 +1,67 @@
+
+#to recompile from CMSSW dir
+scramv1 b clean ; scramv1 b
+
+
+eosrm store/user/cfallon/CMSSW_10_2_13.tgz
+rm CMSSW_10_2_13.tgz
+
+
+
+# to create the tarball of CMSSW without unnessecary files
+tar --exclude-caches-all --exclude-vcs -zcf CMSSW_10_2_13.tgz CMSSW_10_2_13 --exclude="*.root" --exclude=tmp
+
+#move said tarball to eos space so that condor can access it
+xrdcp CMSSW_10_2_13.tgz root://cmseos.fnal.gov//store/user/cfallon
+
+# symlink condorScripts to condorSub dir
+lndir -silent -ignorelinks ../condorScripts .
+
+#copying from EOS to local
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/FisherTest_alt_lowCut_2018.txt ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/FisherTest_alt_lowSVJ2_2018.txt ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/FisherTest_alt_highCut_2018.txt ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/FisherTest_alt_highSVJ2_2018.txt ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/FisherTest_lowCut_2018.txt ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/FisherTest_lowSVJ2_2018.txt ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/FisherTest_highCut_2018.txt ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/FisherTest_highSVJ2_2018.txt ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/Residuals_highCut_2018_Bkg_Alt_highCut_20183_ratio_log.pdf ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/Residuals_highSVJ2_2018_Bkg_Alt_highSVJ2_20182_ratio_log.pdf ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/Residuals_lowCut_2018_Bkg_Alt_lowCut_20183_ratio_log.pdf ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/Residuals_lowSVJ2_2018_Bkg_Alt_lowSVJ2_20182_ratio_log.pdf ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/Residuals_highCut_2018_Bkg_highCut_20184_ratio_log.pdf ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/Residuals_highSVJ2_2018_Bkg_highSVJ2_20181_ratio_log.pdf ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/Residuals_lowCut_2018_Bkg_lowCut_20181_ratio_log.pdf ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_4Jan/SVJ_mZprime3100_mDark20_rinv03_alphapeak/Residuals_lowSVJ2_2018_Bkg_lowSVJ2_20181_ratio_log.pdf ./plots
+
+
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_aCrit07/FisherTest_alt_lowCut_2018.txt ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_aCrit07/FisherTest_alt_lowSVJ2_2018.txt ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_aCrit07/FisherTest_alt_highCut_2018.txt ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_aCrit07/FisherTest_alt_highSVJ2_2018.txt ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_aCrit07/FisherTest_lowCut_2018.txt ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_aCrit07/FisherTest_lowSVJ2_2018.txt ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_aCrit07/FisherTest_highCut_2018.txt ./plots
+xrdcp root://cmseos.fnal.gov//store/user/cfallon/datacards_aCrit07/FisherTest_highSVJ2_2018.txt ./plots
+
+
+xrdcp root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Datacards/fits/feb2/fitResults_highSVJ2.root root://cmseos.fnal.gov//store/user/cfallon/datacards_aCrit05_TSB/fitResults_highSVJ2.root
+xrdcp root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Datacards/fits/feb2/ws_allFits_highSVJ2.root root://cmseos.fnal.gov//store/user/cfallon/datacards_aCrit05_TSB/ws_allFits_highSVJ2.root
+xrdcp root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Datacards/fits/feb2/fitResults_highCut.root root://cmseos.fnal.gov//store/user/cfallon/datacards_aCrit05_TSB/fitResults_highCut.root
+xrdcp root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Datacards/fits/feb2/ws_allFits_highCut.root root://cmseos.fnal.gov//store/user/cfallon/datacards_aCrit05_TSB/ws_allFits_highCut.root
+xrdcp root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Datacards/fits/feb2/fitResults_lowSVJ2.root root://cmseos.fnal.gov//store/user/cfallon/datacards_aCrit05_TSB/fitResults_lowSVJ2.root
+xrdcp root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Datacards/fits/feb2/ws_allFits_lowSVJ2.root root://cmseos.fnal.gov//store/user/cfallon/datacards_aCrit05_TSB/ws_allFits_lowSVJ2.root
+xrdcp root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Datacards/fits/feb2/fitResults_lowCut.root root://cmseos.fnal.gov//store/user/cfallon/datacards_aCrit05_TSB/fitResults_lowCut.root
+xrdcp root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/Datacards/fits/feb2/ws_allFits_lowCut.root root://cmseos.fnal.gov//store/user/cfallon/datacards_aCrit05_TSB/ws_allFits_lowCut.root
+
+#annapaola's plotting scripts, run in datacard folders
+combine -M FitDiagnostics -d SVJ_mZprime2000_mDark20_rinv03_alphapeak_hist.txt  --minos all --robustFit=1 --saveWithUncertainties --cminDefaultMinimizerStrategy 0
+text2workspace.py  SVJ_mZprime2000_mDark20_rinv03_alphapeak_hist.txt
+ ../../../../../CombineHarvester/CombineTools/scripts/combineTool.py -M Impacts -d SVJ_mZprime2000_mDark20_rinv03_alphapeak_hist.root --doInitialFit --robustFit 1 -m 125
+../../../../../CombineHarvester/CombineTools/scripts/combineTool.py -M Impacts -d SVJ_mZprime2000_mDark20_rinv03_alphapeak_hist.root --robustFit 1 -m 125 --doFits
+../../../../../CombineHarvester/CombineTools/scripts/combineTool.py -M Impacts -d SVJ_mZprime2000_mDark20_rinv03_alphapeak_hist.root -o impacts.json -m 125
+../../../../../CombineHarvester/CombineTools/scripts/plotImpacts.py -i impacts.json  -o impacts
+
+
+

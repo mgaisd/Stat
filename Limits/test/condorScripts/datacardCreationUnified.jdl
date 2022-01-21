@@ -1,0 +1,36 @@
+universe = vanilla
+Executable = datacardCreationUnified.sh
+Should_Transfer_Files = YES
+WhenToTransferOutput = ON_EXIT
+Transfer_Input_Files = datacardCreationUnified.sh
+Output = SVJ_mZprime$(mZ)_mDark$(mD)_rinv$(rI)_alpha$(aD).stdout
+Error = SVJ_mZprime$(mZ)_mDark$(mD)_rinv$(rI)_alpha$(aD).stderr
+Log = SVJ_mZprime$(mZ)_mDark$(mD)_rinv$(rI)_alpha$(aD).log
+x509userproxy = $ENV(X509_USER_PROXY)
+mZ = 3000
+mD = 20
+rI = 03
+aD = peak
+s = Y
+Arguments = SVJ_mZprime$(mZ)_mDark$(mD)_rinv$(rI)_alpha$(aD)/ template $(mZ) $(md) $(rI) $(aD) $(s)
+Queue mZ, mD, rI, aD from (
+1500, 20, 03, peak
+1700, 20, 03, peak
+1900, 20, 03, peak
+2100, 20, 03, peak
+2300, 20, 03, peak
+2500, 20, 03, peak
+2700, 20, 03, peak
+2900, 20, 03, peak
+3100, 20, 03, peak
+3300, 20, 03, peak
+3500, 20, 03, peak
+3700, 20, 03, peak
+3900, 20, 03, peak
+4100, 20, 03, peak
+4300, 20, 03, peak
+4500, 20, 03, peak
+4700, 20, 03, peak
+4900, 20, 03, peak
+5100, 20, 03, peak
+)

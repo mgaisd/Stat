@@ -1,0 +1,18 @@
+#commands from AP
+
+combine -M FitDiagnostics -d SVJ_mZprime2000_mDark20_rinv03_alphapeak_hist.txt  --minos all --robustFit=1 --saveWithUncertainties --cminDefaultMinimizerStrategy 0
+
+
+text2workspace.py  SVJ_mZprime2000_mDark20_rinv03_alphapeak_hist.txt
+
+
+$CMSSW_BASE/src/CombineHarvester/CombineTools/scripts/combineTool.py -M Impacts -d SVJ_mZprime3100_mDark20_rinv03_alphapeak_highCut_2018_hist.root --doInitialFit --robustFit 1 -m 125
+
+
+$CMSSW_BASE/src/CombineHarvester/CombineTools/scripts/combineTool.py -M Impacts -d SVJ_mZprime3100_mDark20_rinv03_alphapeak_highCut_2018_hist.root --robustFit 1 -m 125 --doFits
+
+
+$CMSSW_BASE/src/CombineHarvester/CombineTools/scripts/combineTool.py -M Impacts -d SVJ_mZprime3100_mDark20_rinv03_alphapeak_highCut_2018_hist.root -o impacts.json -m 125
+
+
+$CMSSW_BASE/src/CombineHarvester/CombineTools/scripts/plotImpacts.py -i impacts.json  -o impacts
