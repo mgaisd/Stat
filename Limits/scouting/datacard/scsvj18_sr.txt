@@ -1,0 +1,14 @@
+imax   1   number of channels
+jmax   1   number of backgrounds
+kmax   *   number of systematics (automatic)
+--------------------------------------------
+shapes * * ./scsvj18_sr.root  $CHANNEL__$PROCESS__nominal  $CHANNEL__$PROCESS__$SYSTEMATIC
+--------------------------------------------
+bin                                            scsvj18_sr          
+observation                                    154150              
+--------------------------------------------
+bin                                            scsvj18_sr          scsvj18_sr          
+process                                        SVJ1200             QCD                 
+process                                        0                   1                   
+rate                                           73.0686             154201              
+--------------------------------------------
