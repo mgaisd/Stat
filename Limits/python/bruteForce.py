@@ -223,6 +223,9 @@ def bruteForce(info, data, initvals, npool, pmax, verbosity=1):
     # handle any failures, sort by chi2
     total = len(resultArgs)
     passedArgs = sorted([x for x in resultArgs if x is not None and (x["status"]==0 or x["status"]==1)], key = lambda x: x["chi2"])
+    #print(passedArgs)
+    #print("LALLALALALALALA")
+    #exit
     passed = len(passedArgs)
     if verbosity>=1: print("bruteForce result: {} out of {} succeeded in {:.2f} sec".format(passed,total,tstop-tstart))
 
