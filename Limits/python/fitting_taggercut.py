@@ -42,13 +42,12 @@ def getCard(sig, cat, ifilename):
        nDataEvts = histData.Integral(binMin, binMax)
        
        normBkg = RooRealVar("Bkg_"+cat.replace("XXX","QCD")+"_norm", "Number of background events", nBkgEvts, 0., 2.e6)
-       normData = RooRealVar("Data_"+cat.replace("XXX","data_obs")+"_norm", "Number of background events", nDataEvts, 0., 2.e6)
-       #cat_red = cat.replace("__XXX__nominal","")
+       normData = RooRealVar("Data_"+cat.replace("XXX","QCD")+"_norm", "Number of background events", nDataEvts, 0., 2.e6)
        modelName = "Bkg_"+cat.replace("XXX","QCD")
        modelAltName =  "Bkg_Alt_"+cat.replace("XXX","QCD")
 
-       lowerLimit = -200
-       upperLimit = 200
+       lowerLimit = -20
+       upperLimit = 150
 
        p1_1 = RooRealVar(cat.replace("__XXX__nominal","") + "_p1_1", "p1", 1., lowerLimit, upperLimit)
        p1_2 = RooRealVar(cat.replace("__XXX__nominal","") + "_p1_2", "p1", 1., lowerLimit, upperLimit)
@@ -101,8 +100,8 @@ def getCard(sig, cat, ifilename):
        normAlt = RooRealVar("Bkg_"+cat.replace("XXX","QCD")+"alt_norm", "Number of background events", nBkgEvts, 0., 2.e6)
        normData = RooRealVar("Data_"+cat.replace("XXX","QCD")+"alt_norm", "Number of background events", nDataEvts, 0., 2.e6)
 
-       lowAlt = -150
-       highAlt = 200
+       lowAlt = -100
+       highAlt = 150
 
 
        pdfsAlt = [
@@ -126,16 +125,16 @@ def getCard(sig, cat, ifilename):
                              VarInfo(cat.replace("__XXX__nominal","") + "_p2_3_alt", "p2", 1., lowAlt, highAlt, 0, "", False),
                              VarInfo(cat.replace("__XXX__nominal","") + "_p3_3_alt", "p3", 1., lowAlt, highAlt, 0, "", False),
                       ],
-               ),
-              PdfInfo(modelAltName+"4", "Alt. Fit 4par", "exp(@1*(@0/13000)) * pow(@0/13000,@2*(1+@3*log(@0/13000)*(1+@4*log(@0/13000))))", hist=histBkgData,
-                      x = varToInfo(mT, True),
-                      pars = [
-                             VarInfo(cat.replace("__XXX__nominal","") + "_p1_4_alt", "p1", 1., lowAlt, highAlt, 0, "", False),
-                             VarInfo(cat.replace("__XXX__nominal","") + "_p2_4_alt", "p2", 1., lowAlt, highAlt, 0, "", False),
-                             VarInfo(cat.replace("__XXX__nominal","") + "_p3_4_alt", "p3", 1., lowAlt, highAlt, 0, "", False),
-                             VarInfo(cat.replace("__XXX__nominal","") + "_p4_4_alt", "p4", 1., lowAlt, highAlt, 0, "", False),
-                      ],
-               )
+               )#,
+              #PdfInfo(modelAltName+"4", "Alt. Fit 4par", "exp(@1*(@0/13000)) * pow(@0/13000,@2*(1+@3*log(@0/13000)*(1+@4*log(@0/13000))))", hist=histBkgData,
+              #        x = varToInfo(mT, True),
+              #        pars = [
+              #               VarInfo(cat.replace("XXX","QCD") + "_p1_4_alt", "p1", 1., lowAlt, highAlt, 0, "", False),
+              #               VarInfo(cat.replace("XXX","QCD") + "_p2_4_alt", "p2", 1., lowAlt, highAlt, 0, "", False),
+              #               VarInfo(cat.replace("XXX","QCD") + "_p3_4_alt", "p3", 1., lowAlt, highAlt, 0, "", False),
+              #               VarInfo(cat.replace("XXX","QCD") + "_p4_4_alt", "p4", 1., lowAlt, highAlt, 0, "", False),
+              #        ],
+              # )
        ]
        modelAlt = []
        objsAlt = []

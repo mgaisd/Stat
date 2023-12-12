@@ -99,7 +99,9 @@ public:
 TString formExpr() { return _formExpr; }
 static TString getFormExpr(RooGenericPdf* pdf){ return ((RooGenericPdf2*)pdf)->formExpr(); }
 };""")
-
+    #print("KAKKKAKAALALA")
+    #print(pdf)
+    #print("LALALALALALAL")
     name = pdf.GetName()
     title = pdf.GetTitle()
     formula = str(r.RooGenericPdf2.getFormExpr(pdf.getPdf()))
@@ -282,6 +284,11 @@ def main(args):
     pdf = ws.pdf(args.pdf)
 
     # convert pdf back to info
+    #print("AHAHHJAHAHAH")
+    #print(args.pdf)
+    #print("-------------------")
+    #print(pdf)
+    #print("ALLKSAJDALJD")
     info = pdfToInfo(pdf)
 
     # convert gen pdf to histogram

@@ -7,10 +7,6 @@ import json
 #ftest.py - part I of separating ftests from datacard writing
 # this part will create a ws.root file containing the two histograms and two funcs as well as funcs' parameters
 
-#import matplotlib.pyplot as plt
-#import mplhep as hep
-#hep.style.use("CMS")
-#plt.rcParams.update({'font.size': 18})
 
 from ROOT import RooRealVar, RooDataHist, RooArgList, RooGenericPdf, RooBernstein, RooExtendPdf, RooCmdArg, RooWorkspace, RooFit, RooDataSet, RooArgSet, RooCategory, RooFitResult, RooCurve, RooParametricShapeBinPdf
 import os, sys
@@ -83,11 +79,10 @@ def getRSS(ch, variable, model, dataset, fitRes, carddir, doplots, norm = -1, la
        roopro = ROOT.TMath.Prob(chi2, nbins - npar)
 
        frame.SetMaximum(frame.GetMaximum()*10.)
-       frame.SetMinimum(0.1)
+       frame.SetMinimum(0.0)#(0.1)
        if(doplots):
 
               c = ROOT.TCanvas("c_"+ch+model.GetName(), ch, 800, 800)
-
               c.cd()
               pad1 = ROOT.TPad("pad1", "pad1", 0., 0.35, 1., 1.0)
               ROOT.SetOwnership(pad1, False)
@@ -168,8 +163,7 @@ def getRSS(ch, variable, model, dataset, fitRes, carddir, doplots, norm = -1, la
        ratioHist = ROOT.TH1F("RatioPlot", "Ratio Plot", hist.GetN(), xmin_, xmax_)
        ROOT.SetOwnership(ratioHist, False)
 
-       #ratiohist seems to be for the ratio plot, but rss is passed on to the next steps
-       for i in xrange(0, hist.GetN()): #index error because residuals.getY is 1 shorter than getN for some reason -> GetN()-1
+       for i in xrange(0, hist.GetN()): #index error because residuals.getY is 1 shorter than getN for some reason
               #print(i)
               #print(hist.GetN())
               #print(len(hist.GetX()))
@@ -201,11 +195,8 @@ def getRSS(ch, variable, model, dataset, fitRes, carddir, doplots, norm = -1, la
               parValList.append((fitRes[0].floatParsFinal().at(iPar)).getValV())
               parErrList.append((fitRes[0].floatParsFinal().at(iPar)).getError())
        out = {"chiSquared":roochi2,"chi2" : chi2, "rss" : rss, "nbins" : nbins, "npar" : npar, "parVals": parValList, "parErr":parErrList}
-
        '''
-       #ratioplot
        if(doplots):
-
               c2 = ROOT.TCanvas("c2_"+ch+model.GetName(), ch, 800, 800)
               c2.cd()
               pad1_2 = ROOT.TPad("pad1_2", "pad1_2", 0., 0.35, 1., 1.0)
@@ -383,7 +374,6 @@ def getCard(ch, useChi2 = False, doplots = True):
        wfile = ROOT.TFile.Open(wfilename)
        ws = wfile.Get("FitWS")
        ch = ch.replace("XXX", "QCD")
-       #ch = ch.replace("__XXX__nominal", "")
        print("channel", ch)
 
        carddir = ""
@@ -402,7 +392,7 @@ def getCard(ch, useChi2 = False, doplots = True):
        nDataEvts = obsData.sum(False)
        nFits = 4 
        modelName = "Bkg_"+ch
-       nFitsAlt = 4    
+       nFitsAlt = 3 #number    
        modelAltName =  "Bkg_Alt_"+ch
               
        
@@ -474,7 +464,7 @@ def getCard(ch, useChi2 = False, doplots = True):
               modelAlt[0].plotOn(xframeAlt, RooFit.Name("modelAlt1"), ROOT.RooFit.LineColor(ROOT.kPink))
               modelAlt[1].plotOn(xframeAlt, RooFit.Name("modelAlt2"), ROOT.RooFit.LineColor(ROOT.kBlue))
               modelAlt[2].plotOn(xframeAlt, RooFit.Name("modelAlt3"), ROOT.RooFit.LineColor(ROOT.kRed)) 
-              modelAlt[3].plotOn(xframeAlt, RooFit.Name("modelAlt4"), ROOT.RooFit.LineColor(ROOT.kGreen))
+              #modelAlt[3].plotOn(xframeAlt, RooFit.Name("modelAlt4"), ROOT.RooFit.LineColor(ROOT.kGreen))
               
               chi2s_alt = [xframeAlt.chiSquare("modelAlt{}".format(i+1), "obsData", i+1) for i in range(len(modelAlt))]
               
@@ -585,7 +575,7 @@ def getCard(ch, useChi2 = False, doplots = True):
        ofile.write(report)
        ofile.close()
 
-       #TEST FUNCTIONS
+       #ALT TEST FUNCTIONS
        print("Running in BIAS mode")
 
        ofile_alt = open("FisherTest_alt_%s.txt"%(ch),"w")
@@ -614,6 +604,20 @@ def getCard(ch, useChi2 = False, doplots = True):
                      RTDict_alt[str(o1)+"v"+str(o2)], FDict_alt[str(o1)+"v"+str(o2)] = fisherTest(RSS_alt[o1][qty], RSS_alt[o2][qty], RSS_alt[o1]['npar'], RSS_alt[o2]['npar'], RSS_alt[o2]["nbins"])
                      report += "%d par vs %d par: CL=%.5f F_t=%.5f\n" % (RSS_alt[o1]['npar'], RSS_alt[o2]['npar'], RTDict_alt[str(o1)+"v"+str(o2)], FDict_alt[str(o1)+"v"+str(o2)])
        
+       #for 3 functions
+       if RTDict_alt["{}v{}".format(RSS_alt[nParMin_alt]['npar'],RSS_alt[nParMin_alt+1]['npar'])] > aCrit:
+              if RTDict_alt["{}v{}".format(RSS_alt[nParMin_alt]['npar'],RSS_alt[nParMin_alt+2]['npar'])] > aCrit:
+                     order_alt = RSS_alt[RSS_alt[nParMin_alt]['npar']]['npar']
+              else:
+                     order_alt = RSS_alt[RSS_alt[nParMin_alt+2]['npar']]['npar']
+       else:
+              if RTDict_alt["{}v{}".format(RSS_alt[nParMin_alt+1]['npar'],RSS_alt[nParMin_alt+2]['npar'])] > aCrit:
+                     order_alt = RSS_alt[RSS_alt[nParMin_alt+1]['npar']]['npar']
+              else:
+                     order_alt = RSS_alt[RSS_alt[nParMin_alt+2]['npar']]['npar']
+
+       '''
+       #for 4 functions
        if RTDict_alt["{}v{}".format(RSS_alt[nParMin_alt]['npar'],RSS_alt[nParMin_alt+1]['npar'])] > aCrit:
               if RTDict_alt["{}v{}".format(RSS_alt[nParMin_alt]['npar'],RSS_alt[nParMin_alt+2]['npar'])] > aCrit:
                      if RTDict_alt["{}v{}".format(RSS_alt[nParMin_alt]['npar'],RSS_alt[nParMin_alt+3]['npar'])] > aCrit:
@@ -636,7 +640,7 @@ def getCard(ch, useChi2 = False, doplots = True):
                             order_alt = RSS_alt[RSS_alt[nParMin_alt+2]['npar']]['npar']
                      else:
                             order_alt = RSS_alt[RSS_alt[nParMin_alt+3]['npar']]['npar']
-       
+       '''
        '''
        #for only two functions
        if RTDict_alt["{}v{}".format(RSS_alt[nParMin_alt]['npar'],RSS_alt[nParMin_alt+1]['npar'])] > aCrit:
@@ -646,7 +650,7 @@ def getCard(ch, useChi2 = False, doplots = True):
        '''                     
        moreParFlag_alt = 0
        if order_alt == 0:
-              order_alt = 4
+              order_alt = 3 #4 (number of alt functions)
               moreParFlag_alt = 1
        print("\\hline")
        print("-"*25)
@@ -655,11 +659,11 @@ def getCard(ch, useChi2 = False, doplots = True):
        report += ("alt 1: " + ", ".join(['%.2f (%.2f)']*len(RSS_alt[nParMin_alt]["parVals"])) + "\n") % tuple(altMerge(RSS_alt[nParMin_alt]["parVals"],RSS_alt[nParMin_alt]["parErr"]))
        report += ("alt 2: " + ", ".join(['%.2f (%.2f)']*len(RSS_alt[nParMin_alt+1]["parVals"])) + "\n") % tuple(altMerge(RSS_alt[nParMin_alt+1]["parVals"],RSS_alt[nParMin_alt+1]["parErr"]))
        report += ("alt 3: " + ", ".join(['%.2f (%.2f)']*len(RSS_alt[nParMin_alt+2]["parVals"])) + "\n") % tuple(altMerge(RSS_alt[nParMin_alt+2]["parVals"],RSS_alt[nParMin_alt+2]["parErr"]))
-       report += ("alt 4: " + ", ".join(['%.2f (%.2f)']*len(RSS_alt[nParMin_alt+3]["parVals"])) + "\n") % tuple(altMerge(RSS_alt[nParMin_alt+3]["parVals"],RSS_alt[nParMin_alt+3]["parErr"]))
+       #report += ("alt 4: " + ", ".join(['%.2f (%.2f)']*len(RSS_alt[nParMin_alt+3]["parVals"])) + "\n") % tuple(altMerge(RSS_alt[nParMin_alt+3]["parVals"],RSS_alt[nParMin_alt+3]["parErr"]))
        report += "%d par are sufficient\n" % (RSS_alt[order_alt]['npar'])
        if moreParFlag_alt: report += "BUT really, more Pars are needed!"
        iPar, iPar_alt = nParMin, nParMin_alt
-       for i in range(1,5): #change based on number of alt functions (1,5) for 4
+       for i in range(1,4): #change based on number of alt functions (1,5) for 4
               #if iPar==3:continue
               report += "model%i chi2, chi2_alt: %.2f %.2f\n" % (i, RSS[iPar]['chiSquared'],RSS_alt[iPar_alt]['chiSquared'])
               iPar+=1
@@ -675,7 +679,7 @@ def getCard(ch, useChi2 = False, doplots = True):
                      print("Model Bkg Saved is", order)
                      break
        if modelBkgF is None:
-              print("Main functions with", RSS[nParMin+3]['npar']+1, "or more parameters are needed to fit the background")
+              print("Main functions with", RSS[nParMin+3]['npar']+1, "or more parameters are needed to fit the background") #number of parameters of last function
               #exit()
               modelBkgF = modelBkg[-1]
 
@@ -702,7 +706,7 @@ def getCard(ch, useChi2 = False, doplots = True):
                      print("Model Alt Saved is", order_alt)
                      break
        if modelAltF is None:
-              print("Alt functions with", RSS_alt[nParMin_alt+3]['npar']+1, "or more parameters are needed to fit the background")
+              print("Alt functions with", RSS_alt[nParMin_alt+2]['npar']+1, "or more parameters are needed to fit the background")
               #exit()
               modelAltF = modelAlt[-1]
        modelAltF.SetName(modelAltName)

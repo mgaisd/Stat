@@ -43,9 +43,9 @@ def getCard(sig, cat, ifilename):
        
        normBkg = RooRealVar("Bkg_"+cat.replace("XXX","QCD")+"_norm", "Number of background events", nBkgEvts, 0., 2.e6)
        normData = RooRealVar("Data_"+cat.replace("XXX","data_obs")+"_norm", "Number of background events", nDataEvts, 0., 2.e6)
-       #cat_red = cat.replace("__XXX__nominal","")
-       modelName = "Bkg_"+cat.replace("XXX","QCD")
-       modelAltName =  "Bkg_Alt_"+cat.replace("XXX","QCD")
+       cat_red = cat.replace("__XXX__nominal","")
+       modelName = "Bkg_"+cat_red
+       modelAltName =  "Bkg_Alt_"+cat_red
 
        lowerLimit = -200
        upperLimit = 200
@@ -98,8 +98,8 @@ def getCard(sig, cat, ifilename):
        #**********************************************************                                                                                                                            
        #                    ALTERNATIVE MODEL                    *                                                                                                                            
        #**********************************************************         
-       normAlt = RooRealVar("Bkg_"+cat.replace("XXX","QCD")+"alt_norm", "Number of background events", nBkgEvts, 0., 2.e6)
-       normData = RooRealVar("Data_"+cat.replace("XXX","QCD")+"alt_norm", "Number of background events", nDataEvts, 0., 2.e6)
+       normAlt = RooRealVar("Bkg_"+cat_red+"alt_norm", "Number of background events", nBkgEvts, 0., 2.e6)
+       normData = RooRealVar("Data_"+cat_red+"alt_norm", "Number of background events", nDataEvts, 0., 2.e6)
 
        lowAlt = -150
        highAlt = 200
