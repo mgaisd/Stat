@@ -38,7 +38,8 @@ ROOT.gStyle.SetPadColor(0)
 isData = True
 
 def getHist(ch, process, ifile):
-       hName = ch.replace("XXX",process)
+       #hName = ch.replace("XXX",process)
+       hName = ch+"__"+process+"__nominal"
        print(hName)
        h = ifile.Get(hName)
        h.SetDirectory(0)
@@ -382,7 +383,7 @@ def getCard(ch, useChi2 = False, doplots = True):
        print("Opening file ", wfilename)
        wfile = ROOT.TFile.Open(wfilename)
        ws = wfile.Get("FitWS")
-       ch = ch.replace("XXX", "QCD")
+       #ch = ch.replace("XXX", "QCD")
        #ch = ch.replace("__XXX__nominal", "")
        print("channel", ch)
 

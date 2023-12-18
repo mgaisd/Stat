@@ -12,9 +12,10 @@ def get_param_names(ws, region, fn):
     subprocess.call("rm -f tmp.txt",shell=True)
     while v:
         vname = v.GetName()
-        subprocess.call("echo XXXX >> tmp.txt",shell=True)
+        #subprocess.call("echo XXXX >> tmp.txt",shell=True)
         subprocess.call("echo %s >> tmp.txt"%vname,shell=True)
         if vname.startswith(region) and ((fn==0 and "alt" not in vname) or (fn==1 and "alt" in vname)):
+            subprocess.call("echo '  saved' >> tmp.txt",shell=True)
             names.append(vname)
         v = iter.Next()
     subprocess.call("echo ------------ >> tmp.txt",shell=True)

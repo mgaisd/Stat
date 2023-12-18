@@ -59,12 +59,16 @@ processes = ["QCD"]
 isData = True
 
 def getRate(ch, process, ifile):
-       hName = ch.replace("XXX",process)
+       #hName = ch.replace("XXX",process)
+       #hName = ch+"__"+process+"__nominal"
+       hName = "scsvj18_sr__QCD__nominal"
        h = ifile.Get(hName)
        return h.Integral(1,h.GetXaxis().GetNbins()-1)
 
 def getHist(ch, process, ifile):
-       hName = ch.replace("XXX",process)
+       #hName = ch.replace("XXX",process)
+       #hName = ch+"__"+process+"__nominal"
+       hName = "scsvj18_sr__QCD__nominal"
        print("Histo Name ", hName)
        h = ifile.Get(hName)
        h.SetDirectory(0)
@@ -85,7 +89,7 @@ def getCard(sig, ch, ifilename, mode = "histo", doSys = True):
 
        hist_filename = os.getcwd()+"/"+ifilename
        hist = getHist(ch, sig, ifile)
-       ch_qcd = ch.replace("XXX","QCD")
+       ch_qcd = ch#.replace("XXX","QCD")
        print("channel", ch)
        
 

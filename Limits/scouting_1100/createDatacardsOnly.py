@@ -50,7 +50,8 @@ bins = []
 
 for y in years:
     for c in channels:
-        bins.append("scsvj"+y+"_"+c+"__XXX"+"__nominal")
+        #bins.append("scsvj"+y+"_"+c+"__XXX"+"__nominal")
+        bins.append("scsvj"+y+"_"+c)
 print(bins)    
 
 #cmd = "rm ws.root"

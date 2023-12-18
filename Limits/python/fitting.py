@@ -15,7 +15,8 @@ mopt.SetMaxFunctionCalls(100000)
 mopt.SetMaxIterations(100000)
 
 def getHist(ch, process, ifile):
-       hName = ch.replace("XXX",process)
+       #hName = ch.replace("XXX",process)
+       hName = ch+"__"+process+"__nominal"
        print(hName)
        h = ifile.Get(hName)
        h.SetDirectory(0)
@@ -33,7 +34,7 @@ def getCard(sig, cat, ifilename):
 
        xvarmin = 720.
        xvarmax = 1700.
-       mT = RooRealVar("mH"+cat.replace("XXX","QCD"),"m_{T}",xvarmin,xvarmax,"GeV")
+       mT = RooRealVar("mH"+cat,"m_{T}",xvarmin,xvarmax,"GeV")
        binMin = histData.FindBin(xvarmin)
        binMax = histData.FindBin(xvarmax)
        obsData = RooDataHist("data_obs","Data",RooArgList(mT),histData,1.)
@@ -41,33 +42,32 @@ def getCard(sig, cat, ifilename):
        nBkgEvts = histBkgData.Integral(binMin, binMax)
        nDataEvts = histData.Integral(binMin, binMax)
        
-       normBkg = RooRealVar("Bkg_"+cat.replace("XXX","QCD")+"_norm", "Number of background events", nBkgEvts, 0., 2.e6)
-       normData = RooRealVar("Data_"+cat.replace("XXX","data_obs")+"_norm", "Number of background events", nDataEvts, 0., 2.e6)
-       #cat_red = cat.replace("__XXX__nominal","")
-       modelName = "Bkg_"+cat.replace("XXX","QCD")
-       modelAltName =  "Bkg_Alt_"+cat.replace("XXX","QCD")
+       normBkg = RooRealVar("Bkg_"+cat+"_norm", "Number of background events", nBkgEvts, 0., 2.e6)
+       normData = RooRealVar("Data_"+cat+"_norm", "Number of background events", nDataEvts, 0., 2.e6)
+       modelName = "Bkg_"+cat
+       modelAltName =  "Bkg_Alt_"+cat
 
        lowerLimit = -200
        upperLimit = 200
 
-       p1_1 = RooRealVar(cat.replace("__XXX__nominal","") + "_p1_1", "p1", 1., lowerLimit, upperLimit)
-       p1_2 = RooRealVar(cat.replace("__XXX__nominal","") + "_p1_2", "p1", 1., lowerLimit, upperLimit)
-       p1_3 = RooRealVar(cat.replace("__XXX__nominal","") + "_p1_3", "p1", 1., lowerLimit, upperLimit)
-       p1_4 = RooRealVar(cat.replace("__XXX__nominal","") + "_p1_4", "p1", 1., lowerLimit, upperLimit)
+       p1_1 = RooRealVar(cat + "_p1_1", "p1", 1., lowerLimit, upperLimit)
+       p1_2 = RooRealVar(cat + "_p1_2", "p1", 1., lowerLimit, upperLimit)
+       p1_3 = RooRealVar(cat + "_p1_3", "p1", 1., lowerLimit, upperLimit)
+       p1_4 = RooRealVar(cat + "_p1_4", "p1", 1., lowerLimit, upperLimit)
 
-       p2_1 = RooRealVar(cat.replace("__XXX__nominal","") + "_p2_1", "p2", 1., lowerLimit, upperLimit)
-       p2_2 = RooRealVar(cat.replace("__XXX__nominal","") + "_p2_2", "p2", 1., lowerLimit, upperLimit)
-       p2_3 = RooRealVar(cat.replace("__XXX__nominal","") + "_p2_3", "p2", 1., lowerLimit, upperLimit)
-       p2_4 = RooRealVar(cat.replace("__XXX__nominal","") + "_p2_4", "p2", 1., lowerLimit, upperLimit)
+       p2_1 = RooRealVar(cat + "_p2_1", "p2", 1., lowerLimit, upperLimit)
+       p2_2 = RooRealVar(cat + "_p2_2", "p2", 1., lowerLimit, upperLimit)
+       p2_3 = RooRealVar(cat + "_p2_3", "p2", 1., lowerLimit, upperLimit)
+       p2_4 = RooRealVar(cat + "_p2_4", "p2", 1., lowerLimit, upperLimit)
        
-       p3_2 = RooRealVar(cat.replace("__XXX__nominal","") + "_p3_2", "p3", 1., lowerLimit, upperLimit)
-       p3_3 = RooRealVar(cat.replace("__XXX__nominal","") + "_p3_3", "p3", 1., lowerLimit, upperLimit)
-       p3_4 = RooRealVar(cat.replace("__XXX__nominal","") + "_p3_4", "p3", 1., lowerLimit, upperLimit)
+       p3_2 = RooRealVar(cat + "_p3_2", "p3", 1., lowerLimit, upperLimit)
+       p3_3 = RooRealVar(cat + "_p3_3", "p3", 1., lowerLimit, upperLimit)
+       p3_4 = RooRealVar(cat + "_p3_4", "p3", 1., lowerLimit, upperLimit)
        
-       p4_3 = RooRealVar(cat.replace("__XXX__nominal","") + "_p4_3", "p4", 1., lowerLimit, upperLimit)
-       p4_4 = RooRealVar(cat.replace("__XXX__nominal","") + "_p4_4", "p4", 1., lowerLimit, upperLimit)
+       p4_3 = RooRealVar(cat + "_p4_3", "p4", 1., lowerLimit, upperLimit)
+       p4_4 = RooRealVar(cat + "_p4_4", "p4", 1., lowerLimit, upperLimit)
        
-       p5_4 = RooRealVar(cat.replace("__XXX__nominal","") + "_p5_4", "p5", 1., lowerLimit, upperLimit)
+       p5_4 = RooRealVar(cat + "_p5_4", "p5", 1., lowerLimit, upperLimit)
 
 
        modelBkg1_rgp = RooGenericPdf(modelName+"1_rgp", "Thry. fit (11)", "pow(1 - @0/13000, @1) * pow(@0/13000, -(@2))", RooArgList(mT, p1_1, p2_1))
@@ -98,8 +98,8 @@ def getCard(sig, cat, ifilename):
        #**********************************************************                                                                                                                            
        #                    ALTERNATIVE MODEL                    *                                                                                                                            
        #**********************************************************         
-       normAlt = RooRealVar("Bkg_"+cat.replace("XXX","QCD")+"alt_norm", "Number of background events", nBkgEvts, 0., 2.e6)
-       normData = RooRealVar("Data_"+cat.replace("XXX","QCD")+"alt_norm", "Number of background events", nDataEvts, 0., 2.e6)
+       normAlt = RooRealVar("Bkg_"+cat+"alt_norm", "Number of background events", nBkgEvts, 0., 2.e6)
+       normData = RooRealVar("Data_"+cat+"alt_norm", "Number of background events", nDataEvts, 0., 2.e6)
 
        lowAlt = -150
        highAlt = 200
@@ -109,31 +109,31 @@ def getCard(sig, cat, ifilename):
               PdfInfo(modelAltName+"1", "Alt. Fit 1par", "exp(@1*(@0/13000))", hist=histBkgData,
                       x = varToInfo(mT, True),
                       pars = [
-                             VarInfo(cat.replace("__XXX__nominal","") + "_p1_1_alt", "p1", 1., lowAlt, highAlt, 0, "", False),
+                             VarInfo(cat + "_p1_1_alt", "p1", 1., lowAlt, highAlt, 0, "", False),
                       ],
                ),
               PdfInfo(modelAltName+"2", "Alt. Fit 2par", "exp(@1*(@0/13000)) * pow(@0/13000,@2)", hist=histBkgData,
                       x = varToInfo(mT, True),
                       pars = [
-                             VarInfo(cat.replace("__XXX__nominal","") + "_p1_2_alt", "p1", 1., lowAlt, highAlt, 0, "", False),
-                             VarInfo(cat.replace("__XXX__nominal","") + "_p2_2_alt", "p2", 1., lowAlt, highAlt, 0, "", False),
+                             VarInfo(cat + "_p1_2_alt", "p1", 1., lowAlt, highAlt, 0, "", False),
+                             VarInfo(cat + "_p2_2_alt", "p2", 1., lowAlt, highAlt, 0, "", False),
                       ],
                ),
               PdfInfo(modelAltName+"3", "Alt. Fit 3par", "exp(@1*(@0/13000)) * pow(@0/13000,@2*(1+@3*log(@0/13000)))", hist=histBkgData,
                       x = varToInfo(mT, True),
                       pars = [
-                             VarInfo(cat.replace("__XXX__nominal","") + "_p1_3_alt", "p1", 1., lowAlt, highAlt, 0, "", False),
-                             VarInfo(cat.replace("__XXX__nominal","") + "_p2_3_alt", "p2", 1., lowAlt, highAlt, 0, "", False),
-                             VarInfo(cat.replace("__XXX__nominal","") + "_p3_3_alt", "p3", 1., lowAlt, highAlt, 0, "", False),
+                             VarInfo(cat + "_p1_3_alt", "p1", 1., lowAlt, highAlt, 0, "", False),
+                             VarInfo(cat + "_p2_3_alt", "p2", 1., lowAlt, highAlt, 0, "", False),
+                             VarInfo(cat + "_p3_3_alt", "p3", 1., lowAlt, highAlt, 0, "", False),
                       ],
                ),
               PdfInfo(modelAltName+"4", "Alt. Fit 4par", "exp(@1*(@0/13000)) * pow(@0/13000,@2*(1+@3*log(@0/13000)*(1+@4*log(@0/13000))))", hist=histBkgData,
                       x = varToInfo(mT, True),
                       pars = [
-                             VarInfo(cat.replace("__XXX__nominal","") + "_p1_4_alt", "p1", 1., lowAlt, highAlt, 0, "", False),
-                             VarInfo(cat.replace("__XXX__nominal","") + "_p2_4_alt", "p2", 1., lowAlt, highAlt, 0, "", False),
-                             VarInfo(cat.replace("__XXX__nominal","") + "_p3_4_alt", "p3", 1., lowAlt, highAlt, 0, "", False),
-                             VarInfo(cat.replace("__XXX__nominal","") + "_p4_4_alt", "p4", 1., lowAlt, highAlt, 0, "", False),
+                             VarInfo(cat + "_p1_4_alt", "p1", 1., lowAlt, highAlt, 0, "", False),
+                             VarInfo(cat + "_p2_4_alt", "p2", 1., lowAlt, highAlt, 0, "", False),
+                             VarInfo(cat + "_p3_4_alt", "p3", 1., lowAlt, highAlt, 0, "", False),
+                             VarInfo(cat + "_p4_4_alt", "p4", 1., lowAlt, highAlt, 0, "", False),
                       ],
                )
        ]
@@ -151,22 +151,23 @@ def getCard(sig, cat, ifilename):
               objsAlt.append(otmp)
               fitResAlt.append(ftmp)
 
-              #*******************************************************#                                                                                                                                                  #                                                       #                                                                                                                                    
-              #                  Saving RooWorkspace                  #                                                                                                                                    
-              #                                                       #                                                                                                                                    
-              #*******************************************************#                                                                                                                                     
+       #*******************************************************#                                                                                                                                                
+       #                                                       #                                                                                                                                    
+       #                  Saving RooWorkspace                  #                                                                                                                                    
+       #                                                       #                                                                                                                                    
+       #*******************************************************#                                                                                                                                     
 
-              rfilename = "fitResults.root"
-              rfile_ = ROOT.TFile.Open(rfilename, "RECREATE")
-              w_ = RooWorkspace("FitWS", "workspace")
-              getattr(w_, "import")(obsData)
-              for i in range(len(modelBkg)):
-                     getattr(w_, "import")(modelBkg[i])
-                     fitRes[i].Write()
-              for i in range(len(modelAlt)):
-                     getattr(w_, "import")(modelAlt[i])
-                     fitResAlt[i].Write()
-              rfile_.Close()
+       rfilename = "fitResults.root"
+       rfile_ = ROOT.TFile.Open(rfilename, "RECREATE")
+       w_ = RooWorkspace("FitWS", "workspace")
+       getattr(w_, "import")(obsData)
+       for i in range(len(modelBkg)):
+              getattr(w_, "import")(modelBkg[i])
+              fitRes[i].Write()
+       for i in range(len(modelAlt)):
+              getattr(w_, "import")(modelAlt[i])
+              fitResAlt[i].Write()
+       rfile_.Close()
 
-              wsfilename = "ws_allFits.root"
-              wstatus = w_.writeToFile(wsfilename, True)
+       wsfilename = "ws_allFits.root"
+       wstatus = w_.writeToFile(wsfilename, True)
